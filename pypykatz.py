@@ -86,8 +86,8 @@ if __name__ == '__main__':
 	mimi.start()
 	
 	if args.json:
-		for session in mimi.logon_sessions
-		print(session.to_json())
+		for luid in mimi.logon_sessions:
+		print(mimi.logon_sessions[luid].to_json())
 	else:
 		for luid in mimi.logon_sessions:
 			print(str(mimi.logon_sessions[luid]))
