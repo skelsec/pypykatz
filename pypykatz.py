@@ -87,7 +87,7 @@ if __name__ == '__main__':
 	
 	if args.json:
 		for luid in mimi.logon_sessions:
-		print(mimi.logon_sessions[luid].to_json())
+			print(mimi.logon_sessions[luid].to_json())
 	else:
 		for luid in mimi.logon_sessions:
 			print(str(mimi.logon_sessions[luid]))
