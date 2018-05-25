@@ -13,3 +13,14 @@ Most of my big python projects are aiming for maximum protability, meaning I onl
 As of this point only one additional package is used, and I intend to keep it this way.
   
 [minidump](https://github.com/skelsec/minidump)
+
+# Kudos
+Benjamin DELPY @gentilkiwi for [Mimikatz](https://github.com/gentilkiwi/mimikatz)  
+  
+## Crypto
+Richard Moore for the [AES module](https://github.com/ricmoo/pyaes/blob/master/pyaes/aes.py)  
+Todd Whiteman for teh [DES module](http://twhiteman.netfirms.com/des.html)  
+  
+## Utils
+David Buxton for the timestamp conversion script  
+
