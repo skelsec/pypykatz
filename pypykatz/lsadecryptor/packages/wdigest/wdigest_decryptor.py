@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
 import io
 import logging
 from pypykatz.lsadecryptor.packages.wdigest.wdigest_templates import *
