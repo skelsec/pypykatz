@@ -109,7 +109,11 @@ class WdigestDecryptor():
 				break
 	
 	def start(self):
-		entry_ptr_value, entry_ptr_loc = self.find_first_entry()
+		try:
+			entry_ptr_value, entry_ptr_loc = self.find_first_entry()
+		except Exception as e:
+			logging.log(1,'Failed to find Wdigest structs! Reason: %s' % e)
+			return
 		self.reader.move(entry_ptr_loc)
 		entry_ptr = self.decryptor_template.list_entry(self.reader)
 		self.walk_list(entry_ptr, entry_ptr_loc, self.add_entry)

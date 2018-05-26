@@ -35,6 +35,7 @@ class pypykatz():
 		self.set_system_info()
 		
 		self.logon_sessions = None
+		self.orphaned_creds = []
 		
 	def set_system_info(self):
 		if self.minidump.sysinfo.ProcessorArchitecture == PROCESSOR_ARCHITECTURE.AMD64:
@@ -62,8 +63,11 @@ class pypykatz():
 		wdigest_dec = WdigestDecryptor(self.reader,wdigest_dec_template, self.lsa_decryptor)
 		wdigest_dec.start()
 		for cred in wdigest_dec.credentials:
-			self.logon_sessions[cred.luid].wdigest_creds.append(cred)
-
+			if cred.luid in self.logon_sessions:
+				self.logon_sessions[cred.luid].wdigest_creds.append(cred)
+			else:
+				self.orphaned_creds.append(cred)
+				
 	def start(self):
 		self.lsa_decryptor = self.get_lsa()
 		self.get_logoncreds()
@@ -97,3 +101,7 @@ if __name__ == '__main__':
 	else:
 		for luid in mimi.logon_sessions:
 			print(str(mimi.logon_sessions[luid]))
+			
+		print('== Orphaned credentials ==')
+		for cred in mimi.orphaned_creds:
+			print(str(cred))
