@@ -57,7 +57,13 @@ class pypykatz():
 		self.buildnumber = self.minidump.sysinfo.BuildNumber
 		
 	def get_logoncreds(self):
-		template = LOGON_SESSION_DECRYPTOR_TEMPLATE(self.buildnumber, self.architecture).get_template()
+		#extra info needed here!
+		module_build_time = 0
+		for module in self.minidump.modules.modules:
+			if module.name.find('lsasrv.dll') != -1:
+				module_build_time = module.timestamp
+	
+		template = LOGON_SESSION_DECRYPTOR_TEMPLATE(self.buildnumber, self.architecture, module_build_time).get_template()
 		logoncred_decryptor = LogonCredDecryptor(self.reader, template, self.lsa_decryptor)
 		logoncred_decryptor.start()
 		self.logon_sessions = logoncred_decryptor.logon_sessions

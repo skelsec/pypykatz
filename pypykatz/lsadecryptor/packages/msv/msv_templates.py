@@ -23,9 +23,10 @@ class LogonSessionDecryptorTemplate:
 		
 
 class LOGON_SESSION_DECRYPTOR_TEMPLATE:
-	def __init__(self, buildnumber, arch):
+	def __init__(self, buildnumber, arch, msv_dll_timestamp):
 		self.buildnumber = buildnumber
 		self.arch = arch
+		self.msv_dll_timestamp = msv_dll_timestamp
 		
 	def get_session_list_template(self):
 		#identify credential session list structure to be used
@@ -39,15 +40,19 @@ class LOGON_SESSION_DECRYPTOR_TEMPLATE:
 			template = PKIWI_MSV1_0_LIST_60
 		
 		elif self.buildnumber < WindowsMinBuild.WIN_8.value:
-			template = PKIWI_MSV1_0_LIST_61		
+			#do not do that :)
+			if self.msv_dll_timestamp >  0x53480000:
+				template = PKIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ
+			else:
+				template = PKIWI_MSV1_0_LIST_61	
+		
 		elif self.buildnumber < WindowsMinBuild.WIN_BLUE.value:
 			template = PKIWI_MSV1_0_LIST_62
 		
 		else:
 			template = PKIWI_MSV1_0_LIST_63
 				
-		if WindowsMinBuild.WIN_7.value <= self.buildnumber <= WindowsMinBuild.WIN_8.value and False: #msv_package.Module.Informations.TimeDateStamp > 0x53480000
-			template = PKIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ				
+		
 		return template
 	
 	def get_primary_credential_template(self):
@@ -414,10 +419,12 @@ class KIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ:
 		self.Blink = PKIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ(reader)
 		self.unk0 = PVOID(reader).value
 		self.unk1 = ULONG(reader).value
+		reader.align()
 		self.unk2 = PVOID(reader).value
 		self.unk3 = ULONG(reader).value
 		self.unk4 = ULONG(reader).value
 		self.unk5 = ULONG(reader).value
+		reader.align()
 		self.hSemaphore6 = HANDLE(reader).value
 		self.unk7 = PVOID(reader).value
 		self.hSemaphore8 = HANDLE(reader).value
@@ -429,6 +436,7 @@ class KIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ:
 		self.LocallyUniqueIdentifier = LUID(reader).value
 		self.SecondaryLocallyUniqueIdentifier = LUID(reader).value
 		self.waza = reader.read(12)
+		reader.align()
 		self.UserName = LSA_UNICODE_STRING(reader)
 		self.Domaine = LSA_UNICODE_STRING(reader)
 		self.unk14 = PVOID(reader).value
@@ -444,6 +452,7 @@ class KIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ:
 		self.unk20 = PVOID(reader).value
 		self.unk21 = PVOID(reader).value
 		self.unk22 = ULONG(reader).value
+		reader.align()
 		self.CredentialManager = PVOID(reader).value
 
 class PKIWI_MSV1_0_LIST_62(POINTER):

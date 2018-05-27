@@ -39,7 +39,8 @@ class LsaDecryptor():
 		
 	def find_signature(self):
 		logging.log(1, '[LsaDecryptor] Looking for main struct signature in memory...')
-		fl = self.reader.find_all_global(self.decryptor_template.key_pattern.signature)
+		fl = self.reader.find_in_module('lsasrv.dll', self.decryptor_template.key_pattern.signature)
+		#fl = self.reader.find_all_global(self.decryptor_template.key_pattern.signature)
 		if len(fl) == 0:
 			logging.warning('[LsaDecryptor] signature not found! %s' % self.decryptor_template.key_pattern.signature.hex())
 			raise Exception('LSA signature not found!')
