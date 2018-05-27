@@ -235,7 +235,7 @@ def hexdump( src, length=16, sep='.', start = 0):
 		if start == 0:
 			result.append(('%08x:  %-'+str(length*(2+1)+1)+'s  |%s|') % (i, hexa, text));
 		else:
-			result.append(('%08x+%04x:  %-'+str(length*(2+1)+1)+'s  |%s|') % (start, i, hexa, text));
+			result.append(('%08x(+%04x):  %-'+str(length*(2+1)+1)+'s  |%s|') % (start+i, i, hexa, text));
 	return '\n'.join(result);
 	
 class UniversalEncoder(json.JSONEncoder):

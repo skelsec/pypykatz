@@ -18,8 +18,18 @@ from pypykatz.lsadecryptor.lsa_decryptor import *
 from pypykatz.lsadecryptor.lsa_templates import *
 from pypykatz.lsadecryptor.packages.wdigest.wdigest_decryptor import *
 from pypykatz.lsadecryptor.packages.wdigest.wdigest_templates import *
+from pypykatz.lsadecryptor.packages.tspkg.tspkg_decryptor import *
+from pypykatz.lsadecryptor.packages.tspkg.tspkg_templates import *
+from pypykatz.lsadecryptor.packages.ssp.decryptor import *
+from pypykatz.lsadecryptor.packages.ssp.templates import *
+from pypykatz.lsadecryptor.packages.livessp.decryptor import *
+from pypykatz.lsadecryptor.packages.livessp.templates import *
+from pypykatz.lsadecryptor.packages.dpapi.decryptor import *
+from pypykatz.lsadecryptor.packages.dpapi.templates import *
 from pypykatz.lsadecryptor.packages.msv.msv_decryptor import * 
 from pypykatz.lsadecryptor.packages.msv.msv_templates import * 
+from pypykatz.lsadecryptor.packages.kerberos.kerberos_templates import * 
+from pypykatz.lsadecryptor.packages.kerberos.kerberos_decryptor import * 
 
 
 class pypykatz():
@@ -67,12 +77,61 @@ class pypykatz():
 				self.logon_sessions[cred.luid].wdigest_creds.append(cred)
 			else:
 				self.orphaned_creds.append(cred)
+	
+	def get_tspkg(self):
+		tspkg_dec_template = TSPKG_DECRYPTOR_TEMPLATE(self.architecture, self.buildnumber).get_template()
+		tspkg_dec = TspkgDecryptor(self.reader,tspkg_dec_template, self.lsa_decryptor)
+		tspkg_dec.start()
+		for cred in tspkg_dec.credentials:
+			if cred.luid in self.logon_sessions:
+				self.logon_sessions[cred.luid].tspkg_creds.append(cred)
+			else:
+				self.orphaned_creds.append(cred)
 				
+	def get_ssp(self):
+		ssp_dec_template = SSP_DECRYPTOR_TEMPLATE(self.architecture, self.buildnumber).get_template()
+		ssp_dec = SspDecryptor(self.reader, ssp_dec_template, self.lsa_decryptor)
+		ssp_dec.start()
+		for cred in ssp_dec.credentials:
+			if cred.luid in self.logon_sessions:
+				self.logon_sessions[cred.luid].ssp_creds.append(cred)
+			else:
+				self.orphaned_creds.append(cred)
+				
+	def get_livessp(self):
+		livessp_dec_template = LIVESSP_DECRYPTOR_TEMPLATE(self.architecture, self.buildnumber).get_template()
+		livessp_dec = LiveSspDecryptor(self.reader, livessp_dec_template, self.lsa_decryptor)
+		livessp_dec.start()
+		for cred in livessp_dec.credentials:
+			if cred.luid in self.logon_sessions:
+				self.logon_sessions[cred.luid].livessp_creds.append(cred)
+			else:
+				self.orphaned_creds.append(cred)
+				
+	def get_dpapi(self):
+		dpapi_dec_template = DPAPI_DECRYPTOR_TEMPLATE(self.architecture, self.buildnumber).get_template()
+		dpapi_dec = DpapiDecryptor(self.reader, dpapi_dec_template, self.lsa_decryptor)
+		dpapi_dec.start()
+		for cred in dpapi_dec.credentials:
+			if cred.luid in self.logon_sessions:
+				self.logon_sessions[cred.luid].dpapi_creds.append(cred)
+			else:
+				self.orphaned_creds.append(cred)
+	
+	def get_kerberos(self):
+		kerberos_dec_template = KERBEROS_DECRYPTOR_TEMPLATE(self.architecture, self.buildnumber).get_template()
+		kerberos_dec = KerberosDecryptor(self.reader,kerberos_dec_template, self.lsa_decryptor)
+		kerberos_dec.start()			
+	
 	def start(self):
 		self.lsa_decryptor = self.get_lsa()
 		self.get_logoncreds()
 		self.get_wdigest()
-		
+		#self.get_kerberos()
+		#self.get_tspkg()
+		#self.get_ssp()
+		#self.get_livessp()
+		#self.get_dpapi()
 		
 
 if __name__ == '__main__':

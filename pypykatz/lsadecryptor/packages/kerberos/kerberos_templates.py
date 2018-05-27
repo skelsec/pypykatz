@@ -1,0 +1,843 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
+import io
+import logging
+from minidump.win_datatypes import *
+from pypykatz.commons.common import *
+from pypykatz.commons.win_datatypes import *
+
+class KerberosTemplate:
+	def __init__(self,arch, buildnumber):
+		self.arch = arch
+		self.buildnumber = buildnumber
+		
+		self.signature = None
+		self.first_entry_offset = None
+		self.kerberos_session_struct = None
+		self.kerberos_ticket_struct = None
+		self.keys_list_struct = None
+		self.hash_password_struct = None
+		self.csp_info_struct = None
+			
+class KERBEROS_DECRYPTOR_TEMPLATE:
+	def __init__(self, arch, buildnumber):
+		self.arch = arch
+		self.buildnumber = buildnumber
+	
+	def get_template(self):
+		template = KerberosTemplate(self.arch, self.buildnumber)
+		#template.list_entry = PWdigestListEntry
+		if self.arch == 'x64':		
+			if WindowsMinBuild.WIN_XP.value <= self.buildnumber < WindowsMinBuild.WIN_2K3.value:
+				template.signature = b'\x48\x3b\xfe\x0f\x84'
+				template.first_entry_offset = -4
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_51
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_51
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_5
+				template.hash_password_struct = KERB_HASHPASSWORD_5
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
+				
+				
+			elif WindowsMinBuild.WIN_2K3.value <= self.buildnumber < WindowsMinBuild.WIN_VISTA.value:
+				template.signature = b'\x48\x3b\xfe\x0f\x84'
+				template.first_entry_offset = -4
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_52
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_5
+				template.hash_password_struct = KERB_HASHPASSWORD_5
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
+				
+			elif WindowsMinBuild.WIN_VISTA.value <= self.buildnumber < WindowsMinBuild.WIN_7.value:
+				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
+				template.first_entry_offset = 6
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_60
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
+				
+			elif WindowsMinBuild.WIN_7.value <= self.buildnumber < WindowsMinBuild.WIN_8.value:
+				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
+				template.first_entry_offset = 6
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
+			
+			elif WindowsMinBuild.WIN_8.value <= self.buildnumber < WindowsBuild.WIN_10_1507.value:
+				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
+				template.first_entry_offset = 6
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
+				
+			elif WindowsBuild.WIN_10_1507.value <= self.buildnumber < WindowsBuild.WIN_10_1511.value:
+				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
+				template.first_entry_offset = 6
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
+				
+			elif WindowsBuild.WIN_10_1607.value <= self.buildnumber:
+				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
+				template.first_entry_offset = 6
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_10
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
+				
+			elif self.buildnumber >= WindowsBuild.WIN_10_1607.value:
+				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
+				template.first_entry_offset = 6
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_10_1607
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
+				
+			else:
+				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (self.arch, self.buildnumber))
+			
+		
+		elif self.arch == 'x86':
+			if WindowsMinBuild.WIN_XP.value <= self.buildnumber < WindowsMinBuild.WIN_2K3.value:
+				template.signature = b'\x8B\x7D\x08\x8B\x17\x39\x50'
+				template.first_entry_offset = -8
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_51
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_51
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_5
+				template.hash_password_struct = KERB_HASHPASSWORD_5
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
+				
+				
+			elif WindowsMinBuild.WIN_2K3.value <= self.buildnumber < WindowsMinBuild.WIN_VISTA.value:
+				template.signature = b'\x8B\x7D\x08\x8B\x17\x39\x50'
+				template.first_entry_offset = -8
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_52
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_5
+				template.hash_password_struct = KERB_HASHPASSWORD_5
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
+				
+			elif WindowsMinBuild.WIN_VISTA.value <= self.buildnumber < WindowsMinBuild.WIN_7.value:
+				template.signature = b'\x53\x8b\x18\x50\x56'
+				template.first_entry_offset = -11
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_60
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
+				
+			elif WindowsMinBuild.WIN_7.value <= self.buildnumber < WindowsMinBuild.WIN_8.value:
+				template.signature = b'\x53\x8b\x18\x50\x56'
+				template.first_entry_offset = -11
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
+				
+			elif WindowsMinBuild.WIN_8.value <= self.buildnumber < WindowsBuild.WIN_BLUE.value:
+				template.signature = b'\x57\x8b\x38\x50\x68'
+				template.first_entry_offset = -14
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
+				
+			elif WindowsMinBuild.WIN_BLUE.value <= self.buildnumber < WindowsBuild.WIN_10_1507.value:
+				template.signature = b'\x56\x8b\x30\x50\x57'
+				template.first_entry_offset = -15
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
+				
+			elif WindowsBuild.WIN_10_1507.value <= self.buildnumber < WindowsBuild.WIN_10_1511.value:
+				template.signature = b'\x56\x8b\x30\x50\x57'
+				template.first_entry_offset = -15
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
+				
+			elif self.buildnumber >= WindowsBuild.WIN_10_1511.value:
+				template.signature = b'\x56\x8b\x30\x50\x57'
+				template.first_entry_offset = -15
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_10_1607
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
+				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
+		
+		else:
+			raise Exception('Unknown architecture! %s' % self.arch)
+
+			
+		return template
+		
+class PKERB_SMARTCARD_CSP_INFO_5(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KERB_SMARTCARD_CSP_INFO_5)
+		
+
+class KERB_SMARTCARD_CSP_INFO_5:
+	def __init__(self, reader):
+		self.dwCspInfoLen = DWORD(reader).value
+		self.ContextInformation = PVOID(reader).value
+		self.nCardNameOffset = ULONG(reader).value
+		self.nReaderNameOffset = ULONG(reader).value
+		self.nContainerNameOffset = ULONG(reader).value
+		self.nCSPNameOffset = ULONG(reader).value
+		self.bBuffer = WCHAR(reader).value
+
+class PKERB_SMARTCARD_CSP_INFO(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KERB_SMARTCARD_CSP_INFO)
+		
+		
+class KERB_SMARTCARD_CSP_INFO:
+	def __init__(self, reader):
+		self.dwCspInfoLen = DWORD(reader).value
+		self.MessageType = DWORD(reader).value
+		self.ContextInformation = PVOID(reader).value #U
+		self.SpaceHolderForWow64 = ULONG64(reader).value #U
+		self.flags = DWORD(reader).value
+		self.KeySpec = DWORD(reader).value
+		self.nCardNameOffset = ULONG(reader).value
+		self.nReaderNameOffset = ULONG(reader).value
+		self.nContainerNameOffset = ULONG(reader).value
+		self.nCSPNameOffset = ULONG(reader).value
+		self.bBuffer[ANYSIZE_ARRAY] = WCHAR(reader).value
+		
+class PKIWI_KERBEROS_CSP_INFOS_5(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_CSP_INFOS_5)
+
+class KIWI_KERBEROS_CSP_INFOS_5:
+	def __init__(self, reader):	
+		self.PinCode = LSA_UNICODE_STRING(reader)
+		self.unk0 = PVOID(reader).value
+		self.unk1 = PVOID(reader).value
+		self.CertificateInfos = PVOID(reader).value
+		self.unkData = PVOID(reader).value                #	// 0 = CspData
+		self.Flags = DWORD(reader).value                  #	// 1 = CspData (not 0x21)(reader).value
+		self.CspDataLength = DWORD(reader).value
+		self.CspData = KERB_SMARTCARD_CSP_INFO_5(reader).value
+	 
+class PKIWI_KERBEROS_CSP_INFOS_60(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_CSP_INFOS_60)
+
+
+class KIWI_KERBEROS_CSP_INFOS_60:
+	def __init__(self, reader):
+		self.PinCode = LSA_UNICODE_STRING(reader)
+		self.unk0 = PVOID(reader).value
+		self.unk1 = PVOID(reader).value
+		self.CertificateInfos = PVOID(reader).value
+		self.unkData = PVOID(reader).value           #	// 0 = CspData
+		self.Flags = DWORD(reader).value	            #// 0 = CspData(reader).value
+		self.unkFlags = DWORD(reader).value      	#// 0x141(reader).value
+		self.CspDataLength = DWORD(reader).value
+		self.CspData = KERB_SMARTCARD_CSP_INFO(reader).value
+
+class PKIWI_KERBEROS_CSP_INFOS_62(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_CSP_INFOS_62)
+
+	 
+class KIWI_KERBEROS_CSP_INFOS_62:
+	def __init__(self, reader):
+		self.PinCode = LSA_UNICODE_STRING(reader)
+		self.unk0 = PVOID(reader).value
+		self.unk1 = PVOID(reader).value
+		self.CertificateInfos = PVOID(reader).value
+		self.unk2 = PVOID(reader).value
+		self.unkData = PVOID(reader).value	          #// 0 = CspData(reader).value
+		self.Flags = DWORD(reader).value	             #// 0 = CspData(reader).value
+		self.unkFlags = DWORD(reader).value	            #// 0x141 (not 0x61)
+		self.CspDataLength = DWORD(reader).value
+		self.CspData = KERB_SMARTCARD_CSP_INFO(reader).value
+		
+class PKIWI_KERBEROS_CSP_INFOS_10(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_CSP_INFOS_10)
+
+class KIWI_KERBEROS_CSP_INFOS_10:
+	def __init__(self, reader):
+		self.PinCode = LSA_UNICODE_STRING(reader)
+		self.unk0 = PVOID(reader).value
+		self.unk1 = PVOID(reader).value
+		self.CertificateInfos = PVOID(reader).value
+		self.unk2 = PVOID(reader).value
+		self.unkData = PVOID(reader).value	        #// 0 = CspData
+		self.Flags = DWORD(reader).value	            #// 0 = CspData(reader).value
+		self.unkFlags = DWORD(reader).value	        #// 0x141 (not 0x61)(reader).value
+		self.unk3 = PVOID(reader).value
+		self.CspDataLength = DWORD(reader).value
+		self.CspData = KERB_SMARTCARD_CSP_INFO(reader).value
+
+class PKIWI_KERBEROS_LOGON_SESSION_51(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_LOGON_SESSION_51)
+
+class KIWI_KERBEROS_LOGON_SESSION_51:
+	def __init__(self, reader):
+		self.UsageCount = ULONG(reader).value
+		self.unk0 = LIST_ENTRY(reader)
+		self.unk1 = LIST_ENTRY(reader)
+		self.unk2 = PVOID(reader).value
+		self.unk3 = ULONG(reader).value      #	// filetime.1 ?
+		self.unk4 = ULONG(reader).value    	#// filetime.2 ?(reader).value
+		self.unk5 = PVOID(reader).value
+		self.unk6 = PVOID(reader).value
+		self.unk7 = PVOID(reader).value
+		self.LocallyUniqueIdentifier = LUID(reader).value
+		self.unkAlign = ULONG(reader).value  #aliing on x86(reader).value
+		self.unk8 = FILETIME(reader).value
+		self.unk9 = PVOID(reader).value
+		self.unk10 = ULONG(reader).value     #	// filetime.1 ?(reader).value
+		self.unk11 = ULONG(reader).value     #	// filetime.2 ?(reader).value
+		self.unk12 = PVOID(reader).value
+		self.unk13 = PVOID(reader).value
+		self.unk14 = PVOID(reader).value
+		self.credentials = KIWI_GENERIC_PRIMARY_CREDENTIAL(reader)
+		self.unk15 = ULONG(reader).value
+		self.unk16 = ULONG(reader).value
+		self.unk17 = ULONG(reader).value
+		self.unk18 = ULONG(reader).value
+		self.unk19 = PVOID(reader).value
+		self.unk20 = PVOID(reader).value
+		self.unk21 = PVOID(reader).value
+		self.unk22 = PVOID(reader).value
+		self.pKeyList = PVOID(reader)
+		self.unk24 = PVOID(reader).value
+		self.Tickets_1 = LIST_ENTRY(reader)
+		self.Tickets_2 = LIST_ENTRY(reader)
+		self.Tickets_3 = LIST_ENTRY(reader)
+		self.SmartcardInfos = PVOID(reader).value
+
+		
+class PKIWI_KERBEROS_LOGON_SESSION(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_LOGON_SESSION)
+
+class KIWI_KERBEROS_LOGON_SESSION:
+	def __init__(self, reader):
+		self.UsageCount = ULONG(reader).value
+		reader.align()
+		self.unk0 = LIST_ENTRY(reader)
+		self.unk1 = PVOID(reader).value
+		self.unk2 = ULONG(reader).value     #	// filetime.1 ?
+		self.unk3 = ULONG(reader).value	   #// filetime.2 ?(reader).value
+		self.unk4 = PVOID(reader).value
+		self.unk5 = PVOID(reader).value
+		self.unk6 = PVOID(reader).value
+		self.LocallyUniqueIdentifier = LUID(reader).value
+		#self.unkAlign = ULONG(reader).value#ifdef _M_IX86(reader).value
+		reader.align()
+		self.unk7 = FILETIME(reader).value
+		self.unk8 = PVOID(reader).value
+		self.unk9 = ULONG(reader).value      #	// filetime.1 ?(reader).value
+		self.unk10 = ULONG(reader).value     #	// filetime.2 ?(reader).value
+		self.unk11 = PVOID(reader).value
+		self.unk12 = PVOID(reader).value
+		self.unk13 = PVOID(reader).value
+		self.credentials = KIWI_GENERIC_PRIMARY_CREDENTIAL(reader)
+		self.unk14 = ULONG(reader).value
+		self.unk15 = ULONG(reader).value
+		self.unk16 = ULONG(reader).value
+		self.unk17 = ULONG(reader).value
+		self.unk18 = PVOID(reader).value
+		self.unk19 = PVOID(reader).value
+		self.unk20 = PVOID(reader).value
+		self.unk21 = PVOID(reader).value
+		self.pKeyList = PVOID(reader)
+		self.unk23 = PVOID(reader).value
+		reader.align()
+		self.Tickets_1 = LIST_ENTRY(reader)
+		self.unk24 = FILETIME(reader).value
+		self.Tickets_2 = LIST_ENTRY(reader)
+		self.unk25 = FILETIME(reader).value
+		self.Tickets_3 = LIST_ENTRY(reader)
+		self.unk26 = FILETIME(reader).value
+		self.SmartcardInfos = PVOID(reader).value
+
+class PKIWI_KERBEROS_10_PRIMARY_CREDENTIAL(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_10_PRIMARY_CREDENTIAL)
+
+		
+class KIWI_KERBEROS_10_PRIMARY_CREDENTIAL:
+	def __init__(self, reader):
+		self.UserName = LSA_UNICODE_STRING(reader)
+		self.Domaine = LSA_UNICODE_STRING(reader)
+		self.unk0 = PVOID(reader).value
+		self.Password = LSA_UNICODE_STRING(reader)
+
+class PKIWI_KERBEROS_LOGON_SESSION_10(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_LOGON_SESSION_10)
+		
+class KIWI_KERBEROS_LOGON_SESSION_10:
+	def __init__(self, reader):	
+		self.UsageCount = ULONG(reader).value
+		reader.align()
+		self.unk0 = LIST_ENTRY(reader)
+		self.unk1 = PVOID(reader).value
+		self.unk1b = ULONG(reader).value
+		reader.align()
+		self.unk2 = FILETIME(reader).value
+		self.unk4 = PVOID(reader).value
+		self.unk5 = PVOID(reader).value
+		self.unk6 = PVOID(reader).value
+		self.LocallyUniqueIdentifier = LUID(reader).value
+		self.unk7 = FILETIME(reader).value
+		self.unk8 = PVOID(reader).value
+		self.unk8b = ULONG(reader).value
+		reader.align()
+		self.unk9 = FILETIME(reader).value
+		self.unk11 = PVOID(reader).value
+		self.unk12 = PVOID(reader).value
+		self.unk13 = PVOID(reader).value
+		reader.align()
+		self.credentials = KIWI_KERBEROS_10_PRIMARY_CREDENTIAL(reader)
+		self.unk14 = ULONG(reader).value
+		self.unk15 = ULONG(reader).value
+		self.unk16 = ULONG(reader).value
+		self.unk17 = ULONG(reader).value
+		#//PVOID		unk18 = (reader).value
+		self.unk19 = PVOID(reader).value
+		self.unk20 = PVOID(reader).value
+		self.unk21 = PVOID(reader).value
+		self.unk22 = PVOID(reader).value
+		self.unk23 = PVOID(reader).value
+		self.unk24 = PVOID(reader).value
+		self.unk25 = PVOID(reader).value
+		self.pKeyList = PVOID(reader)
+		self.unk26 = PVOID(reader).value
+		self.Tickets_1 = LIST_ENTRY(reader)
+		self.unk27 = FILETIME(reader).value
+		self.Tickets_2 = LIST_ENTRY(reader)
+		self.unk28 = FILETIME(reader).value
+		self.Tickets_3 = LIST_ENTRY(reader)
+		self.unk29 = FILETIME(reader).value
+		self.SmartcardInfos = PVOID(reader).value
+
+class PKIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607_ISO(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607_ISO)
+		
+
+class KIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607_ISO:
+	def __init__(self, reader):
+		self.StructSize = DWORD(reader).value
+		self.isoBlob    = LSAISO_DATA_BLOB(reader).value  #POINTER!!!! #// aligned = 
+
+class PKIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607)
+		
+class KIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607:
+	def __init__(self, reader):
+		self.UserName = LSA_UNICODE_STRING(reader)
+		self.Domaine = LSA_UNICODE_STRING(reader)
+		self.unkFunction = PVOID(reader).value
+		self.type = DWORD(reader).value # // or flags 2 = normal, 1 = ISO(reader).value
+		self.Password = LSA_UNICODE_STRING(reader) #	union {
+		self.IsoPassword = KIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607_ISO(reader).value
+
+class PKIWI_KERBEROS_LOGON_SESSION_10_1607(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_LOGON_SESSION_10_1607)
+
+		
+class KIWI_KERBEROS_LOGON_SESSION_10_1607:
+	def __init__(self, reader):
+		self.UsageCount = ULONG(reader).value
+		reader.align()
+		self.unk0 = LIST_ENTRY(reader)
+		self.unk1 = PVOID(reader).value
+		self.unk1b = ULONG(reader).value
+		reader.align()
+		self.unk2 = FILETIME(reader).value
+		self.unk4 = PVOID(reader).value
+		self.unk5 = PVOID(reader).value
+		self.unk6 = PVOID(reader).value
+		self.LocallyUniqueIdentifier = LUID(reader).value
+		self.unk7 = FILETIME(reader).value
+		self.unk8 = PVOID(reader).value
+		self.unk8b = ULONG(reader).value
+		reader.align()
+		self.unk9 = FILETIME(reader).value
+		self.unk11 = PVOID(reader).value
+		self.unk12 = PVOID(reader).value
+		self.unk13 = PVOID(reader).value
+		reader.align()
+		self.credentials = KIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607(reader).value
+		self.unk14 = ULONG(reader).value
+		self.unk15 = ULONG(reader).value
+		self.unk16 = ULONG(reader).value
+		self.unk17 = ULONG(reader).value
+		self.unk18 = PVOID(reader).value
+		self.unk19 = PVOID(reader).value
+		self.unk20 = PVOID(reader).value
+		self.unk21 = PVOID(reader).value
+		self.unk22 = PVOID(reader).value
+		self.unk23 = PVOID(reader).value
+		self.unk24 = PVOID(reader).value
+		self.unk25 = PVOID(reader).value
+		self.pKeyList = PVOID(reader)
+		self.unk26 = PVOID(reader).value
+		self.Tickets_1 = LIST_ENTRY(reader)
+		self.unk27 = FILETIME(reader).value
+		self.Tickets_2 = LIST_ENTRY(reader)
+		self.unk28 = FILETIME(reader).value
+		self.Tickets_3 = LIST_ENTRY(reader)
+		self.unk29 = FILETIME(reader).value
+		self.SmartcardInfos = PVOID(reader).value
+
+class PKIWI_KERBEROS_INTERNAL_TICKET_51(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_INTERNAL_TICKET_51)
+
+		
+class KIWI_KERBEROS_INTERNAL_TICKET_51:
+	def __init__(self, reader):
+		self.This = LIST_ENTRY(reader)
+		self.unk0 = PVOID(reader).value
+		self.unk1 = PVOID(reader).value
+		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
+		self.TargetName = PKERB_EXTERNAL_NAME(reader)
+		self.DomainName = LSA_UNICODE_STRING(reader)
+		self.TargetDomainName = LSA_UNICODE_STRING(reader)
+		self.Description = LSA_UNICODE_STRING(reader)
+		self.AltTargetDomainName = LSA_UNICODE_STRING(reader)
+		self.ClientName = PKERB_EXTERNAL_NAME(reader)
+		self.TicketFlags = ULONG(reader).value
+		self.unk2 = ULONG(reader).value
+		self.KeyType = ULONG(reader).value
+		self.Key = KIWI_KERBEROS_BUFFER(reader)
+		self.unk3 = PVOID(reader).value
+		self.unk4 = PVOID(reader).value
+		self.unk5 = PVOID(reader).value
+		self.unk6 = PVOID(reader).value
+		self.unk7 = PVOID(reader).value
+		self.unk8 = PVOID(reader).value
+		self.StartTime = FILETIME(reader).value
+		self.EndTime = FILETIME(reader).value
+		self.RenewUntil = FILETIME(reader).value
+		self.unk9 = ULONG(reader).value
+		self.unk10 = ULONG(reader).value
+		self.domain = PCWSTR(reader).value
+		self.unk11 = ULONG(reader).value
+		self.strangeNames = PVOID(reader).value
+		self.unk12 = ULONG(reader).value
+		self.TicketEncType = ULONG(reader).value
+		self.TicketKvno = ULONG(reader).value
+		self.Ticket = KIWI_KERBEROS_BUFFER(reader)
+
+class PKIWI_KERBEROS_INTERNAL_TICKET_52(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_INTERNAL_TICKET_52)
+		
+
+class KIWI_KERBEROS_INTERNAL_TICKET_52:
+	def __init__(self, reader):
+		self.This = LIST_ENTRY(reader)
+		self.unk0 = PVOID(reader).value
+		self.unk1 = PVOID(reader).value
+		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
+		self.TargetName = PKERB_EXTERNAL_NAME(reader)
+		self.DomainName = LSA_UNICODE_STRING(reader)
+		self.TargetDomainName = LSA_UNICODE_STRING(reader)
+		self.Description = LSA_UNICODE_STRING(reader)
+		self.AltTargetDomainName = LSA_UNICODE_STRING(reader)
+		self.ClientName = PKERB_EXTERNAL_NAME(reader)
+		self.name0 = PVOID(reader).value
+		self.TicketFlags = ULONG(reader).value
+		self.unk2 = ULONG(reader).value
+		self.KeyType = ULONG(reader).value
+		self.Key = KIWI_KERBEROS_BUFFER(reader)
+		self.unk3 = PVOID(reader).value
+		self.unk4 = PVOID(reader).value
+		self.unk5 = PVOID(reader).value
+		self.StartTime = FILETIME(reader).value
+		self.EndTime = FILETIME(reader).value
+		self.RenewUntil = FILETIME(reader).value
+		self.unk6 = ULONG(reader).value
+		self.unk7 = ULONG(reader).value
+		self.domain = PCWSTR(reader).value
+		self.unk8 = ULONG(reader).value
+		self.strangeNames = PVOID(reader).value
+		self.unk9 = ULONG(reader).value
+		self.TicketEncType = ULONG(reader).value
+		self.TicketKvno = ULONG(reader).value
+		self.Ticket = KIWI_KERBEROS_BUFFER(reader)
+
+class PKIWI_KERBEROS_INTERNAL_TICKET_60(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_INTERNAL_TICKET_60)
+		
+
+class KIWI_KERBEROS_INTERNAL_TICKET_60:
+	def __init__(self, reader):
+		self.This = LIST_ENTRY(reader)
+		self.unk0 = PVOID(reader).value
+		self.unk1 = PVOID(reader).value
+		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
+		self.TargetName = PKERB_EXTERNAL_NAME(reader)
+		self.DomainName = LSA_UNICODE_STRING(reader)
+		self.TargetDomainName = LSA_UNICODE_STRING(reader)
+		self.Description = LSA_UNICODE_STRING(reader)
+		self.AltTargetDomainName = LSA_UNICODE_STRING(reader)
+		#//LSA_UNICODE_STRING	KDCServer = 	//?(reader).value
+		self.ClientName = PKERB_EXTERNAL_NAME(reader)
+		self.name0 = PVOID(reader).value
+		self.TicketFlags = ULONG(reader).value
+		self.unk2 = ULONG(reader).value
+		self.KeyType = ULONG(reader).value
+		self.Key = KIWI_KERBEROS_BUFFER(reader)
+		self.unk3 = PVOID(reader).value
+		self.unk4 = PVOID(reader).value
+		self.unk5 = PVOID(reader).value
+		self.StartTime = FILETIME(reader).value
+		self.EndTime = FILETIME(reader).value
+		self.RenewUntil = FILETIME(reader).value
+		self.unk6 = ULONG(reader).value
+		self.unk7 = ULONG(reader).value
+		self.domain = PCWSTR(reader).value
+		self.unk8 = ULONG(reader).value
+		self.strangeNames = PVOID(reader).value
+		self.unk9 = ULONG(reader).value
+		self.TicketEncType = ULONG(reader).value
+		self.TicketKvno = ULONG(reader).value
+		self.Ticket = KIWI_KERBEROS_BUFFER(reader)
+
+
+class PKIWI_KERBEROS_INTERNAL_TICKET_6(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_INTERNAL_TICKET_6)
+		
+class KIWI_KERBEROS_INTERNAL_TICKET_6:
+	def __init__(self, reader):
+		self.This = LIST_ENTRY(reader)
+		self.unk0 = PVOID(reader).value
+		self.unk1 = PVOID(reader).value
+		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
+		self.TargetName = PKERB_EXTERNAL_NAME(reader)
+		self.DomainName = LSA_UNICODE_STRING(reader)
+		self.TargetDomainName = LSA_UNICODE_STRING(reader)
+		self.Description = LSA_UNICODE_STRING(reader)
+		self.AltTargetDomainName = LSA_UNICODE_STRING(reader)
+		self.KDCServer = LSA_UNICODE_STRING #	//?(reader).value
+		self.ClientName = PKERB_EXTERNAL_NAME(reader)
+		self.name0 = PVOID(reader).value
+		self.TicketFlags = ULONG(reader).value
+		self.unk2 = ULONG(reader).value
+		self.KeyType = ULONG(reader).value
+		reader.align()
+		self.Key = KIWI_KERBEROS_BUFFER(reader)
+		self.unk3 = PVOID(reader).value
+		self.unk4 = PVOID(reader).value
+		self.unk5 = PVOID(reader).value
+		self.StartTime = FILETIME(reader).value
+		self.EndTime = FILETIME(reader).value
+		self.RenewUntil = FILETIME(reader).value
+		self.unk6 = ULONG(reader).value
+		self.unk7 = ULONG(reader).value
+		self.domain = PCWSTR(reader).value
+		self.unk8 = ULONG(reader).value
+		reader.align()
+		self.strangeNames = PVOID(reader).value
+		self.unk9 = ULONG(reader).value
+		self.TicketEncType = ULONG(reader).value
+		self.TicketKvno = ULONG(reader).value
+		reader.align()
+		self.Ticket = KIWI_KERBEROS_BUFFER(reader)
+
+class PKIWI_KERBEROS_INTERNAL_TICKET_10(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_INTERNAL_TICKET_10)
+		
+class KIWI_KERBEROS_INTERNAL_TICKET_10:
+	def __init__(self, reader):
+		self.This = LIST_ENTRY(reader)
+		self.unk0 = PVOID(reader).value
+		self.unk1 = PVOID(reader).value
+		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
+		self.TargetName = PKERB_EXTERNAL_NAME(reader)
+		self.DomainName = LSA_UNICODE_STRING(reader)
+		self.TargetDomainName = LSA_UNICODE_STRING(reader)
+		self.Description = LSA_UNICODE_STRING(reader)
+		self.AltTargetDomainName = LSA_UNICODE_STRING(reader)
+		self.KDCServer = LSA_UNICODE_STRING#	//?(reader).value
+		self.unk10586_d = LSA_UNICODE_STRING#	//?(reader).value
+		self.ClientName = PKERB_EXTERNAL_NAME(reader)
+		self.name0 = PVOID(reader).value
+		self.TicketFlags = ULONG(reader).value
+		self.unk2 = ULONG(reader).value
+		self.KeyType = ULONG(reader).value
+		self.Key = KIWI_KERBEROS_BUFFER(reader)
+		self.unk3 = PVOID(reader).value
+		self.unk4 = PVOID(reader).value
+		self.unk5 = PVOID(reader).value
+		self.StartTime = FILETIME(reader).value
+		self.EndTime = FILETIME(reader).value
+		self.RenewUntil = FILETIME(reader).value
+		self.unk6 = ULONG(reader).value
+		self.unk7 = ULONG(reader).value
+		self.domain = PCWSTR(reader).value
+		self.unk8 = ULONG(reader).value
+		self.strangeNames = PVOID(reader).value
+		self.unk9 = ULONG(reader).value
+		self.TicketEncType = ULONG(reader).value
+		self.TicketKvno = ULONG(reader).value
+		self.Ticket = KIWI_KERBEROS_BUFFER(reader)
+
+class PKIWI_KERBEROS_INTERNAL_TICKET_10_1607(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_INTERNAL_TICKET_10_1607)
+
+		
+class KIWI_KERBEROS_INTERNAL_TICKET_10_1607:
+	def __init__(self, reader):
+		self.This = LIST_ENTRY(reader)
+		self.unk0 = PVOID(reader).value
+		self.unk1 = PVOID(reader).value
+		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
+		self.TargetName = PKERB_EXTERNAL_NAME(reader)
+		self.DomainName = LSA_UNICODE_STRING(reader)
+		self.TargetDomainName = LSA_UNICODE_STRING(reader)
+		self.Description = LSA_UNICODE_STRING(reader)
+		self.AltTargetDomainName = LSA_UNICODE_STRING(reader)
+		self.KDCServer = LSA_UNICODE_STRING(reader)    				#	//?(reader).value
+		self.unk10586_d = LSA_UNICODE_STRING(reader)					#//?(reader).value
+		self.ClientName = PKERB_EXTERNAL_NAME(reader)
+		self.name0 = PVOID(reader).value
+		self.TicketFlags = ULONG(reader).value
+		self.unk2 = ULONG(reader).value
+		self.unk14393_0 = PVOID(reader).value
+		self.KeyType = ULONG(reader).value
+		self.Key = KIWI_KERBEROS_BUFFER(reader)
+		self.unk14393_1 = PVOID(reader).value
+		self.unk3 = PVOID(reader).value										# // ULONG		KeyType2 = (reader).value
+		self.unk4 = PVOID(reader).value										# // KIWI_KERBEROS_BUFFER	Key2 = (reader).value
+		self.unk5 = PVOID(reader).value										# // up(reader).value
+		self.StartTime = FILETIME(reader).value
+		self.EndTime = FILETIME(reader).value
+		self.RenewUntil = FILETIME(reader).value
+		self.unk6 = ULONG(reader).value
+		self.unk7 = ULONG(reader).value
+		self.domain = PCWSTR(reader).value
+		self.unk8 = ULONG(reader).value
+		self.strangeNames = PVOID(reader).value
+		self.unk9 = ULONG(reader).value
+		self.TicketEncType = ULONG(reader).value
+		self.TicketKvno = ULONG(reader).value
+		self.Ticket = KIWI_KERBEROS_BUFFER(reader)
+
+class PKERB_HASHPASSWORD_GENERIC(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KERB_HASHPASSWORD_GENERIC)
+		
+class KERB_HASHPASSWORD_GENERIC:
+	def __init__(self, reader):
+		print('KERB_HASHPASSWORD_GENERIC')
+		print(hexdump(reader.peek(0x50), start = reader.tell()))
+		self.Type = DWORD(reader).value
+		reader.align()
+		self.Size = SIZE_T(reader).value
+		self.Checksump = PVOID(reader) #this  holds the actual credentials dunno why it's named this way...
+
+class PKERB_HASHPASSWORD_5(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KERB_HASHPASSWORD_5)	
+		
+class KERB_HASHPASSWORD_5:
+	def __init__(self, reader):
+		self.salt = LSA_UNICODE_STRING(reader) #	// http://tools.ietf.org/html/rfc3962
+		self.generic = KERB_HASHPASSWORD_GENERIC(reader)
+
+class PKERB_HASHPASSWORD_6(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KERB_HASHPASSWORD_6)
+		
+class KERB_HASHPASSWORD_6 :
+	def __init__(self, reader):
+		print('KERB_HASHPASSWORD_6')
+		print(hexdump(reader.peek(0x100), start = reader.tell()))
+		self.salt = LSA_UNICODE_STRING(reader)	#// http://tools.ietf.org/html/rfc3962
+		self.stringToKey = PVOID(reader) # // AES Iterations (dword ?)
+		self.generic = KERB_HASHPASSWORD_GENERIC(reader)
+
+
+class PKERB_HASHPASSWORD_6_1607(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KERB_HASHPASSWORD_6_1607)		
+class KERB_HASHPASSWORD_6_1607:
+	def __init__(self, reader):
+		self.salt = LSA_UNICODE_STRING(reader)  #	// http://tools.ietf.org/html/rfc3962(reader).value
+		self.stringToKey = PVOID(reader).value        # // AES Iterations (dword ?)(reader).value
+		self.unk0 = PVOID(reader).value
+		self.generic = KERB_HASHPASSWORD_GENERIC(reader).value
+
+class PKIWI_KERBEROS_KEYS_LIST_5(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_KEYS_LIST_5)
+class KIWI_KERBEROS_KEYS_LIST_5:
+	def __init__(self, reader):
+		self.unk0 = DWORD(reader).value		#// dword_1233EC8 dd 4
+		self.cbItem = DWORD(reader).value	#// debug048:01233ECC dd 5(reader).value
+		self.unk1 = PVOID(reader).value
+		self.unk2 = PVOID(reader).value
+		#//KERB_HASHPASSWORD_5 KeysEntries[ANYSIZE_ARRAY] = (reader).value
+
+class PKIWI_KERBEROS_KEYS_LIST_6(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_KEYS_LIST_6)
+class KIWI_KERBEROS_KEYS_LIST_6:
+	def __init__(self, reader):
+		print('KIWI_KERBEROS_KEYS_LIST_6')
+		print(hexdump(reader.peek(0x100), start = reader.tell()))
+		self.unk0 = DWORD(reader).value	#	// dword_1233EC8 dd 4(reader).value
+		self.cbItem = DWORD(reader).value #	// debug048:01233ECC dd 5(reader).value
+		self.unk1 = PVOID(reader).value
+		self.unk2 = PVOID(reader).value
+		self.unk3 = PVOID(reader).value
+		self.unk4 = PVOID(reader).value
+		self.KeyEntries_start = reader.tell()
+		self.KeyEntries = []
+		
+	def read(self, reader, keyentries_type):
+		reader.move(self.KeyEntries_start)
+		for i in range(self.cbItem):
+			print(i)
+			self.KeyEntries.append(keyentries_type(reader))
+			#//KERB_HASHPASSWORD_6 KeysEntries[ANYSIZE_ARRAY] = (reader).value
+
+class PKIWI_KERBEROS_ENUM_DATA_TICKET(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_KERBEROS_ENUM_DATA_TICKET)	
+class KIWI_KERBEROS_ENUM_DATA_TICKET:
+	def __init__(self, reader):
+		self.isTicketExport = BOOL(reader).value
+		self.isFullTicket = BOOL(reader).value
+		
+class KIWI_KERBEROS_BUFFER:
+	def __init__(self, reader):
+		self.Length = ULONG(reader).value
+		self.Value = PVOID(reader)

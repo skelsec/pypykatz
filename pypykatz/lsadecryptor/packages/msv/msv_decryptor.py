@@ -72,6 +72,12 @@ class LogonSession:
 		
 		self.msv_creds = []
 		self.wdigest_creds = []
+		self.ssp_creds = []
+		self.livessp_creds = []
+		self.dpapi_creds = []
+		self.kerberos_creds = []
+		self.credman_creds = []
+		self.tspkg_creds = []
 	
 	@staticmethod
 	def parse(entry, reader):
@@ -101,8 +107,29 @@ class LogonSession:
 		t['sid'] = self.sid
 		t['luid'] = self.luid
 		t['msv_creds']  = []
+		t['wdigest_creds']  = []
+		t['ssp_creds']  = []
+		t['livessp_creds']  = []
+		t['dpapi_creds']  = []
+		t['kerberos_creds']  = []
+		t['credman_creds']  = []
+		t['tspkg_creds']  = []
 		for cred in self.msv_creds:
 			t['msv_creds'].append(cred.to_dict())
+		for cred in self.wdigest_creds:
+			t['wdigest_creds'].append(cred.to_dict())
+		for cred in self.ssp_creds:
+			t['ssp_creds'].append(cred.to_dict())
+		for cred in self.livessp_creds:
+			t['livessp_creds'].append(cred.to_dict())
+		for cred in self.dpapi_creds:
+			t['dpapi_creds'].append(cred.to_dict())
+		for cred in self.kerberos_creds:
+			t['kerberos_creds'].append(cred.to_dict())
+		for cred in self.credman_creds:
+			t['credman_creds'].append(cred.to_dict())
+		for cred in self.tspkg_creds:
+			t['tspkg_creds'].append(cred.to_dict())
 		return t
 		
 	def to_json(self):
@@ -123,6 +150,24 @@ class LogonSession:
 				t+= '%s' % str(cred)
 		if len(self.wdigest_creds) > 0:
 			for cred in self.wdigest_creds:
+				t+= str(cred)
+		if len(self.ssp_creds) > 0:
+			for cred in self.ssp_creds:
+				t+= str(cred)
+		if len(self.livessp_creds) > 0:
+			for cred in self.livessp_creds:
+				t+= str(cred)
+		if len(self.kerberos_creds) > 0:
+			for cred in self.kerberos_creds:
+				t+= str(cred)
+		if len(self.wdigest_creds) > 0:
+			for cred in self.wdigest_creds:
+				t+= str(cred)
+		if len(self.credman_creds) > 0:
+			for cred in self.credman_creds:
+				t+= str(cred)
+		if len(self.tspkg_creds) > 0:
+			for cred in self.tspkg_creds:
 				t+= str(cred)
 		return t
 		
