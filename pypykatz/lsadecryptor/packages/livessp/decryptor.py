@@ -72,8 +72,6 @@ class LiveSspDecryptor:
 		c.password = suppCreds.credentials.Password.read_string(self.reader)
 	
 		self.credentials.append(c)
-		print(str(c))
-		input()
 		
 	def walk_list(self, entry_ptr, entry_ptr_location, callback, max_walk = 255, override_ptr = None):
 		"""

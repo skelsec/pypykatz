@@ -68,19 +68,14 @@ class DpapiDecryptor:
 		
 		if dpapi_entry.keySize > 0:
 			dec_masterkey = self.lsa_decryptor.decrypt(dpapi_entry.key)
-			input('Masterkey? %s' % hexdump(dec_masterkey))
 			sha_masterkey = hashlib.sha1(dec_masterkey).hexdigest()
-			input('SHA1 Masterkey? %s' % sha_masterkey)
 			
 			c = DpapiCredential()
 			c.luid = dpapi_entry.LogonId
 			c.key_guid = dpapi_entry.KeyUid
 			c.masterkey = dec_masterkey.hex()
 			c.sha1_masterkey = sha_masterkey
-			self.credentials.append(c)
-			
-			print(str(c))
-		
+			self.credentials.append(c)	
 		
 		
 	def walk_list(self, entry_ptr, entry_ptr_location, callback, max_walk = 255, override_ptr = None):

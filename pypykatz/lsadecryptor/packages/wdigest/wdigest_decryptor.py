@@ -25,7 +25,10 @@ class WdigestCredential:
 		wc.encrypted_password = wdigest_entry.Password.read_data(reader)
 		t = lsa_dec.decrypt(wc.encrypted_password)
 		if t and len(t) > 0:
-			wc.password = t.decode('utf-16-le')
+			try:
+				wc.password = t.decode('utf-16-le')
+			except:
+				wc.password = t.hex()
 		return wc
 	
 	def to_dict(self):

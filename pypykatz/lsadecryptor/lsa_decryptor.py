@@ -98,7 +98,7 @@ class LsaDecryptor():
 
 	def dump(self):
 		t = 'Recovered LSA encryption keys\n'
-		t += 'IV ({}): {}'.format(len(self.iv), self.iv.hex())
-		t +='DES_KEY ({}): {}'.format(len(self.des_key), self.des_key.hex())
-		t +='AES_KEY ({}): {}'.format(len(self.aes_key), self.aes_key.hex())
+		t += 'IV ({}): {}\n'.format(len(self.iv), self.iv.hex())
+		t +='DES_KEY ({}): {}\n'.format(len(self.des_key), self.des_key.hex())
+		t +='AES_KEY ({}): {}\n'.format(len(self.aes_key), self.aes_key.hex())
 		return t

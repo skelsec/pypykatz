@@ -25,23 +25,13 @@ class LIVESSP_DECRYPTOR_TEMPLATE:
 		template.list_entry = PKIWI_LIVESSP_LIST_ENTRY
 		
 		if self.arch == 'x64':		
-			if self.buildnumber >= WindowsMinBuild.WIN_8.value:
-				template.signature = b'\x74\x25\x8b'
-				template.first_entry_offset = -7
-			
-			else:
-				#currently this doesnt make sense, but keeping it here for future use
-				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (self.arch, self.buildnumber))
+			template.signature = b'\x74\x25\x8b'
+			template.first_entry_offset = -7
 			
 		
 		elif self.arch == 'x86':
-			if self.buildnumber >= WindowsMinBuild.WIN_8.value:
-				template.signature = b'\x8b\x16\x39\x51\x24\x75\x08'
-				template.first_entry_offset = -8
-			
-			else:
-				#currently this doesnt make sense, but keeping it here for future use
-				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (self.arch, self.buildnumber))
+			template.signature = b'\x8b\x16\x39\x51\x24\x75\x08'
+			template.first_entry_offset = -8
 			
 		else:
 			raise Exception('Unknown architecture! %s' % self.arch)

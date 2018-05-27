@@ -169,6 +169,9 @@ class LogonSession:
 		if len(self.tspkg_creds) > 0:
 			for cred in self.tspkg_creds:
 				t+= str(cred)
+		if len(self.dpapi_creds) > 0:
+			for cred in self.dpapi_creds:
+				t+= str(cred)
 		return t
 		
 class LogonCredDecryptor():
@@ -185,7 +188,8 @@ class LogonCredDecryptor():
 		
 	def find_signature(self):
 		logging.log(1, '[LogonCredDecryptor] Searching for key struct signature')
-		fl = self.reader.find_all_global(self.decryptor_template.signature)
+		fl = self.reader.find_in_module('lsasrv.dll',self.decryptor_template.signature)
+		#fl = self.reader.find_all_global(self.decryptor_template.signature)
 		if len(fl) == 0:
 			raise Exception('Signature was not found! %s' % self.decryptor_template.signature.hex())
 		return fl[0]

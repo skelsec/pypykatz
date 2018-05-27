@@ -71,9 +71,7 @@ class SspDecryptor:
 		c.password = ssp_entry.credentials.Password.read_string(self.reader)
 	
 		self.credentials.append(c)
-		print(str(c))
-		input()
-		
+
 	def walk_list(self, entry_ptr, entry_ptr_location, callback, max_walk = 255, override_ptr = None):
 		"""
 		first_entry_ptr: pointer type object the will yiled the first entry when called read()
