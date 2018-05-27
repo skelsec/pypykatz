@@ -127,6 +127,7 @@ class pypykatz():
 		self.lsa_decryptor = self.get_lsa()
 		self.get_logoncreds()
 		self.get_wdigest()
+		#CHICKEN BITS - UNTESTED!!! DO NOT UNCOMMENT
 		#self.get_kerberos()
 		#self.get_tspkg()
 		#self.get_ssp()
