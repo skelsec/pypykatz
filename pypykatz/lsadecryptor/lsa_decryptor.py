@@ -7,6 +7,7 @@ import io
 import logging
 from pypykatz.commons.common import *
 from pypykatz.crypto.des import *
+from pypykatz.crypto.aes import AESModeOfOperationCBC
 from pypykatz.lsadecryptor.lsa_templates import *
 
 class LsaDecryptor():
@@ -87,7 +88,7 @@ class LsaDecryptor():
 			if size % 8:
 				if not self.aes_key or not self.iv:
 					return cleartext
-				cipher = AES.new(self.aes_key, AES.MODE_CBC, self.iv)
+				cipher = AESModeOfOperationCBC(self.aes_key, iv = self.IV)
 			else:
 				if not self.des_key or not self.iv:
 					return cleartext
