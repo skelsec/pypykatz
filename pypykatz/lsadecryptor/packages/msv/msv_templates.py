@@ -169,6 +169,29 @@ class LOGON_SESSION_DECRYPTOR_TEMPLATE:
 			raise Exception('Unknown Architecture: %s , Build number %s' % (self.arch, self.buildnumber))
 			
 		return template
+	
+class MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC:
+	#this structure doesnt have username nor domainname, but has credentials :S
+	#starts with 
+	size = 0x60
+	def __init__(self, reader):
+		self.unk1 = USHORT(reader).value
+		self.unk2 = USHORT(reader).value
+		self.unk_tag = reader.read(4) #0xcccccc
+		self.unk_remaining_size = ULONG(reader).value #0x50
+		reader.read(40)
+		self.LengthOfNtOwfPassword = ULONG(reader).value
+		self.NtOwfPassword = reader.read(16)
+		self.LengthOfShaOwfPassword = ULONG(reader).value
+		self.ShaOwPassword = reader.read(20)
+		
+		input(self.ShaOwPassword.hex())
+		self.LogonDomainName = None
+		self.UserName = None
+		self.LmOwfPassword = None
+		self.isNtOwfPassword = None
+		self.isLmOwfPassword = None
+		self.isShaOwPassword = None
 		
 class MSV1_0_PRIMARY_CREDENTIAL_DEC:
 	def __init__(self, reader):

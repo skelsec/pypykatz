@@ -24,16 +24,21 @@ class MSVCredential:
 		"""
 		reader = GenericReader(decrypted_struct_data)
 		msv = MSVCredential()
-		try:
-			msv.username = entry.UserName.read_string(reader)
-		except Exception as e:
-			logging.log(1, 'Failed to get username')
-		try:
-			msv.domainname = entry.LogonDomainName.read_string(reader)
-		except Exception as e:
-			logging.log(1, 'Failed to get username')
+		if entry.UserName:
+			try:
+				msv.username = entry.UserName.read_string(reader)
+			except Exception as e:
+				logging.log(1, 'Failed to get username')
+		if entry.LogonDomainName:
+			try:
+				msv.domainname = entry.LogonDomainName.read_string(reader)
+			except Exception as e:
+				logging.log(1, 'Failed to get username')
+				
 		msv.NThash = entry.NtOwfPassword
-		msv.LMHash = entry.LmOwfPassword
+		
+		if entry.LmOwfPassword and entry.LmOwfPassword != b'\x00'*16:
+			msv.LMHash = entry.LmOwfPassword
 		msv.SHAHash = entry.ShaOwPassword
 		return msv
 		
@@ -51,11 +56,11 @@ class MSVCredential:
 		
 	def __str__(self):
 		t = '\t== MSV ==\n'
-		t += '\tUsername: %s\n' % self.username
-		t += '\tDomain: %s\n' % self.domainname
-		t += '\tLM: %s\n' % self.LMHash.hex()
-		t += '\tNT: %s\n' % self.NThash.hex()
-		t += '\tSHA1: %s\n' % self.SHAHash.hex()
+		t += '\tUsername: %s\n' % (self.username if self.username else 'NA')
+		t += '\tDomain: %s\n' % (self.domainname if self.domainname else 'NA')
+		t += '\tLM: %s\n' % (self.LMHash.hex() if self.LMHash else 'NA')
+		t += '\tNT: %s\n' % (self.NThash.hex() if self.NThash else 'NA')
+		t += '\tSHA1: %s\n' % (self.SHAHash.hex() if self.SHAHash else 'NA')
 		return t
 		
 		
@@ -189,7 +194,6 @@ class LogonCredDecryptor():
 	def find_signature(self):
 		logging.log(1, '[LogonCredDecryptor] Searching for key struct signature')
 		fl = self.reader.find_in_module('lsasrv.dll',self.decryptor_template.signature)
-		#fl = self.reader.find_all_global(self.decryptor_template.signature)
 		if len(fl) == 0:
 			raise Exception('Signature was not found! %s' % self.decryptor_template.signature.hex())
 		return fl[0]
@@ -231,9 +235,13 @@ class LogonCredDecryptor():
 		logging.log(1, 'Decrypting credential structure')
 		dec_data = self.lsa_decryptor.decrypt(encrypted_credential_data)
 		logging.log(1, '%s: \n%s' % (self.decryptor_template.decrypted_credential_struct.__name__, hexdump(dec_data)))
-					
-					
-		creds_struct = self.decryptor_template.decrypted_credential_struct(GenericReader(dec_data, self.reader.reader.sysinfo.ProcessorArchitecture))
+			
+		if len(dec_data) == 0x60 and dec_data[4:8] == b'\xcc\xcc\xcc\xcc':
+			#this is strange
+			input('strange')
+			creds_struct = MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC(GenericReader(dec_data, self.reader.reader.sysinfo.ProcessorArchitecture))
+		else:
+			creds_struct = self.decryptor_template.decrypted_credential_struct(GenericReader(dec_data, self.reader.reader.sysinfo.ProcessorArchitecture))
 		msvc = MSVCredential.parse(creds_struct, dec_data)
 		self.current_logonsession.msv_creds.append(msvc)
 		

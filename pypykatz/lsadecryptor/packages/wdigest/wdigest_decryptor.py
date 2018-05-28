@@ -23,7 +23,12 @@ class WdigestCredential:
 		wc.username = wdigest_entry.UserName.read_string(reader)
 		wc.domainname = wdigest_entry.DomainName.read_string(reader)
 		wc.encrypted_password = wdigest_entry.Password.read_data(reader)
-		t = lsa_dec.decrypt(wc.encrypted_password)
+		
+		if len(wc.encrypted_password) % 8 == 0:
+			t = lsa_dec.decrypt(wc.encrypted_password)
+		else:
+			wc.password = wc.encrypted_password # special case for (unusable/plaintext?) orphaned credentials
+		
 		if t and len(t) > 0:
 			try:
 				wc.password = t.decode('utf-16-le')

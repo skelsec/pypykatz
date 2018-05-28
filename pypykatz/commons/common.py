@@ -21,7 +21,7 @@ class GenericReader:
 		self.current_position = 0
 		
 	def inrange(self, ptr):
-		return self.start_address <= ptr < self.end_address
+		return self.start_address <= ptr <= self.end_address
 		
 	def seek(self, offset, whence = 0):
 		"""

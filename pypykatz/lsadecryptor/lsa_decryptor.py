@@ -82,19 +82,22 @@ class LsaDecryptor():
 
 	def decrypt(self, encrypted):
 		# TODO: NT version specific, move from here in subclasses.
-		cleartext = ''
+		cleartext = b''
 		size = len(encrypted)
 		if size:
 			if size % 8:
 				if not self.aes_key or not self.iv:
 					return cleartext
-				cipher = AESModeOfOperationCBC(self.aes_key, iv = self.IV)
+				cipher = AESModeOfOperationCBC(self.aes_key, iv = self.iv)
+				n = 16
+				for block in [encrypted[i:i+n] for i in range(0, len(encrypted), n)]:  #terrible, terrible workaround
+					cleartext += cipher.decrypt(block)
 			else:
 				if not self.des_key or not self.iv:
 					return cleartext
 				#cipher = DES3.new(self.des_key, DES3.MODE_CBC, self.iv[:8])
 				cipher = triple_des(self.des_key, CBC, self.iv[:8])
-			cleartext = cipher.decrypt(encrypted)
+				cleartext = cipher.decrypt(encrypted)
 		return cleartext
 
 	def dump(self):
