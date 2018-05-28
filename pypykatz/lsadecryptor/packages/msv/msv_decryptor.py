@@ -237,8 +237,6 @@ class LogonCredDecryptor():
 		logging.log(1, '%s: \n%s' % (self.decryptor_template.decrypted_credential_struct.__name__, hexdump(dec_data)))
 			
 		if len(dec_data) == 0x60 and dec_data[4:8] == b'\xcc\xcc\xcc\xcc':
-			#this is strange
-			input('strange')
 			creds_struct = MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC(GenericReader(dec_data, self.reader.reader.sysinfo.ProcessorArchitecture))
 		else:
 			creds_struct = self.decryptor_template.decrypted_credential_struct(GenericReader(dec_data, self.reader.reader.sysinfo.ProcessorArchitecture))
