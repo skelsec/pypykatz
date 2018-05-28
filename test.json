@@ -1,0 +1,3182 @@
+{
+    "C:\\Users\\base\\Desktop\\test_dumps\\lsass.DMP": {
+        "logon_sessions": {
+            "996": {
+                "authentication_id": 996,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-18T09:31:25.212424",
+                "luid": 996,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-20",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "WIN-P843P9C5G2J$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 996,
+                        "password": null,
+                        "username": "WIN-P843P9C5G2J$"
+                    }
+                ]
+            },
+            "997": {
+                "authentication_id": 997,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-18T09:31:25.415224",
+                "luid": 997,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-19",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "LOCAL SERVICE",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": null,
+                        "username": ""
+                    }
+                ]
+            },
+            "999": {
+                "authentication_id": 999,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "5f10f5c7-9741-4b1d-be28-a46975bb9a44",
+                        "luid": 999,
+                        "masterkey": "89a521b64bd1d8f51517d7362a67bb920860a65876f5106d66cc11c32a17acd6c154b777075c1653c2533b316a2a2c16efd2f3789a9bf9028eec96fab1e6d0b2",
+                        "sha1_masterkey": "d7898221a4bd7ff3e9bd7d3f02ab13eb5c49a42a"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "68e36f52-b31c-4c37-8de0-9966cec7635e",
+                        "luid": 999,
+                        "masterkey": "1520b542d690ea6cff27e5e656986d4b75fe33a08cce52aabb09ef0ecdb6b938a1ddbe12dbe0ac05a7e32193797ea4bc102ef1629c8fd5b3a9bb01bbde8e469c",
+                        "sha1_masterkey": "9008895ba83de4f1389098f157efaee3d5d7a4b2"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "1c8bbd3b-6703-4ce2-b5f8-5a5ebdfb846d",
+                        "luid": 999,
+                        "masterkey": "e7a39450cdee34a7123a2a6b635f0cbbd0726b7347ca05b53d4ad1a4fd362d6959784d1a27c25b30110a08d21911696a70ee79e136c3ba4c050ec694cccbdb01",
+                        "sha1_masterkey": "b88771c4c47adb5c25152fc638205b9f72f55131"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "f22e410f-f947-4e08-8f2a-8f65df603f8d",
+                        "luid": 999,
+                        "masterkey": "19c05880b67d50f8231cd8009836e3cdc55610e4877f8b976abd5ca15600d0e759934324c6204b56f02527039e7fc52a1dfb5296d3381aaa7c3eb610dffa32fa",
+                        "sha1_masterkey": "b859b2b52e7e49cf5c70069745c88853c4b23487"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-18T09:31:24.541623",
+                "luid": 999,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "WIN-P843P9C5G2J$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 999,
+                        "password": null,
+                        "username": "WIN-P843P9C5G2J$"
+                    }
+                ]
+            },
+            "46939": {
+                "authentication_id": 46939,
+                "credman_creds": [],
+                "domainname": "",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-18T09:31:24.931624",
+                "luid": 46939,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "None",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "",
+                "wdigest_creds": []
+            },
+            "118054": {
+                "authentication_id": 118054,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-18T09:31:38.534847",
+                "luid": 118054,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-7",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "ANONYMOUS LOGON",
+                "wdigest_creds": []
+            },
+            "384911": {
+                "authentication_id": 384911,
+                "credman_creds": [],
+                "domainname": "WIN-P843P9C5G2J",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-P843P9C5G2J",
+                "logon_time": "2018-05-18T09:32:51.152975",
+                "luid": 384911,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "e023cf894bcda22387eea8647165616a",
+                        "SHAHash": "3618ad4590b5aeeaf5022be929b8ba84d836466c",
+                        "domainname": null,
+                        "username": null
+                    },
+                    {
+                        "LMHash": null,
+                        "NThash": "e023cf894bcda22387eea8647165616a",
+                        "SHAHash": "3618ad4590b5aeeaf5022be929b8ba84d836466c",
+                        "domainname": "WIN-P843P9C5G2J",
+                        "username": "base"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-3196778357-2313779469-1674773580-1000",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 384911,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "base",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-P843P9C5G2J",
+                        "luid": 384911,
+                        "password": "base",
+                        "username": "base"
+                    }
+                ]
+            },
+            "384936": {
+                "authentication_id": 384936,
+                "credman_creds": [],
+                "domainname": "WIN-P843P9C5G2J",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "a47a84e5-380e-49ef-9366-882439a2bdde",
+                        "luid": 384936,
+                        "masterkey": "3635e3ae5f970aeedbd6d5b24e8877e01a0adf44cccc43b3327378d891800a598a2a98351ffe0b898105d54cd4e86dab708c39897f78e72b4692fd5e66b4cc6a",
+                        "sha1_masterkey": "5f9e9c48953fb37cc793963c1c2d8120a7cde454"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "679fef94-24a8-4440-bb66-f174e56018e3",
+                        "luid": 384936,
+                        "masterkey": "98b0ae49b444c006a79c22e044e9edfe153c98210a4d43b646decea0778a6a826b82701f86dea68ec4f6e31d1a06b343bb7871ac0b53b73a855fcd4dd2f34134",
+                        "sha1_masterkey": "2699523c99b5994b41eb5d4ca3dc7d37399c8616"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-P843P9C5G2J",
+                "logon_time": "2018-05-18T09:32:51.152975",
+                "luid": 384936,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "e023cf894bcda22387eea8647165616a",
+                        "SHAHash": "3618ad4590b5aeeaf5022be929b8ba84d836466c",
+                        "domainname": "WIN-P843P9C5G2J",
+                        "username": "base"
+                    },
+                    {
+                        "LMHash": null,
+                        "NThash": "e023cf894bcda22387eea8647165616a",
+                        "SHAHash": "3618ad4590b5aeeaf5022be929b8ba84d836466c",
+                        "domainname": null,
+                        "username": null
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-3196778357-2313779469-1674773580-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "base",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-P843P9C5G2J",
+                        "luid": 384936,
+                        "password": "base",
+                        "username": "base"
+                    }
+                ]
+            }
+        },
+        "orphaned_creds": []
+    },
+    "C:\\Users\\base\\Desktop\\test_dumps\\lsass.exe_vista_32.dmp": {
+        "logon_sessions": {
+            "996": {
+                "authentication_id": 996,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:06:46.845718",
+                "luid": 996,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-20",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "WIN-MUEJVDUZR5B$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 996,
+                        "password": null,
+                        "username": "WIN-MUEJVDUZR5B$"
+                    }
+                ]
+            },
+            "997": {
+                "authentication_id": 997,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:06:46.939318",
+                "luid": 997,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-19",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "LOCAL SERVICE",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": null,
+                        "username": ""
+                    }
+                ]
+            },
+            "999": {
+                "authentication_id": 999,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "50133ca2-dd9f-4225-b7ea-a8179e57f35a",
+                        "luid": 999,
+                        "masterkey": "ab0cf28b73a0dd06cbf502752432ce25a4e3fb7edbbe37fc1313178408b1f5f5aeb0a09d7eb80d278354280679564f12908b51d783c8f0aa4ca4fbe26ad0d739",
+                        "sha1_masterkey": "89e7a47ca9aa343cf1342bbc209f177f724aefdd"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:06:46.533715",
+                "luid": 999,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "WIN-MUEJVDUZR5B$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 999,
+                        "password": null,
+                        "username": "WIN-MUEJVDUZR5B$"
+                    }
+                ]
+            },
+            "72933": {
+                "authentication_id": 72933,
+                "credman_creds": [],
+                "domainname": "",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:06:46.564916",
+                "luid": 72933,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "None",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "",
+                "wdigest_creds": []
+            },
+            "138270": {
+                "authentication_id": 138270,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:06:47.873320",
+                "luid": 138270,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-7",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "ANONYMOUS LOGON",
+                "wdigest_creds": []
+            },
+            "670906": {
+                "authentication_id": 670906,
+                "credman_creds": [],
+                "domainname": "WIN-MUEJVDUZR5B",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-MUEJVDUZR5B",
+                "logon_time": "2018-05-20T11:14:56.069120",
+                "luid": 670906,
+                "msv_creds": [
+                    {
+                        "LMHash": "850c451d27b26319aad3b435b51404ee",
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "WIN-MUEJVDUZR5B",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-2792247473-146590278-350272667-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-MUEJVDUZR5B",
+                        "luid": 670906,
+                        "password": "alma",
+                        "username": "alma"
+                    }
+                ]
+            },
+            "670932": {
+                "authentication_id": 670932,
+                "credman_creds": [],
+                "domainname": "WIN-MUEJVDUZR5B",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-MUEJVDUZR5B",
+                "logon_time": "2018-05-20T11:14:56.069120",
+                "luid": 670932,
+                "msv_creds": [
+                    {
+                        "LMHash": "850c451d27b26319aad3b435b51404ee",
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "WIN-MUEJVDUZR5B",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 0,
+                "sid": "S-1-5-21-2792247473-146590278-350272667-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-MUEJVDUZR5B",
+                        "luid": 670932,
+                        "password": "alma",
+                        "username": "alma"
+                    }
+                ]
+            }
+        },
+        "orphaned_creds": []
+    },
+    "C:\\Users\\base\\Desktop\\test_dumps\\lsass.exe_vista_64.dmp": {
+        "logon_sessions": {
+            "996": {
+                "authentication_id": 996,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:08:46.282520",
+                "luid": 996,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-20",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "WIN-FVD1KX4UV7Q$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 996,
+                        "password": null,
+                        "username": "WIN-FVD1KX4UV7Q$"
+                    }
+                ]
+            },
+            "997": {
+                "authentication_id": 997,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:08:46.344921",
+                "luid": 997,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-19",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "LOCAL SERVICE",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": null,
+                        "username": ""
+                    }
+                ]
+            },
+            "999": {
+                "authentication_id": 999,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "a57dff3b-2d8c-4a2f-8ce8-fe13b63e8f91",
+                        "luid": 999,
+                        "masterkey": "1ec7b96de749682a348175b4e33757331e8e442f315aeeb64314d0d8328664e825dc0624fed74b12a72726929e7bdf2d120cf6acdb8b8622d2de09b8f67376a3",
+                        "sha1_masterkey": "ed6d099821fb2c6daa958509064860b0ca3f8a98"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:08:45.845718",
+                "luid": 999,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "WIN-FVD1KX4UV7Q$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 999,
+                        "password": null,
+                        "username": "WIN-FVD1KX4UV7Q$"
+                    }
+                ]
+            },
+            "67847": {
+                "authentication_id": 67847,
+                "credman_creds": [],
+                "domainname": "",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:08:45.876918",
+                "luid": 67847,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "None",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "",
+                "wdigest_creds": []
+            },
+            "152328": {
+                "authentication_id": 152328,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:08:47.402723",
+                "luid": 152328,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-7",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "ANONYMOUS LOGON",
+                "wdigest_creds": []
+            },
+            "632289": {
+                "authentication_id": 632289,
+                "credman_creds": [],
+                "domainname": "WIN-FVD1KX4UV7Q",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-FVD1KX4UV7Q",
+                "logon_time": "2018-05-20T11:11:02.292323",
+                "luid": 632289,
+                "msv_creds": [
+                    {
+                        "LMHash": "850c451d27b26319aad3b435b51404ee",
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "WIN-FVD1KX4UV7Q",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-639116436-2712462413-979952754-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-FVD1KX4UV7Q",
+                        "luid": 632289,
+                        "password": "alma",
+                        "username": "alma"
+                    }
+                ]
+            },
+            "632315": {
+                "authentication_id": 632315,
+                "credman_creds": [],
+                "domainname": "WIN-FVD1KX4UV7Q",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-FVD1KX4UV7Q",
+                "logon_time": "2018-05-20T11:11:02.292323",
+                "luid": 632315,
+                "msv_creds": [
+                    {
+                        "LMHash": "850c451d27b26319aad3b435b51404ee",
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "WIN-FVD1KX4UV7Q",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 0,
+                "sid": "S-1-5-21-639116436-2712462413-979952754-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-FVD1KX4UV7Q",
+                        "luid": 632315,
+                        "password": "alma",
+                        "username": "alma"
+                    }
+                ]
+            }
+        },
+        "orphaned_creds": []
+    },
+    "C:\\Users\\base\\Desktop\\test_dumps\\lsass.exe_win10_32.dmp": {
+        "logon_sessions": {
+            "996": {
+                "authentication_id": 996,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T10:56:48.485915",
+                "luid": 996,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-20",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "DESKTOP-Q981663$",
+                "wdigest_creds": []
+            },
+            "997": {
+                "authentication_id": 997,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T10:56:49.142029",
+                "luid": 997,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-19",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "LOCAL SERVICE",
+                "wdigest_creds": []
+            },
+            "999": {
+                "authentication_id": 999,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "c0c5f173-1fde-4a6e-82c1-16e4e6bcab74",
+                        "luid": 999,
+                        "masterkey": "1f05724fc1255fda9494437309d0a7341ec61dd6c2d0d2e57d34dcaf3a76c02d56d88359f77677cc6fee6e75555f12e74c627a01bee2975fdb13bf6db4fc7dec",
+                        "sha1_masterkey": "cbbbc068411acd427b7dec738f18a321d0c0dda9"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "764eb51f-ed82-4991-b0e0-8004e6aa4403",
+                        "luid": 999,
+                        "masterkey": "729465ff787b1a554e3988e456c10b02b57d1eeee35e3aa81e06112c39ae1c2696af670ce9f1089192f751f1b687eba586402c3b67d55486bc221f56b9a7ff75",
+                        "sha1_masterkey": "7d14b16b98546d68c58f44a72dcc41c02645add4"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "49596e0f-a038-468e-b962-a8ecf877abe8",
+                        "luid": 999,
+                        "masterkey": "80ee238acc560e7df910ed920f96818db84031b503547b379e449edbda5ee2136a32aa6cd95d460a9241f5c4821526968432c97f8e4f2613f50df0b06a555642",
+                        "sha1_masterkey": "149e338d702532d91c4796527bb5e73acf1b02cf"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "27269970-aad8-445b-9cce-3fde67b935e3",
+                        "luid": 999,
+                        "masterkey": "741a1d291704e2ba2fedcfa80c6171bab419a99d35ada92806a7f2b273f48bd9936c34e04db9e1f61e531f19b581114fd842570c21de3a8d81683ba8edd31a1f",
+                        "sha1_masterkey": "df50d103bc03df730320af8ecac6247f1068d7bd"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T10:56:48.188982",
+                "luid": 999,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "DESKTOP-Q981663$",
+                "wdigest_creds": []
+            },
+            "38416": {
+                "authentication_id": 38416,
+                "credman_creds": [],
+                "domainname": "",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T10:56:48.220231",
+                "luid": 38416,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "None",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "",
+                "wdigest_creds": []
+            },
+            "62239": {
+                "authentication_id": 62239,
+                "credman_creds": [],
+                "domainname": "Window Manager",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T10:56:49.048549",
+                "luid": 62239,
+                "msv_creds": [],
+                "session_id": 1,
+                "sid": "S-1-5-90-0-1",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DWM-1",
+                "wdigest_creds": []
+            },
+            "62258": {
+                "authentication_id": 62258,
+                "credman_creds": [],
+                "domainname": "Window Manager",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T10:56:49.048549",
+                "luid": 62258,
+                "msv_creds": [],
+                "session_id": 1,
+                "sid": "S-1-5-90-0-1",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DWM-1",
+                "wdigest_creds": []
+            },
+            "114268": {
+                "authentication_id": 114268,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T10:56:51.450340",
+                "luid": 114268,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-7",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "ANONYMOUS LOGON",
+                "wdigest_creds": []
+            },
+            "591883": {
+                "authentication_id": 591883,
+                "credman_creds": [],
+                "domainname": "DESKTOP-Q981663",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "DESKTOP-Q981663",
+                "logon_time": "2018-05-20T10:59:49.481942",
+                "luid": 591883,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "DESKTOP-Q981663",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-2169317089-1541707342-2714321248-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": []
+            },
+            "591923": {
+                "authentication_id": 591923,
+                "credman_creds": [],
+                "domainname": "DESKTOP-Q981663",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "af087720-354e-4568-9332-fe822d941cc5",
+                        "luid": 591923,
+                        "masterkey": "90dbcecf7d6c73476706142b243b71025e7fb400b4d04257a606cba96b28dfc0a9a3e784c5708a3c0d295f338cb68330e7decbdc478de991186bde0558a3e1d1",
+                        "sha1_masterkey": "6f0526f41afa26a2627da49299659e64dc197357"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "DESKTOP-Q981663",
+                "logon_time": "2018-05-20T10:59:49.481942",
+                "luid": 591923,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "DESKTOP-Q981663",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-2169317089-1541707342-2714321248-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": []
+            }
+        },
+        "orphaned_creds": []
+    },
+    "C:\\Users\\base\\Desktop\\test_dumps\\lsass.exe_win10_64.dmp": {
+        "logon_sessions": {
+            "996": {
+                "authentication_id": 996,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:34:03.372908",
+                "luid": 996,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-20",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "DESKTOP-0EEB430$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 996,
+                        "password": null,
+                        "username": "DESKTOP-0EEB430$"
+                    }
+                ]
+            },
+            "997": {
+                "authentication_id": 997,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:34:03.544848",
+                "luid": 997,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-19",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "LOCAL SERVICE",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": null,
+                        "username": ""
+                    }
+                ]
+            },
+            "999": {
+                "authentication_id": 999,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "336c7ee1-bbfb-4498-86c9-f9cce6ee4f3d",
+                        "luid": 999,
+                        "masterkey": "c54c7b8237805d8c6fadaf4272dabb8c6500317e8b12a472d79a5187a306ed9087074ad21eeded774f67743ac6eb62343b59373bd887a30aa43de61ec07a423f",
+                        "sha1_masterkey": "c3090348f041859867f4aea1b1e213656a45fdbf"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "aa342ed9-e32-407c-abbe-ef283f4cdc65",
+                        "luid": 999,
+                        "masterkey": "1946745fc5d7aef7eab92d868b717662ad6abfe9e9f8d7ddd98d31b5885aee9302c2c0389ba4cbd4e6c2720e7ce23c6bd6c65204f1455b3b8f8c20aab006afea",
+                        "sha1_masterkey": "f7b27d0f0e177b7e53161990e0ffdeed8f76ea42"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "80b9d347-3640-4e72-8188-d28b5f9c4f92",
+                        "luid": 999,
+                        "masterkey": "0639b3a75e2a7567e211bd483e5e60891a2bb0305e03b0fe7ca27afa9c01f25c3ee42c23af4cbeeab713ebf895e4041b9253abeabc6c5578561ff6aa78aa162b",
+                        "sha1_masterkey": "d5d8410f06aef206287672fc6f36cf54f5b8d314"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "fa3578c7-f8a0-4af3-8eb6-50f5d8bb97f5",
+                        "luid": 999,
+                        "masterkey": "af70325e336c7bc7dd9dc2360c95b9ad909ec163a36b70e2339e4ce4c8bf57f7830e6502709955ed51e713c5b94ea4821b16a7ee0744b50e43449cc80544d988",
+                        "sha1_masterkey": "8b0a2c7c7a90639b9f4ffcfae868dda15a778523"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:34:03.138643",
+                "luid": 999,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "DESKTOP-0EEB430$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 999,
+                        "password": null,
+                        "username": "DESKTOP-0EEB430$"
+                    }
+                ]
+            },
+            "35728": {
+                "authentication_id": 35728,
+                "credman_creds": [],
+                "domainname": "",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:34:03.154181",
+                "luid": 35728,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "None",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "",
+                "wdigest_creds": []
+            },
+            "36703": {
+                "authentication_id": 36703,
+                "credman_creds": [],
+                "domainname": "Font Driver Host",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:34:03.216719",
+                "luid": 36703,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-96-0-0",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "UMFD-0",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 36703,
+                        "password": null,
+                        "username": "DESKTOP-0EEB430$"
+                    }
+                ]
+            },
+            "36713": {
+                "authentication_id": 36713,
+                "credman_creds": [],
+                "domainname": "Font Driver Host",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:34:03.216719",
+                "luid": 36713,
+                "msv_creds": [],
+                "session_id": 1,
+                "sid": "S-1-5-96-0-1",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "UMFD-1",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 36713,
+                        "password": null,
+                        "username": "DESKTOP-0EEB430$"
+                    }
+                ]
+            },
+            "57314": {
+                "authentication_id": 57314,
+                "credman_creds": [],
+                "domainname": "Window Manager",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:34:03.466661",
+                "luid": 57314,
+                "msv_creds": [],
+                "session_id": 1,
+                "sid": "S-1-5-90-0-1",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DWM-1",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 57314,
+                        "password": null,
+                        "username": "DESKTOP-0EEB430$"
+                    }
+                ]
+            },
+            "57372": {
+                "authentication_id": 57372,
+                "credman_creds": [],
+                "domainname": "Window Manager",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:34:03.466661",
+                "luid": 57372,
+                "msv_creds": [],
+                "session_id": 1,
+                "sid": "S-1-5-90-0-1",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DWM-1",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 57372,
+                        "password": null,
+                        "username": "DESKTOP-0EEB430$"
+                    }
+                ]
+            },
+            "100726": {
+                "authentication_id": 100726,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:34:04.919840",
+                "luid": 100726,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-7",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "ANONYMOUS LOGON",
+                "wdigest_creds": []
+            },
+            "706377": {
+                "authentication_id": 706377,
+                "credman_creds": [],
+                "domainname": "DESKTOP-0EEB430",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "DESKTOP-0EEB430",
+                "logon_time": "2018-05-20T11:36:40.931040",
+                "luid": 706377,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "DESKTOP-0EEB430",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-3912534079-33852080-1764940403-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "DESKTOP-0EEB430",
+                        "luid": 706377,
+                        "password": null,
+                        "username": "alma"
+                    }
+                ]
+            },
+            "706418": {
+                "authentication_id": 706418,
+                "credman_creds": [],
+                "domainname": "DESKTOP-0EEB430",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "bdad8a8a-724e-4e0a-ae1a-575ac2b24ecf",
+                        "luid": 706418,
+                        "masterkey": "c760c2f4159d5de781cd310065a04ddd604cfde26f0fef74b413f2725a7fc69e7fd1339b277bc25de95f7ebf6363b6b923da9fd45215047b7636c32e6fadf0d8",
+                        "sha1_masterkey": "ea064d44672de2373d9ebbba94e97f041f2771c7"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "DESKTOP-0EEB430",
+                "logon_time": "2018-05-20T11:36:40.931040",
+                "luid": 706418,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "DESKTOP-0EEB430",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-3912534079-33852080-1764940403-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "DESKTOP-0EEB430",
+                        "luid": 706418,
+                        "password": null,
+                        "username": "alma"
+                    }
+                ]
+            }
+        },
+        "orphaned_creds": []
+    },
+    "C:\\Users\\base\\Desktop\\test_dumps\\lsass.exe_win10_domain.dmp": {
+        "logon_sessions": {
+            "996": {
+                "authentication_id": 996,
+                "credman_creds": [],
+                "domainname": "TEST",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T08:36:32.923455",
+                "luid": 996,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "c8a0033b1c2d07da122874b8f1220244",
+                        "SHAHash": "eb6ce8531c175e737ec182042b3f54da9b8b9bfc",
+                        "domainname": "TEST",
+                        "username": "VICTIM$"
+                    }
+                ],
+                "session_id": 0,
+                "sid": "S-1-5-20",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "VICTIM$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "TEST",
+                        "luid": 996,
+                        "password": null,
+                        "username": "VICTIM$"
+                    }
+                ]
+            },
+            "997": {
+                "authentication_id": 997,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T08:36:33.814054",
+                "luid": 997,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-19",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "LOCAL SERVICE",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": null,
+                        "username": ""
+                    }
+                ]
+            },
+            "999": {
+                "authentication_id": 999,
+                "credman_creds": [],
+                "domainname": "TEST",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "2b5beb69-8e39-475d-8066-1a5230c59e37",
+                        "luid": 999,
+                        "masterkey": "752c9ed829b9e749d1454751ba9dd596867c99597267e51d666a792d1d4c468c9c6263bd6737ac8c6521401d61c38a3335c3cd1062fbcf8cbf5c0270114db4b9",
+                        "sha1_masterkey": "c2894b850b8813f59e1ca1d7d941e48e1a3d5f3f"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "28e74c7f-b7f0-437a-b5cf-9192b9379736",
+                        "luid": 999,
+                        "masterkey": "429d8c538c11836c4dba241be3bd9063cb35396d66b54a702c64596e8bc59add88f98ef08970315ee9d52c78a0bbcb34fce834118405df9d5a3f9e857bcd2e03",
+                        "sha1_masterkey": "8c5ebe6cc0e423ecf9719c99d00af05b3c9ea70d"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "d963f089-8a32-4812-80c6-be17ae237f3e",
+                        "luid": 999,
+                        "masterkey": "684fc7a788c0a01a02a3360b8d965df3df7161bd5deafbd27e03eb378e1733d119bed5a53a5be09370ee622e572dc35b745b0a865abce6fa38cc46cf50afa070",
+                        "sha1_masterkey": "d9cca71b78adbb29d0de567935c54b382546abdd"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "b60105dd-9061-44de-bb70-9d153cddee",
+                        "luid": 999,
+                        "masterkey": "0f317a502956a537da2d94056c4486de2ac21b0acdca0bbd5ed0b8732b292959370c7a4d18cfc431b78a4fd10a2f5cacac19a2aa242ca00e638b5834feb747b8",
+                        "sha1_masterkey": "e26582198f3f1e1909d0b15e0a2b506061019fa8"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "58df7746-8864-4261-aede-69a899bf42d3",
+                        "luid": 999,
+                        "masterkey": "b56ac73513efd1064262a9bf0de6c5733eb162a5021a3f509611237fbc9a616edb08f735f2d004823ab067735e62f71b6b008c52f7d1bafc5d08ba2fff883d1a",
+                        "sha1_masterkey": "2d96d6c0c1c69c04a8fb15af8a58e0e665ecac77"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "af50e35-4750-4f0e-aca7-31f978e440f6",
+                        "luid": 999,
+                        "masterkey": "e442f7e9d56aa1c8ee6ce79d1d163551274291bcb0601aefeef315fb247164cc39c683d860d70d69d3b735b1bbb888bf498aacfbc31419945889317e87fed0d1",
+                        "sha1_masterkey": "8e5769ed07eb1452178d9e6ce79d65cd4e19590e"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T08:36:29.720687",
+                "luid": 999,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "VICTIM$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "TEST",
+                        "luid": 999,
+                        "password": null,
+                        "username": "VICTIM$"
+                    }
+                ]
+            },
+            "40066": {
+                "authentication_id": 40066,
+                "credman_creds": [],
+                "domainname": "",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T08:36:30.017191",
+                "luid": 40066,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "c8a0033b1c2d07da122874b8f1220244",
+                        "SHAHash": "eb6ce8531c175e737ec182042b3f54da9b8b9bfc",
+                        "domainname": "TEST",
+                        "username": "VICTIM$"
+                    }
+                ],
+                "session_id": 0,
+                "sid": "None",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "",
+                "wdigest_creds": []
+            },
+            "129323": {
+                "authentication_id": 129323,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T08:36:50.068366",
+                "luid": 129323,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-7",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "ANONYMOUS LOGON",
+                "wdigest_creds": []
+            },
+            "2703443": {
+                "authentication_id": 2703443,
+                "credman_creds": [],
+                "domainname": "TEST",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "DCSERVER",
+                "logon_time": "2018-05-26T09:22:32.920670",
+                "luid": 2703443,
+                "msv_creds": [],
+                "session_id": 1,
+                "sid": "S-1-5-21-2170771819-2058868230-378030940-1111",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "victim",
+                "wdigest_creds": []
+            },
+            "3349924": {
+                "authentication_id": 3349924,
+                "credman_creds": [],
+                "domainname": "Window Manager",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T09:24:52.920494",
+                "luid": 3349924,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "c8a0033b1c2d07da122874b8f1220244",
+                        "SHAHash": "eb6ce8531c175e737ec182042b3f54da9b8b9bfc",
+                        "domainname": "TEST",
+                        "username": "VICTIM$"
+                    }
+                ],
+                "session_id": 2,
+                "sid": "S-1-5-90-0-2",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DWM-2",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "TEST",
+                        "luid": 3349924,
+                        "password": null,
+                        "username": "VICTIM$"
+                    }
+                ]
+            },
+            "3349952": {
+                "authentication_id": 3349952,
+                "credman_creds": [],
+                "domainname": "Window Manager",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T09:24:52.920494",
+                "luid": 3349952,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "c8a0033b1c2d07da122874b8f1220244",
+                        "SHAHash": "eb6ce8531c175e737ec182042b3f54da9b8b9bfc",
+                        "domainname": "TEST",
+                        "username": "VICTIM$"
+                    }
+                ],
+                "session_id": 2,
+                "sid": "S-1-5-90-0-2",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DWM-2",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "TEST",
+                        "luid": 3349952,
+                        "password": null,
+                        "username": "VICTIM$"
+                    }
+                ]
+            },
+            "3584865": {
+                "authentication_id": 3584865,
+                "credman_creds": [],
+                "domainname": "TEST",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "DCSERVER",
+                "logon_time": "2018-05-26T09:26:58.811495",
+                "luid": 3584865,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "df85f802490f0384233c895f06ba2011",
+                        "SHAHash": "61687838d7a1b7e29c88e0aef1217ad8b6f09f4e",
+                        "domainname": null,
+                        "username": null
+                    },
+                    {
+                        "LMHash": null,
+                        "NThash": "df85f802490f0384233c895f06ba2011",
+                        "SHAHash": "61687838d7a1b7e29c88e0aef1217ad8b6f09f4e",
+                        "domainname": "TEST",
+                        "username": "victim"
+                    }
+                ],
+                "session_id": 2,
+                "sid": "S-1-5-21-2170771819-2058868230-378030940-1111",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "victim",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "TEST",
+                        "luid": 3584865,
+                        "password": null,
+                        "username": "victim"
+                    }
+                ]
+            },
+            "4078320": {
+                "authentication_id": 4078320,
+                "credman_creds": [],
+                "domainname": "TEST",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "DCSERVER",
+                "logon_time": "2018-05-26T09:28:25.474252",
+                "luid": 4078320,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "a90ccc4eb5331596ae245b59847c98a6",
+                        "SHAHash": "f8ed302caf04640ede3f2ef97cace9726e3ae7b4",
+                        "domainname": "TEST",
+                        "username": "Administrator"
+                    },
+                    {
+                        "LMHash": null,
+                        "NThash": "a90ccc4eb5331596ae245b59847c98a6",
+                        "SHAHash": "f8ed302caf04640ede3f2ef97cace9726e3ae7b4",
+                        "domainname": null,
+                        "username": null
+                    }
+                ],
+                "session_id": 2,
+                "sid": "S-1-5-21-2170771819-2058868230-378030940-500",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "Administrator",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "TEST",
+                        "luid": 4078320,
+                        "password": null,
+                        "username": "Administrator"
+                    }
+                ]
+            }
+        },
+        "orphaned_creds": []
+    },
+    "C:\\Users\\base\\Desktop\\test_dumps\\lsass.exe_win2016.dmp": {
+        "logon_sessions": {
+            "996": {
+                "authentication_id": 996,
+                "credman_creds": [],
+                "domainname": "TEST",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T08:33:03.974622",
+                "luid": 996,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "43d2c8150b2d42e8ba515c15531469a2",
+                        "SHAHash": "ce6fdc11041ad067d175db4613f71b2e555cfc93",
+                        "domainname": "TEST",
+                        "username": "DCSERVER$"
+                    }
+                ],
+                "session_id": 0,
+                "sid": "S-1-5-20",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "DCSERVER$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "TEST",
+                        "luid": 996,
+                        "password": null,
+                        "username": "DCSERVER$"
+                    }
+                ]
+            },
+            "41312": {
+                "authentication_id": 41312,
+                "credman_creds": [],
+                "domainname": "",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T08:32:57.818626",
+                "luid": 41312,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "43d2c8150b2d42e8ba515c15531469a2",
+                        "SHAHash": "ce6fdc11041ad067d175db4613f71b2e555cfc93",
+                        "domainname": "TEST",
+                        "username": "DCSERVER$"
+                    }
+                ],
+                "session_id": 0,
+                "sid": "None",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 41312,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 41312,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 41312,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 41312,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 41312,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "",
+                "wdigest_creds": []
+            },
+            "79647": {
+                "authentication_id": 79647,
+                "credman_creds": [],
+                "domainname": "Window Manager",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T08:33:05.287237",
+                "luid": 79647,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "b418fa2141c96638958e80f7a0e7e20d",
+                        "SHAHash": "8b1620e764a258fcd606ef66aaa03f7c9c66e294",
+                        "domainname": "TEST",
+                        "username": "DCSERVER$"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-90-0-1",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DWM-1",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "TEST",
+                        "luid": 79647,
+                        "password": null,
+                        "username": "DCSERVER$"
+                    }
+                ]
+            },
+            "274953": {
+                "authentication_id": 274953,
+                "credman_creds": [],
+                "domainname": "TEST",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T08:33:58.506403",
+                "luid": 274953,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DCSERVER$",
+                "wdigest_creds": []
+            },
+            "314140": {
+                "authentication_id": 314140,
+                "credman_creds": [],
+                "domainname": "TEST",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T08:34:18.959735",
+                "luid": 314140,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DCSERVER$",
+                "wdigest_creds": []
+            },
+            "405229": {
+                "authentication_id": 405229,
+                "credman_creds": [],
+                "domainname": "TEST",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-26T08:38:59.632282",
+                "luid": 405229,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DCSERVER$",
+                "wdigest_creds": []
+            }
+        },
+        "orphaned_creds": [
+            {
+                "credtype": "wdigest",
+                "domainname": "TEST",
+                "luid": 1578879,
+                "password": null,
+                "username": "Administrator"
+            },
+            {
+                "credtype": "wdigest",
+                "domainname": "TEST",
+                "luid": 77379,
+                "password": null,
+                "username": "DCSERVER$"
+            },
+            {
+                "credtype": "wdigest",
+                "domainname": "",
+                "luid": 997,
+                "password": null,
+                "username": ""
+            },
+            {
+                "credtype": "wdigest",
+                "domainname": "TEST",
+                "luid": 999,
+                "password": null,
+                "username": "DCSERVER$"
+            },
+            {
+                "credtype": "ssp",
+                "domainname": "",
+                "luid": 999,
+                "password": "",
+                "username": ""
+            },
+            {
+                "credtype": "ssp",
+                "domainname": "",
+                "luid": 999,
+                "password": "",
+                "username": ""
+            },
+            {
+                "credtype": "ssp",
+                "domainname": "",
+                "luid": 999,
+                "password": "",
+                "username": ""
+            },
+            {
+                "credtype": "ssp",
+                "domainname": "",
+                "luid": 999,
+                "password": "",
+                "username": ""
+            },
+            {
+                "credtype": "ssp",
+                "domainname": "",
+                "luid": 999,
+                "password": "",
+                "username": ""
+            },
+            {
+                "credtype": "ssp",
+                "domainname": "",
+                "luid": 999,
+                "password": "",
+                "username": ""
+            },
+            {
+                "credtype": "ssp",
+                "domainname": "",
+                "luid": 997,
+                "password": "",
+                "username": ""
+            },
+            {
+                "credtype": "ssp",
+                "domainname": "",
+                "luid": 999,
+                "password": "",
+                "username": ""
+            },
+            {
+                "credtype": "ssp",
+                "domainname": "",
+                "luid": 999,
+                "password": "",
+                "username": ""
+            },
+            {
+                "credtype": "ssp",
+                "domainname": "",
+                "luid": 999,
+                "password": "",
+                "username": ""
+            },
+            {
+                "credtype": "dpapi",
+                "key_guid": "c70448f2-9e87-4b6d-a19f-3eba0fba569",
+                "luid": 1578879,
+                "masterkey": "0fe828b74a0ca971a97ec1be545934fdd303563a8a90f067aff96adff3ed8f4065297bad7132e031764e3e2127fbad0abeb53cd8b1d33bd6dafd9ea55d059720",
+                "sha1_masterkey": "c04d297f228c445ba3d3d54e04747f92ad129cd9"
+            },
+            {
+                "credtype": "dpapi",
+                "key_guid": "3c2b703c-51e0-4a2c-a896-b7762f660988",
+                "luid": 1578879,
+                "masterkey": "bd1bb6737de8e2360d3858b523427df973e70f76b81d8cf37826615f6ed6040a8dd1fc12d34e7a3401829412434366e78e284eec2cc56edf96bb9186986221da",
+                "sha1_masterkey": "09301decc065c0ed8118d4da8dfbf4b89dc4fbe0"
+            },
+            {
+                "credtype": "dpapi",
+                "key_guid": "475629b8-a710-4c62-b4b2-4cd959e4bdea",
+                "luid": 999,
+                "masterkey": "b1faf0a55a933bfa95812d8ce70333aedfc0735ce0ca6ab497132c26e066013a230847be8ae4d4cdbf83b0f6ebebe86881b7c4b9650dc662ac19b73056d9a161",
+                "sha1_masterkey": "323ab422656a7d1492cfc8b7c0670877b470daac"
+            },
+            {
+                "credtype": "dpapi",
+                "key_guid": "6448b5da-4d36-4235-bf69-bfbd9e6edb01",
+                "luid": 999,
+                "masterkey": "61bc9a42db44f12ba7f60ff3314c4896fd29a644e6e1b3e19d147cc3767a62161284952aa060de5659df52aa708df5c3061136bc9cbf078a2f36d835217315fd",
+                "sha1_masterkey": "893a2083a18f788522213b0e6abb90f0df2378d1"
+            },
+            {
+                "credtype": "dpapi",
+                "key_guid": "63f571f-b3ec-469b-8355-beecd69dada0",
+                "luid": 999,
+                "masterkey": "dc423d905208675f02fc878df97fb5c41a4026774af98411cb76035bfc7f03b1185fbc450f20978a259bee22251a03b809512898f883545c600557c24140db06",
+                "sha1_masterkey": "4f2af92586f477c018999e2dc506827fdbafe2dd"
+            },
+            {
+                "credtype": "dpapi",
+                "key_guid": "327d81d2-de66-4857-863f-150916d57512",
+                "luid": 999,
+                "masterkey": "f1f800546c5cf7355d96b2927ed7e5d23b5e5da8284eb4fd3afeffb773ebad488405a4cf2736a1f63e6a8d0fb8cd89e700f2f48e17c1a626e0db9dd0b7f10d08",
+                "sha1_masterkey": "909c58f8a20e0d7096c6bd5f40e4ce27241c7470"
+            },
+            {
+                "credtype": "dpapi",
+                "key_guid": "3d5f5852-3abc-47f3-aa2d-2f69baa2f896",
+                "luid": 999,
+                "masterkey": "4f40828271e10aca4336d7be42e4aeb5a560cdb6ebf469f4a6cb0fc5172fe6603688ed2173a65436589efbc2eb9a35035a90829086ae5793f511a583df550848",
+                "sha1_masterkey": "30c84913e434676054928f6f2a980e467f221d68"
+            },
+            {
+                "credtype": "dpapi",
+                "key_guid": "f6bc2168-e2b6-4174-9227-914d95189d55",
+                "luid": 999,
+                "masterkey": "97f9f5e504e2fc22c6c920edee782e40b5cbdd777103d6256405c1c7e29cfa4cf23396c46554a0faf346633427d432ad610743f3f8115ae0ba72c92850402ff7",
+                "sha1_masterkey": "97c7a80ec496c231b425222623ad0dca7fc2fce2"
+            }
+        ]
+    },
+    "C:\\Users\\base\\Desktop\\test_dumps\\lsass.exe_win7_32.dmp": {
+        "logon_sessions": {
+            "996": {
+                "authentication_id": 996,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-21T16:04:09.612014",
+                "luid": 996,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-20",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "WIN-Q19HAD9VDKL$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 996,
+                        "password": null,
+                        "username": "WIN-Q19HAD9VDKL$"
+                    }
+                ]
+            },
+            "997": {
+                "authentication_id": 997,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-21T16:04:09.643214",
+                "luid": 997,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-19",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "LOCAL SERVICE",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": null,
+                        "username": ""
+                    }
+                ]
+            },
+            "999": {
+                "authentication_id": 999,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "4ece708-132d-4bf0-a647-e3329269a012",
+                        "luid": 999,
+                        "masterkey": "3e9d7f32f2e57933ead318d075efc82325697d87d992b626a20abb5f0ffba6f073d282a837b6fa058ecff36039aa944e04b3dfb666ebace44aad6bff8789ca43",
+                        "sha1_masterkey": "f7c8322f881b4406e7cee321b3f0e17d6c07b696"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-21T16:04:08.941213",
+                "luid": 999,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "WIN-Q19HAD9VDKL$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 999,
+                        "password": null,
+                        "username": "WIN-Q19HAD9VDKL$"
+                    }
+                ]
+            },
+            "43728": {
+                "authentication_id": 43728,
+                "credman_creds": [],
+                "domainname": "",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-21T16:04:08.941213",
+                "luid": 43728,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "None",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "",
+                "wdigest_creds": []
+            },
+            "101099": {
+                "authentication_id": 101099,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-21T16:04:10.563616",
+                "luid": 101099,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-7",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "ANONYMOUS LOGON",
+                "wdigest_creds": []
+            },
+            "684755": {
+                "authentication_id": 684755,
+                "credman_creds": [],
+                "domainname": "WIN-Q19HAD9VDKL",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-Q19HAD9VDKL",
+                "logon_time": "2018-05-21T16:08:00.055619",
+                "luid": 684755,
+                "msv_creds": [
+                    {
+                        "LMHash": "850c451d27b26319aad3b435b51404ee",
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "WIN-Q19HAD9VDKL",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-604039369-1693320265-2385177392-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-Q19HAD9VDKL",
+                        "luid": 684755,
+                        "password": "alma",
+                        "username": "alma"
+                    }
+                ]
+            },
+            "684786": {
+                "authentication_id": 684786,
+                "credman_creds": [],
+                "domainname": "WIN-Q19HAD9VDKL",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-Q19HAD9VDKL",
+                "logon_time": "2018-05-21T16:08:00.055619",
+                "luid": 684786,
+                "msv_creds": [
+                    {
+                        "LMHash": "850c451d27b26319aad3b435b51404ee",
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "WIN-Q19HAD9VDKL",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-604039369-1693320265-2385177392-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-Q19HAD9VDKL",
+                        "luid": 684786,
+                        "password": "alma",
+                        "username": "alma"
+                    }
+                ]
+            }
+        },
+        "orphaned_creds": []
+    },
+    "C:\\Users\\base\\Desktop\\test_dumps\\lsass.exe_win7_64.dmp": {
+        "logon_sessions": {
+            "996": {
+                "authentication_id": 996,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-21T15:38:09.769613",
+                "luid": 996,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-20",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 996,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "WIN-9069U1R2TR3$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 996,
+                        "password": null,
+                        "username": "WIN-9069U1R2TR3$"
+                    }
+                ]
+            },
+            "997": {
+                "authentication_id": 997,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-21T15:38:09.785213",
+                "luid": 997,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-19",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "LOCAL SERVICE",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": null,
+                        "username": ""
+                    }
+                ]
+            },
+            "999": {
+                "authentication_id": 999,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "f22e410f-f947-4e08-8f2a-8f65df603f8d",
+                        "luid": 999,
+                        "masterkey": "19c05880b67d50f8231cd8009836e3cdc55610e4877f8b976abd5ca15600d0e759934324c6204b56f02527039e7fc52a1dfb5296d3381aaa7c3eb610dffa32fa",
+                        "sha1_masterkey": "b859b2b52e7e49cf5c70069745c88853c4b23487"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-21T15:38:09.395212",
+                "luid": 999,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    },
+                    {
+                        "credtype": "ssp",
+                        "domainname": "",
+                        "luid": 999,
+                        "password": "",
+                        "username": ""
+                    }
+                ],
+                "tspkg_creds": [],
+                "username": "WIN-9069U1R2TR3$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 999,
+                        "password": null,
+                        "username": "WIN-9069U1R2TR3$"
+                    }
+                ]
+            },
+            "44797": {
+                "authentication_id": 44797,
+                "credman_creds": [],
+                "domainname": "",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-21T15:38:09.410812",
+                "luid": 44797,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "None",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "",
+                "wdigest_creds": []
+            },
+            "110317": {
+                "authentication_id": 110317,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-21T15:38:10.721215",
+                "luid": 110317,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-7",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "ANONYMOUS LOGON",
+                "wdigest_creds": []
+            },
+            "918014": {
+                "authentication_id": 918014,
+                "credman_creds": [],
+                "domainname": "WIN-9069U1R2TR3",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-9069U1R2TR3",
+                "logon_time": "2018-05-21T15:48:02.376659",
+                "luid": 918014,
+                "msv_creds": [
+                    {
+                        "LMHash": "850c451d27b26319aad3b435b51404ee",
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "WIN-9069U1R2TR3",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-308784503-304108902-1470133905-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-9069U1R2TR3",
+                        "luid": 918014,
+                        "password": "alma",
+                        "username": "alma"
+                    }
+                ]
+            },
+            "918044": {
+                "authentication_id": 918044,
+                "credman_creds": [],
+                "domainname": "WIN-9069U1R2TR3",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-9069U1R2TR3",
+                "logon_time": "2018-05-21T15:48:02.376659",
+                "luid": 918044,
+                "msv_creds": [
+                    {
+                        "LMHash": "850c451d27b26319aad3b435b51404ee",
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "WIN-9069U1R2TR3",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-308784503-304108902-1470133905-1000",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-9069U1R2TR3",
+                        "luid": 918044,
+                        "password": "alma",
+                        "username": "alma"
+                    }
+                ]
+            }
+        },
+        "orphaned_creds": []
+    },
+    "C:\\Users\\base\\Desktop\\test_dumps\\lsass.exe_win8_64.dmp": {
+        "logon_sessions": {
+            "996": {
+                "authentication_id": 996,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:05:40.308146",
+                "luid": 996,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-20",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "WIN-BA3VBKLJFJG$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 996,
+                        "password": null,
+                        "username": "WIN-BA3VBKLJFJG$"
+                    }
+                ]
+            },
+            "997": {
+                "authentication_id": 997,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:05:40.495692",
+                "luid": 997,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-19",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "LOCAL SERVICE",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "",
+                        "luid": 997,
+                        "password": null,
+                        "username": ""
+                    }
+                ]
+            },
+            "999": {
+                "authentication_id": 999,
+                "credman_creds": [],
+                "domainname": "WORKGROUP",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "254940a4-df35-4178-8150-bccd6540b845",
+                        "luid": 999,
+                        "masterkey": "709eb2d4ba707cb7f66bea1e1b34b1f5a8104e0a001bc497e6a148caac53713de1582e99859e326c65c7ef64876e48cc7b2c027fbcd742d0af93bb8dc5924017",
+                        "sha1_masterkey": "7fc0d3221b76f83f43993a6604a92fdaa5944018"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "58c52440-3baa-4109-bd24-bfce354b6cbb",
+                        "luid": 999,
+                        "masterkey": "02a2ef4dc945362c4a5ff684c1f5245509e1bbbfc4435bad98a4f217da76de07eda52618117d8b5216d774c413bb35b79e301e6b4c57fd763ce7d348b48ace0c",
+                        "sha1_masterkey": "c436a77d8eade9de5c7bf5b7869add6eb3c9a1e5"
+                    },
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "b2178b99-f9f6-47ad-b0eb-4e709bc8dfda",
+                        "luid": 999,
+                        "masterkey": "ef71ea6d40608c12b8b9a961db102d2be8678b608f0098b068a0fb278a970700d34067331addf4f46c8b2707aa6e5d50d5381a5886e29670e2e95b3f8605d5fa",
+                        "sha1_masterkey": "e4bdab46c7047f48cb2951f8b7e8ae25e7af5e5d"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:05:39.542553",
+                "luid": 999,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-18",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "WIN-BA3VBKLJFJG$",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 999,
+                        "password": null,
+                        "username": "WIN-BA3VBKLJFJG$"
+                    }
+                ]
+            },
+            "41139": {
+                "authentication_id": 41139,
+                "credman_creds": [],
+                "domainname": "",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:05:39.573792",
+                "luid": 41139,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "None",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "",
+                "wdigest_creds": []
+            },
+            "63946": {
+                "authentication_id": 63946,
+                "credman_creds": [],
+                "domainname": "Window Manager",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:05:40.417585",
+                "luid": 63946,
+                "msv_creds": [],
+                "session_id": 1,
+                "sid": "S-1-5-90-1",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DWM-1",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 63946,
+                        "password": null,
+                        "username": "WIN-BA3VBKLJFJG$"
+                    }
+                ]
+            },
+            "63971": {
+                "authentication_id": 63971,
+                "credman_creds": [],
+                "domainname": "Window Manager",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:05:40.417585",
+                "luid": 63971,
+                "msv_creds": [],
+                "session_id": 1,
+                "sid": "S-1-5-90-1",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "DWM-1",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WORKGROUP",
+                        "luid": 63971,
+                        "password": null,
+                        "username": "WIN-BA3VBKLJFJG$"
+                    }
+                ]
+            },
+            "98220": {
+                "authentication_id": 98220,
+                "credman_creds": [],
+                "domainname": "NT AUTHORITY",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "",
+                "logon_time": "2018-05-20T11:05:41.433232",
+                "luid": 98220,
+                "msv_creds": [],
+                "session_id": 0,
+                "sid": "S-1-5-7",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "ANONYMOUS LOGON",
+                "wdigest_creds": []
+            },
+            "181244": {
+                "authentication_id": 181244,
+                "credman_creds": [],
+                "domainname": "WIN-BA3VBKLJFJG",
+                "dpapi_creds": [],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-BA3VBKLJFJG",
+                "logon_time": "2018-05-20T11:06:04.007546",
+                "luid": 181244,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": null,
+                        "username": null
+                    },
+                    {
+                        "LMHash": null,
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "WIN-BA3VBKLJFJG",
+                        "username": "alma"
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-2652259454-1320210763-55594856-1001",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-BA3VBKLJFJG",
+                        "luid": 181244,
+                        "password": null,
+                        "username": "alma"
+                    }
+                ]
+            },
+            "181299": {
+                "authentication_id": 181299,
+                "credman_creds": [],
+                "domainname": "WIN-BA3VBKLJFJG",
+                "dpapi_creds": [
+                    {
+                        "credtype": "dpapi",
+                        "key_guid": "1623115d-7cda-4912-8a45-33149282685d",
+                        "luid": 181299,
+                        "masterkey": "04b40758443e6ae67555a7ea8ac921f381b1866f0043ba835b0d72e8009dc8b975fc4bb7ce5ed79c98d17d65b7db4f519391ebdf1eaedefead60c2e4e6411be4",
+                        "sha1_masterkey": "b7cb0c3864188de43fff78676ba744c6ccafc167"
+                    }
+                ],
+                "kerberos_creds": [],
+                "livessp_creds": [],
+                "logon_server": "WIN-BA3VBKLJFJG",
+                "logon_time": "2018-05-20T11:06:04.022965",
+                "luid": 181299,
+                "msv_creds": [
+                    {
+                        "LMHash": null,
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": "WIN-BA3VBKLJFJG",
+                        "username": "alma"
+                    },
+                    {
+                        "LMHash": null,
+                        "NThash": "feb86de60667471373962fbf12ab770c",
+                        "SHAHash": "45fb548ae51245b26de06562ab0a8a3613e0c723",
+                        "domainname": null,
+                        "username": null
+                    }
+                ],
+                "session_id": 1,
+                "sid": "S-1-5-21-2652259454-1320210763-55594856-1001",
+                "ssp_creds": [],
+                "tspkg_creds": [],
+                "username": "alma",
+                "wdigest_creds": [
+                    {
+                        "credtype": "wdigest",
+                        "domainname": "WIN-BA3VBKLJFJG",
+                        "luid": 181299,
+                        "password": null,
+                        "username": "alma"
+                    }
+                ]
+            }
+        },
+        "orphaned_creds": []
+    }
+}

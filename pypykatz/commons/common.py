@@ -250,5 +250,14 @@ class UniversalEncoder(json.JSONEncoder):
 			return obj.value
 		elif isinstance(obj, bytes):
 			return obj.hex()
+		#elif getattr(obj, "to_json", None):
+		#	to_json = getattr(obj, "to_json", None)
+		#	if callable(to_json):
+		#		return obj.to_json()
+		elif getattr(obj, "to_dict", None):
+			to_dict = getattr(obj, "to_dict", None)
+			if callable(to_dict):
+				return obj.to_dict()
+		
 		else:
 			return json.JSONEncoder.default(self, obj)

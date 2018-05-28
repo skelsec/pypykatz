@@ -185,7 +185,6 @@ class MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC:
 		self.LengthOfShaOwfPassword = ULONG(reader).value
 		self.ShaOwPassword = reader.read(20)
 		
-		input(self.ShaOwPassword.hex())
 		self.LogonDomainName = None
 		self.UserName = None
 		self.LmOwfPassword = None

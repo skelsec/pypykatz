@@ -39,7 +39,7 @@ class LSADecryptorTemplateFactory:
 		
 		elif WindowsMinBuild.WIN_2K3.value <= self.buildnumber < WindowsMinBuild.WIN_VISTA.value:
 			#windows 2003
-			raise Exceptiion("Maybe implemented later")
+			raise Exception("Maybe implemented later")
 			
 		elif WindowsMinBuild.WIN_VISTA.value <= self.buildnumber < WindowsMinBuild.WIN_7.value:
 			#windows Vista

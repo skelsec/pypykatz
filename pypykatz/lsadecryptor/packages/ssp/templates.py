@@ -66,4 +66,5 @@ class KIWI_SSP_CREDENTIAL_LIST_ENTRY:
 		self.unk0 = ULONG(reader).value
 		self.unk1 = ULONG(reader).value
 		self.unk2 = ULONG(reader).value
+		reader.align()
 		self.credentials = KIWI_GENERIC_PRIMARY_CREDENTIAL(reader)

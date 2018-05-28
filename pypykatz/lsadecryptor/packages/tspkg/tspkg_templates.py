@@ -29,7 +29,7 @@ class TSPKG_DECRYPTOR_TEMPLATE:
 			if self.buildnumber < WindowsBuild.WIN_10_1607.value:
 				template.credential_struct = KIWI_TS_CREDENTIAL_x64
 				
-			elif self.buildnumber >= WindowsMinBuild.WIN_10_1607.value:
+			elif self.buildnumber >= WindowsBuild.WIN_10_1607.value:
 				template.credential_struct = KIWI_TS_CREDENTIAL_1607_x64
 				
 			else:
@@ -92,7 +92,7 @@ class KIWI_TS_CREDENTIAL_x64:
 
 class KIWI_TS_CREDENTIAL_1607:
 	def __init__(self, reader):
-		self.unk0 = reader.read(68) 
+		self.unk0 = reader.read(68)
 		self.LocallyUniqueIdentifier = LUID(reader).value
 		self.unk1 = PVOID(reader)
 		self.unk2 = PVOID(reader)
