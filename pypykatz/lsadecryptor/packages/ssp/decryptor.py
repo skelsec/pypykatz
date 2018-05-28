@@ -68,8 +68,19 @@ class SspDecryptor:
 			
 		c.username = ssp_entry.credentials.UserName.read_string(self.reader)
 		c.domainname = ssp_entry.credentials.Domaine.read_string(self.reader)
-		c.password = ssp_entry.credentials.Password.read_string(self.reader)
-	
+		if ssp_entry.credentials.Password.Length != 0:
+			if ssp_entry.credentials.Password.Length % 8 != 0:
+				#for orphaned creds
+				c.password = ssp_entry.credentials.Password.read_string(self.reader)
+			else:
+				enc_data = ssp_entry.credentials.Password.read_string(self.reader)
+				dec_data = self.lsa_decryptor.decrypt(enc_data)
+				try:
+					c.password = dec_data.decode('utf-16-le')
+				except:
+					c.password = dec_data
+					pass
+					
 		self.credentials.append(c)
 
 	def walk_list(self, entry_ptr, entry_ptr_location, callback, max_walk = 255, override_ptr = None):

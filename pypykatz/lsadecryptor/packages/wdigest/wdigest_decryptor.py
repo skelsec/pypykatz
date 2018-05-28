@@ -26,14 +26,14 @@ class WdigestCredential:
 		
 		if len(wc.encrypted_password) % 8 == 0:
 			t = lsa_dec.decrypt(wc.encrypted_password)
+			if t and len(t) > 0:
+				try:
+					wc.password = t.decode('utf-16-le')
+				except:
+					wc.password = t.hex()
 		else:
 			wc.password = wc.encrypted_password # special case for (unusable/plaintext?) orphaned credentials
 		
-		if t and len(t) > 0:
-			try:
-				wc.password = t.decode('utf-16-le')
-			except:
-				wc.password = t.hex()
 		return wc
 	
 	def to_dict(self):

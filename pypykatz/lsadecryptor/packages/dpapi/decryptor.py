@@ -66,7 +66,7 @@ class DpapiDecryptor:
 		
 	def add_entry(self, dpapi_entry):
 		
-		if dpapi_entry.keySize > 0:
+		if dpapi_entry.keySize > 0 and dpapi_entry.keySize % 8 == 0:
 			dec_masterkey = self.lsa_decryptor.decrypt(dpapi_entry.key)
 			sha_masterkey = hashlib.sha1(dec_masterkey).hexdigest()
 			

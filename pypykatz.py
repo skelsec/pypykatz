@@ -174,7 +174,10 @@ if __name__ == '__main__':
 	if args.directory:
 		dir_fullpath = os.path.abspath(args.minidumpfile)
 		file_pattern = '*.dmp'
-		globdata = os.path.join(dir_fullpath, file_pattern)
+		if args.recursive == True:
+			globdata = os.path.join(dir_fullpath, '**', file_pattern)
+		else:	
+			globdata = os.path.join(dir_fullpath, file_pattern)
 		results = {}
 		logging.info('Parsing folder %s' % dir_fullpath)
 		for filename in glob.glob(globdata, recursive=args.recursive):
