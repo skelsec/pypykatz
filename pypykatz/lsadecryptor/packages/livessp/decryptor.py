@@ -62,7 +62,18 @@ class LiveSspDecryptor(PackageDecryptor):
 			
 		c.username = suppCreds.credentials.UserName.read_string(self.reader)
 		c.domainname = suppCreds.credentials.Domaine.read_string(self.reader)
-		c.password = suppCreds.credentials.Password.read_string(self.reader)
+		if suppCreds.credentials.Password.Length != 0:
+			if suppCreds.credentials.Password.Length % 8 != 0:
+				#for orphaned creds
+				c.password = suppCreds.credentials.Password.read_data(self.reader)
+			else:
+				enc_data = suppCreds.credentials.Password.read_data(self.reader)
+				dec_data = self.lsa_decryptor.decrypt(enc_data)
+				try:
+					c.password = dec_data.decode('utf-16-le').rstrip('\x00')
+				except:
+					c.password = dec_data.hex()
+					pass
 	
 		self.credentials.append(c)
 	

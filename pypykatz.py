@@ -13,6 +13,7 @@ import traceback
 import json
 
 from pypykatz.pypykatz import pypykatz
+from pypykatz.commons.common import UniversalEncoder
 
 if __name__ == '__main__':
 	import argparse
@@ -52,7 +53,6 @@ if __name__ == '__main__':
 				mimi = pypykatz.parse_minidump_file(filename)
 				results[filename] = mimi
 			except Exception as e:
-				results[filename] = 'ERROR IN PARSING!'
 				files_with_error.append(filename)
 				logging.exception('Error parsing file %s' % filename)
 				if args.halt_on_error == True:
@@ -67,14 +67,20 @@ if __name__ == '__main__':
 		elif args.outfile:
 			with open(args.outfile, 'w') as f:
 				for result in results:
-					f.write('FILE: ======== %s =======' % result)
+					f.write('FILE: ======== %s =======\n' % result)
 					
 					for luid in results[result].logon_sessions:
-						f.write(str(results[result].logon_sessions[luid]))
+						f.write('\n'+str(results[result].logon_sessions[luid]))
 					
-					f.write('== Orphaned credentials ==')
-					for cred in results[result].orphaned_creds:
-						f.write(str(cred))
+					if len(results[result].orphaned_creds) > 0:
+						f.write('\n== Orphaned credentials ==\n')
+						for cred in results[result].orphaned_creds:
+							f.write(str(cred))
+					
+				if len(files_with_error) > 0:
+					f.write('\n== Failed to parse these files:\n')
+					for filename in files_with_error:
+						f.write('%s\n' % filename)
 				
 		elif args.json:
 			print(json.dumps(results, cls = UniversalEncoder, indent=4, sort_keys=True))
@@ -88,13 +94,17 @@ if __name__ == '__main__':
 					for luid in results[result].logon_sessions:
 						print(str(results[result].logon_sessions[luid]))
 							
-					print('== Orphaned credentials ==')
-					for cred in results[result].orphaned_creds:
-						print(str(cred))
-						
-			print('\n==== Parsing errors:')
-			for filename in files_with_error:
-				print(filename)
+					if len(results[result].orphaned_creds) > 0:
+						print('== Orphaned credentials ==')
+						for cred in results[result].orphaned_creds:
+							print(str(cred))
+							
+					
+
+			if len(files_with_error) > 0:			
+				print('\n==== Parsing errors:')
+				for filename in files_with_error:
+					print(filename)
 			
 	else:
 		logging.info('Parsing file %s' % args.minidumpfile)

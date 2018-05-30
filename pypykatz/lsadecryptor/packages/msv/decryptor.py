@@ -35,11 +35,11 @@ class MsvCredential:
 		
 	def __str__(self):
 		t = '\t== MSV ==\n'
-		t += '\tUsername: %s\n' % (self.username if self.username else 'NA')
-		t += '\tDomain: %s\n' % (self.domainname if self.domainname else 'NA')
-		t += '\tLM: %s\n' % (self.LMHash.hex() if self.LMHash else 'NA')
-		t += '\tNT: %s\n' % (self.NThash.hex() if self.NThash else 'NA')
-		t += '\tSHA1: %s\n' % (self.SHAHash.hex() if self.SHAHash else 'NA')
+		t += '\t\tUsername: %s\n' % (self.username if self.username else 'NA')
+		t += '\t\tDomain: %s\n' % (self.domainname if self.domainname else 'NA')
+		t += '\t\tLM: %s\n' % (self.LMHash.hex() if self.LMHash else 'NA')
+		t += '\t\tNT: %s\n' % (self.NThash.hex() if self.NThash else 'NA')
+		t += '\t\tSHA1: %s\n' % (self.SHAHash.hex() if self.SHAHash else 'NA')
 		return t
 		
 class CredmanCredential:
@@ -64,10 +64,10 @@ class CredmanCredential:
 		
 	def __str__(self):
 		t = '\t== CREDMAN [%x]==\n' % self.luid
-		t += '\tluid %s\n' % self.luid
-		t += '\tusername %s\n' % self.username
-		t += '\tdomain %s\n' % self.domain
-		t += '\tpassword %s\n' % self.password
+		t += '\t\tluid %s\n' % self.luid
+		t += '\t\tusername %s\n' % self.username
+		t += '\t\tdomain %s\n' % self.domain
+		t += '\t\tpassword %s\n' % self.password
 		return t
 		
 		

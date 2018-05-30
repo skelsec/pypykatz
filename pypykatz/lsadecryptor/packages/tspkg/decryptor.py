@@ -75,6 +75,18 @@ class TspkgDecryptor(PackageDecryptor):
 			c.luid = credential_struct.LocallyUniqueIdentifier
 			c.username = primary_credential.credentials.UserName.read_string(self.reader)
 			c.domainname = primary_credential.credentials.Domaine.read_string(self.reader)
-			c.password = primary_credential.credentials.Password.read_string(self.reader)
+			if primary_credential.credentials.Password.Length != 0:
+				if primary_credential.credentials.Password.Length % 8 != 0:
+					#for orphaned creds
+					c.password = primary_credential.credentials.Password.read_data(self.reader)
+				else:
+					enc_data = primary_credential.credentials.Password.read_data(self.reader)
+					dec_data = self.lsa_decryptor.decrypt(enc_data)
+					try:
+						c.password = dec_data.decode('utf-16-le').rstrip('\x00')
+					except:
+						c.password = dec_data.hex()
+						pass
+					
 			
 			self.credentials.append(c)
