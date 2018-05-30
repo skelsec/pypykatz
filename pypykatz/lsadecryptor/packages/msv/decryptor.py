@@ -236,14 +236,7 @@ class MsvDecryptor(PackageDecryptor):
 		self.log_ptr(credman_set_list_entry.list1.value, 'KIWI_CREDMAN_LIST_STARTER')
 		list_starter = credman_set_list_entry.list1.read(self.reader, override_finaltype = KIWI_CREDMAN_LIST_STARTER)
 		if list_starter.start.value != list_starter.start.location:
-			
-			self.log_ptr(list_starter.start.value, self.credman_decryptor_template.list_entry.__name__)
-			input()
-			
-			self.log_ptr(list_starter.start, 'KIWI_CREDMAN_LIST_STARTER')
-			self.reader.move(list_starter.start.value)
-			first_entry_ptr = self.credman_decryptor_template.list_entry(self.reader)
-			self.walk_list(first_entry_ptr, self.add_credman_credential)
+			self.walk_list(list_starter.start, self.add_credman_credential)
 		
 	def add_credman_credential(self, credman_credential_entry):
 		
@@ -263,6 +256,8 @@ class MsvDecryptor(PackageDecryptor):
 			else:
 				#orphaned, sure to be false stuff
 				c.password = enc_data
+				
+		c.luid = self.current_logonsession.luid
 			
 		self.current_logonsession.credman_creds.append(c)
 		

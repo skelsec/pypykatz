@@ -10,6 +10,7 @@ import re
 import struct
 import logging
 import traceback
+import json
 
 from pypykatz.pypykatz import pypykatz
 

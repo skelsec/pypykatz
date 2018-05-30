@@ -40,6 +40,11 @@ class PKIWI_CREDMAN_LIST_ENTRY_5(POINTER):
 		
 class KIWI_CREDMAN_LIST_ENTRY_5:
 	def __init__(self, reader):
+		#IMPORTANT NOTICE, THE STRUCTURE STARTS BEFORE THE FLINK/BLINK POINTER, SO WE NEED TO READ BACKWARDS
+		#
+		reader.move(reader.tell() - 56)
+		reader.align() #not sure if it's needed here
+		#
 		self.cbEncPassword = ULONG(reader).value
 		reader.align()
 		self.encPassword = PWSTR
@@ -66,6 +71,11 @@ class PKIWI_CREDMAN_LIST_ENTRY_60(POINTER):
 
 class KIWI_CREDMAN_LIST_ENTRY_60:
 	def __init__(self, reader):
+		#IMPORTANT NOTICE, THE STRUCTURE STARTS BEFORE THE FLINK/BLINK POINTER, SO WE NEED TO READ BACKWARDS
+		#
+		reader.move(reader.tell() - 56)
+		reader.align() #not sure if it's needed here
+		#
 		self.cbEncPassword = ULONG(reader).value
 		reader.align()
 		self.encPassword = PWSTR(reader)
@@ -97,6 +107,11 @@ class PKIWI_CREDMAN_LIST_ENTRY(POINTER):
 		
 class KIWI_CREDMAN_LIST_ENTRY:
 	def __init__(self, reader):
+		#IMPORTANT NOTICE, THE STRUCTURE STARTS BEFORE THE FLINK/BLINK POINTER, SO WE NEED TO READ BACKWARDS
+		#
+		reader.move(reader.tell() - 56)
+		reader.align() #not sure if it's needed here
+		#
 		self.cbEncPassword = ULONG(reader).value
 		reader.align()
 		self.encPassword = PWSTR(reader)
@@ -113,7 +128,6 @@ class KIWI_CREDMAN_LIST_ENTRY:
 		self.type = LSA_UNICODE_STRING(reader)
 		self.unk5 = PVOID(reader)
 		self.server1 = LSA_UNICODE_STRING(reader)
-		reader.align()
 		self.unk6 = PVOID(reader)
 		self.unk7 = PVOID(reader)
 		self.unk8 = PVOID(reader)
