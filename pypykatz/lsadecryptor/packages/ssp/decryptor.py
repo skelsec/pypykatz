@@ -65,7 +65,7 @@ class SspDecryptor(PackageDecryptor):
 				#for orphaned creds
 				c.password = ssp_entry.credentials.Password.read_data(self.reader)
 			else:
-				enc_data = ssp_entry.credentials.Password.read_string(self.reader)
+				enc_data = ssp_entry.credentials.Password.read_data(self.reader)
 				dec_data = self.lsa_decryptor.decrypt(enc_data)
 				try:
 					c.password = dec_data.decode('utf-16-le')

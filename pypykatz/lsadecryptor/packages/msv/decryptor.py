@@ -53,9 +53,9 @@ class CredmanCredential:
 	def to_dict(self):
 		t = {}
 		t['credtype'] = self.credtype
-		t['key_guid'] = self.key_guid
-		t['masterkey'] = self.masterkey
-		t['sha1_masterkey'] = self.sha1_masterkey
+		t['username'] = self.username
+		t['domain'] = self.domain
+		t['password'] = self.password
 		t['luid'] = self.luid
 		return t
 		
@@ -63,11 +63,11 @@ class CredmanCredential:
 		return json.dumps(self.to_dict())
 		
 	def __str__(self):
-		t = '\t== DPAPI [%x]==\n' % self.luid
+		t = '\t== CREDMAN [%x]==\n' % self.luid
 		t += '\tluid %s\n' % self.luid
-		t += '\tkey_guid %s\n' % self.key_guid
-		t += '\tmasterkey %s\n' % self.masterkey
-		t += '\tsha1_masterkey %s\n' % self.sha1_masterkey
+		t += '\tusername %s\n' % self.username
+		t += '\tdomain %s\n' % self.domain
+		t += '\tpassword %s\n' % self.password
 		return t
 		
 		
