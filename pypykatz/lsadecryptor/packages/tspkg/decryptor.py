@@ -5,7 +5,8 @@
 #
 import io
 import logging
-from pypykatz.lsadecryptor.packages.wdigest.wdigest_templates import *
+
+from pypykatz.lsadecryptor.package_commons import *
 
 class TspkgCredential:
 	def __init__(self):
@@ -27,16 +28,15 @@ class TspkgCredential:
 		return json.dumps(self.to_dict())
 		
 	def __str__(self):
-		t = '\t== WDIGEST [%x]==\n' % self.luid
-		t += '\tusername %s\n' % self.username
-		t += '\tdomainname %s\n' % self.domainname
-		#t += 'encrypted_password %s\n' % self.encrypted_password.hex()
-		t += '\tpassword %s\n' % self.password
+		t = '\t== TSPKG [%x]==\n' % self.luid
+		t += '\t\tusername %s\n' % self.username
+		t += '\t\tdomainname %s\n' % self.domainname
+		t += '\t\tpassword %s\n' % self.password
 		return t
 		
-class TspkgDecryptor():
+class TspkgDecryptor(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, lsa_decryptor):
-		self.module_name = 'tspkg'
+		super().__init__('Tspkg')
 		self.reader = reader
 		self.decryptor_template = decryptor_template
 		self.lsa_decryptor = lsa_decryptor
@@ -55,30 +55,11 @@ class TspkgDecryptor():
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc
 	
-	def log_ptr(self, ptr, name, datasize = 0x80):
-		pos = self.reader.tell()
-		self.reader.move(ptr)
-		data = self.reader.peek(datasize)
-		self.reader.move(pos)
-		logging.log(1, '%s: %s\n%s' % (name, hex(ptr), hexdump(data, start = ptr)))
-		
-	def walk_avl(self, node_ptr, result_ptr_list):
-		"""
-		Here I am @3AM searching left and right for that pointer...
-		"""
-		node = node_ptr.read(self.reader, override_finaltype = RTL_AVL_TABLE)
-		if node.OrderedPointer.value != 0:
-			result_ptr_list.append(node.OrderedPointer.value)
-			if node.BalancedRoot.LeftChild.value != 0 :
-				self.walk_avl(node.BalancedRoot.LeftChild, result_ptr_list)
-			if node.BalancedRoot.RightChild.value != 0 :
-				self.walk_avl(node.BalancedRoot.RightChild, result_ptr_list)
-	
 	def start(self):
 		try:
 			entry_ptr_value, entry_ptr_loc = self.find_first_entry()
 		except Exception as e:
-			logging.log(1,'Failed to find Wdigest structs! Reason: %s' % e)
+			logging.log(1,'Failed to find Tspkg structs! Reason: %s' % e)
 			return
 		result_ptr_list = []
 		self.reader.move(entry_ptr_value)
@@ -92,8 +73,6 @@ class TspkgDecryptor():
 			
 			c = TspkgCredential()
 			c.luid = credential_struct.LocallyUniqueIdentifier
-			
-			
 			c.username = primary_credential.credentials.UserName.read_string(self.reader)
 			c.domainname = primary_credential.credentials.Domaine.read_string(self.reader)
 			c.password = primary_credential.credentials.Password.read_string(self.reader)

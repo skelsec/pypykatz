@@ -7,45 +7,30 @@ import io
 import logging
 from minidump.win_datatypes import *
 from pypykatz.commons.common import *
+from .package_commons import *
 
-class LSADecryptorTemplate:
+class LsaTemplate(PackageTemplate):
 	def __init__(self):
+		super().__init__('LSA Decryptor')
 		self.key_pattern = None
 		self.key_handle_struct = None
 		self.key_struct = None
 		self.hard_key_struct = KIWI_HARD_KEY
 		
-		
-class LSADecyptorKeyPattern:
-	def __init__(self):
-		self.signature = None #byte pattern that identifies the location of the key structures (AES and DES)
-		self.offset_to_IV_ptr = None #offset from pattern that gives the pointer to the IV (applicabe for both keys, kept sepparately from key structures)
-		self.IV_length = None #length of the IV, always 16 from NT6
-		self.offset_to_AES_key_ptr = None #offset from signature that gives the pointer to the DES key structure
-		self.offset_to_DES_key_ptr = None #offset from signature that gives the pointer to the AES key structure
-		
-		
-class LSADecryptorTemplateFactory:
-	def __init__(self, buildnumber, arch):
-		self.buildnumber = buildnumber
-		self.arch = arch
-	
-	def get_template(self):
-		
+	@staticmethod
+	def get_template(sysinfo):
+		template = LsaTemplate()
 		#identify the OS
-		if WindowsMinBuild.WIN_XP.value <= self.buildnumber < WindowsMinBuild.WIN_2K3.value:
-			#windows XP
+		if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:
 			raise Exception("Maybe implemented later")
 		
-		elif WindowsMinBuild.WIN_2K3.value <= self.buildnumber < WindowsMinBuild.WIN_VISTA.value:
-			#windows 2003
+		elif WindowsMinBuild.WIN_2K3.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_VISTA.value:
 			raise Exception("Maybe implemented later")
 			
-		elif WindowsMinBuild.WIN_VISTA.value <= self.buildnumber < WindowsMinBuild.WIN_7.value:
-			#windows Vista
-			if self.arch == 'x64':
+		elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_7.value:
+			if sysinfo.architecture == KatzSystemArchitecture.X64:
 				logging.debug('Using template for Windows Vista x64')
-				template = LSADecryptorTemplate()
+				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x83\x64\x24\x30\x00\x44\x8b\x4c\x24\x48\x48\x8b\x0d'
 				key_pattern.IV_length = 16
@@ -59,9 +44,9 @@ class LSADecryptorTemplateFactory:
 				
 				
 				
-			elif self.arch == 'x86':
+			elif sysinfo.architecture == KatzSystemArchitecture.X86:
 				logging.debug('Using template for Windows Vista x86')
-				template = LSADecryptorTemplate()
+				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x6a\x02\x6a\x10\x68'
 				key_pattern.IV_length = 16
@@ -75,11 +60,11 @@ class LSADecryptorTemplateFactory:
 			else:
 				raise Exception('Unknown CPU architecture %s' % self.arch)
 		
-		elif WindowsMinBuild.WIN_7.value <= self.buildnumber < WindowsMinBuild.WIN_8.value:
+		elif WindowsMinBuild.WIN_7.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
 			#windows 7
-			if self.arch == 'x64':
+			if sysinfo.architecture == KatzSystemArchitecture.X64:
 				logging.debug('Using template for Windows 7 x64')
-				template = LSADecryptorTemplate()
+				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x83\x64\x24\x30\x00\x44\x8b\x4c\x24\x48\x48\x8b\x0d'
 				key_pattern.IV_length = 16
@@ -91,10 +76,10 @@ class LSADecryptorTemplateFactory:
 				template.key_struct = KIWI_BCRYPT_KEY
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 			
-			elif self.arch == 'x86':
+			elif sysinfo.architecture == KatzSystemArchitecture.X86:
 				logging.debug('Using template for Windows 7 x86')
 				logging.warning('This needs testing!!')
-				template = LSADecryptorTemplate()
+				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x6a\x02\x6a\x10\x68'
 				key_pattern.IV_length = 16
@@ -108,10 +93,10 @@ class LSADecryptorTemplateFactory:
 			else:
 				raise Exception('Unknown CPU architecture %s' % self.arch)
 			
-		elif WindowsMinBuild.WIN_8.value <= self.buildnumber < WindowsMinBuild.WIN_BLUE.value:
-			if self.arch == 'x64':
+		elif WindowsMinBuild.WIN_8.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_BLUE.value:
+			if sysinfo.architecture == KatzSystemArchitecture.X64:
 				logging.debug('Using template for Windows 8 x64')
-				template = LSADecryptorTemplate()
+				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x83\x64\x24\x30\x00\x44\x8b\x4d\xd8\x48\x8b\x0d'
 				key_pattern.IV_length = 16
@@ -123,10 +108,10 @@ class LSADecryptorTemplateFactory:
 				template.key_struct = KIWI_BCRYPT_KEY8
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 				
-			elif self.arch == 'x86':
+			elif sysinfo.architecture == KatzSystemArchitecture.X86:
 				logging.debug('Using template for Windows 8 x86')
 				logging.warning('This needs testing!!')
-				template = LSADecryptorTemplate()
+				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x6a\x02\x6a\x10\x68'
 				key_pattern.IV_length = 16
@@ -140,11 +125,11 @@ class LSADecryptorTemplateFactory:
 			else:
 				raise Exception('Unknown CPU architecture %s' % self.arch)
 			
-		elif WindowsMinBuild.WIN_BLUE.value <= self.buildnumber < WindowsMinBuild.WIN_10.value:
+		elif WindowsMinBuild.WIN_BLUE.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_10.value:
 			#Windows 8.1
-			if self.arch == 'x64':
+			if sysinfo.architecture == KatzSystemArchitecture.X64:
 				logging.debug('Using template for Windows 8.1 x64')
-				template = LSADecryptorTemplate()
+				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x83\x64\x24\x30\x00\x44\x8b\x4d\xd8\x48\x8b\x0d'
 				key_pattern.IV_length = 16
@@ -156,9 +141,9 @@ class LSADecryptorTemplateFactory:
 				template.key_struct = KIWI_BCRYPT_KEY81
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 			
-			elif self.arch == 'x86':
+			elif sysinfo.architecture == KatzSystemArchitecture.X86:
 				logging.debug('Using template for Windows 8.1 x86')
-				template = LSADecryptorTemplate()
+				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x6a\x02\x6a\x10\x68'
 				key_pattern.IV_length = 16
@@ -173,11 +158,11 @@ class LSADecryptorTemplateFactory:
 			else:
 				raise Exception('Unknown CPU architecture %s' % self.arch)
 			
-		#elif WindowsMinBuild.WIN_10.value <= self.buildnumber <= WindowsBuild.WIN_10_1507.value:
-		elif WindowsMinBuild.WIN_10.value <= self.buildnumber <= 20000:
-			if self.arch == 'x64':
+		#elif WindowsMinBuild.WIN_10.value <= sysinfo.buildnumber <= WindowsBuild.WIN_10_1507.value:
+		elif WindowsMinBuild.WIN_10.value <= sysinfo.buildnumber <= 20000:
+			if sysinfo.architecture == KatzSystemArchitecture.X64:
 				logging.debug('Using template for Windows 10 x64')
-				template = LSADecryptorTemplate()
+				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x83\x64\x24\x30\x00\x48\x8d\x45\xe0\x44\x8b\x4d\xd8\x48\x8d\x15'
 				key_pattern.IV_length = 16
@@ -189,9 +174,9 @@ class LSADecryptorTemplateFactory:
 				template.key_struct = KIWI_BCRYPT_KEY81
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 				
-			elif self.arch == 'x86':
+			elif sysinfo.architecture == KatzSystemArchitecture.X86:
 				logging.debug('Using template for Windows 10 x86')
-				template = LSADecryptorTemplate()
+				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x6a\x02\x6a\x10\x68'
 				key_pattern.IV_length = 16
@@ -205,13 +190,28 @@ class LSADecryptorTemplateFactory:
 			else:
 				raise Exception('Unknown CPU architecture %s' % self.arch)
 		
-		elif self.buildnumber > WindowsBuild.WIN_10_1507.value:
-			raise Exception('LOL! You\'re on your own, fam! Buildnumber: %s' % self.buildnumber)
+		elif sysinfo.buildnumber > WindowsBuild.WIN_10_1507.value:
+			raise Exception('LOL! You\'re on your own, fam! Buildnumber: %s' % sysinfo.buildnumber)
 			
 		else:
-			raise Exception('Missing LSA decrpytor template for Architecture: %s , Build number %s' % (self.arch, self.buildnumber))
+			raise Exception('Missing LSA decrpytor template for Architecture: %s , Build number %s' % (self.arch, sysinfo.buildnumber))
 			
+		template.log_template('key_handle_struct', template.key_handle_struct)
+		template.log_template('key_struct', template.key_struct)
+		template.log_template('hard_key_struct', template.hard_key_struct)
+		
 		return template
+		
+		
+class LSADecyptorKeyPattern:
+	def __init__(self):
+		self.signature = None #byte pattern that identifies the location of the key structures (AES and DES)
+		self.offset_to_IV_ptr = None #offset from pattern that gives the pointer to the IV (applicabe for both keys, kept sepparately from key structures)
+		self.IV_length = None #length of the IV, always 16 from NT6
+		self.offset_to_AES_key_ptr = None #offset from signature that gives the pointer to the DES key structure
+		self.offset_to_DES_key_ptr = None #offset from signature that gives the pointer to the AES key structure
+	
+	
 		
 class KIWI_HARD_KEY:
 	def __init__(self, reader):

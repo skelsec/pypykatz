@@ -9,51 +9,50 @@ from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 
-class TspkgTemplate:
+from pypykatz.lsadecryptor.package_commons import *
+
+class TspkgTemplate(PackageTemplate):
 	def __init__(self):
+		super().__init__('Tspkg')
 		self.signature = None
 		self.avl_offset = None
 		self.credential_struct = None
-			
-class TSPKG_DECRYPTOR_TEMPLATE:
-	def __init__(self, arch, buildnumber):
-		self.arch = arch
-		self.buildnumber = buildnumber
-	
-	def get_template(self):
+		
+	@staticmethod
+	def get_template(sysinfo):
 		template = TspkgTemplate()
-		if self.arch == 'x64':
+		if sysinfo.architecture == KatzSystemArchitecture.X64:
 			template.signature = b'\x48\x83\xec\x20\x48\x8d\x0d'
 			template.avl_offset = 7
 			
-			if self.buildnumber < WindowsBuild.WIN_10_1607.value:
+			if sysinfo.buildnumber < WindowsBuild.WIN_10_1607.value:
 				template.credential_struct = KIWI_TS_CREDENTIAL_x64
 				
-			elif self.buildnumber >= WindowsBuild.WIN_10_1607.value:
+			elif sysinfo.buildnumber >= WindowsBuild.WIN_10_1607.value:
 				template.credential_struct = KIWI_TS_CREDENTIAL_1607_x64
 				
 			else:
 				#currently this doesnt make sense, but keeping it here for future use
-				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (self.arch, self.buildnumber))
+				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (self.arch, sysinfo.buildnumber))
 			
 		
-		elif self.arch == 'x86':
-			if self.buildnumber < WindowsMinBuild.WIN_8.value:
+		elif sysinfo.architecture == KatzSystemArchitecture.X86:
+			if sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
 				template.signature = b'\x8b\xff\x55\x8b\xec\x51\x56\xbe'
 				template.avl_offset = 8
 				template.credential_struct = KIWI_TS_CREDENTIAL
 				
-			elif WindowsMinBuild.WIN_8.value <= self.buildnumber < WindowsMinBuild.WIN_BLUE.value:
+			elif WindowsMinBuild.WIN_8.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_BLUE.value:
 				template.signature = b'\x8b\xff\x53\xbb'
 				template.avl_offset = 4
 				template.credential_struct = KIWI_TS_CREDENTIAL
 				
-			elif WindowsMinBuild.WIN_BLUE.value <= self.buildnumber < WindowsBuild.WIN_10_1607.value:
+			elif WindowsMinBuild.WIN_BLUE.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1607.value:
 				template.signature = b'\x8b\xff\x57\xbf'
 				template.avl_offset = 4
 				template.credential_struct = KIWI_TS_CREDENTIAL
 				
-			elif self.buildnumber >= WindowsBuild.WIN_10_1607.value:
+			elif sysinfo.buildnumber >= WindowsBuild.WIN_10_1607.value:
 				template.signature = b'\x8b\xff\x57\xbf'
 				template.avl_offset = 4
 				template.credential_struct = KIWI_TS_CREDENTIAL_1607
@@ -61,8 +60,10 @@ class TSPKG_DECRYPTOR_TEMPLATE:
 		else:
 			raise Exception('Unknown architecture! %s' % self.arch)
 
+		template.log_template('credential_struct', template.credential_struct)
 			
 		return template
+	
 
 class PKIWI_TS_PRIMARY_CREDENTIAL(POINTER):
 	def __init__(self, reader):

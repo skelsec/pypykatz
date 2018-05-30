@@ -9,48 +9,49 @@ from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 
-class SspTemplate:
+from pypykatz.lsadecryptor.package_commons import *
+
+class SspTemplate(PackageTemplate):
 	def __init__(self):
+		super().__init__('Ssp')
 		self.signature = None
 		self.first_entry_offset = None
 		self.list_entry = None
-			
-class SSP_DECRYPTOR_TEMPLATE:
-	def __init__(self, arch, buildnumber):
-		self.arch = arch
-		self.buildnumber = buildnumber
 	
-	def get_template(self):
+	@staticmethod
+	def get_template(sysinfo):
 		template = SspTemplate()
 		template.list_entry = PKIWI_SSP_CREDENTIAL_LIST_ENTRY
+		template.log_template('list_entry', template.list_entry)
 		
-		if self.arch == 'x64':		
-			if self.buildnumber < WindowsMinBuild.WIN_VISTA.value:
+		if sysinfo.architecture == KatzSystemArchitecture.X64:
+			if sysinfo.buildnumber < WindowsMinBuild.WIN_VISTA.value:
 				template.signature = b'\xc7\x43\x24\x43\x72\x64\x41\xff\x15'
 				template.first_entry_offset = 16
 				
-			elif WindowsMinBuild.WIN_VISTA.value <= self.buildnumber < WindowsBuild.WIN_10_1507.value:
+			elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value:
 				template.signature = b'\xc7\x47\x24\x43\x72\x64\x41\x48\x89\x47\x78\xff\x15'
 				template.first_entry_offset = 20
 				
-			elif self.buildnumber >= WindowsBuild.WIN_10_1507.value:
+			elif sysinfo.buildnumber >= WindowsBuild.WIN_10_1507.value:
 				template.signature = b'\x24\x43\x72\x64\x41\xff\x15'
 				template.first_entry_offset = 14
 			
 			else:
 				#currently this doesnt make sense, but keeping it here for future use
-				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (self.arch, self.buildnumber))
+				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (architecture, sysinfo.buildnumber))
 			
 		
-		elif self.arch == 'x86':
+		elif sysinfo.architecture == KatzSystemArchitecture.X86:
 			template.signature = b'\x1c\x43\x72\x64\x41\xff\x15'
 			template.first_entry_offset = 12
 			
 		else:
-			raise Exception('Unknown architecture! %s' % self.arch)
+			raise Exception('Unknown architecture! %s' % architecture)
 
 			
 		return template
+	
 
 class PKIWI_SSP_CREDENTIAL_LIST_ENTRY(POINTER):
 	def __init__(self, reader):
