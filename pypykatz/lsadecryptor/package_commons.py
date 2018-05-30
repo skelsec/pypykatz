@@ -25,7 +25,7 @@ class PackageDecryptor:
 	def log_decryptor(self):
 		pass
 		
-	def log_ptr(self, ptr, name, datasize = 0x200):
+	def log_ptr(self, ptr, name, datasize = 0x50):
 		"""
 		Reads datasize bytes from the memory region pointed by the pointer.
 		ptr = the pointer to be read

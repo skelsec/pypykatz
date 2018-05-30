@@ -24,6 +24,7 @@ if __name__ == '__main__':
 	parser.add_argument('-d', '--directory', action='store_true', help = 'Parse all dump files in a folder')
 	parser.add_argument('-v', '--verbose', action='count', default=0)
 	parser.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+	parser.add_argument('-e','--halt-on-error', action='store_true',help = 'Stops parsing when a file cannot be parsed')
 	parser.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 	
 	args = parser.parse_args()
@@ -33,6 +34,8 @@ if __name__ == '__main__':
 		logging.basicConfig(level=logging.DEBUG)
 	else:
 		logging.basicConfig(level=1)
+		
+	files_with_error = []
 	
 	if args.directory:
 		dir_fullpath = os.path.abspath(args.minidumpfile)
@@ -50,8 +53,12 @@ if __name__ == '__main__':
 				results[filename] = mimi
 			except Exception as e:
 				results[filename] = 'ERROR IN PARSING!'
-				logging.warning(e )
-				pass
+				files_with_error.append(filename)
+				logging.exception('Error parsing file %s' % filename)
+				if args.halt_on_error == True:
+					raise e
+				else:
+					pass
 			
 		if args.outfile and args.json:
 			with open(args.outfile, 'w') as f:
@@ -84,17 +91,26 @@ if __name__ == '__main__':
 					print('== Orphaned credentials ==')
 					for cred in results[result].orphaned_creds:
 						print(str(cred))
+						
+			print('\n==== Parsing errors:')
+			for filename in files_with_error:
+				print(filename)
 			
 	else:
 		logging.info('Parsing file %s' % args.minidumpfile)
-		mimi = pypykatz.parse_minidump_file(args.minidumpfile)
-		
+		try:
+			mimi = pypykatz.parse_minidump_file(args.minidumpfile)
+		except Exception as e:
+			if args.halt_on_error == True:
+				raise e
+			else:
+				pass
 		if args.outfile and args.json:
 			with open(args.outfile, 'w') as f:
 				json.dump(mimi, f, cls = UniversalEncoder, indent=4, sort_keys=True)
 		elif args.outfile:
 			with open(args.outfile, 'w') as f:
-				f.write('FILE: ======== %s =======' % result)
+				f.write('FILE: ======== %s =======' % args.outfile)
 					
 				for luid in mimi.logon_sessions:
 					f.write(str(mimi.logon_sessions[luid]))
