@@ -10,9 +10,7 @@ from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 
 class KerberosTemplate:
-	def __init__(self,arch, buildnumber):
-		self.arch = arch
-		self.buildnumber = buildnumber
+	def __init__(self):
 		
 		self.signature = None
 		self.first_entry_offset = None
@@ -21,17 +19,12 @@ class KerberosTemplate:
 		self.keys_list_struct = None
 		self.hash_password_struct = None
 		self.csp_info_struct = None
-			
-class KERBEROS_DECRYPTOR_TEMPLATE:
-	def __init__(self, arch, buildnumber):
-		self.arch = arch
-		self.buildnumber = buildnumber
-	
-	def get_template(self):
-		template = KerberosTemplate(self.arch, self.buildnumber)
-		#template.list_entry = PWdigestListEntry
-		if self.arch == 'x64':		
-			if WindowsMinBuild.WIN_XP.value <= self.buildnumber < WindowsMinBuild.WIN_2K3.value:
+		
+	@staticmethod
+	def get_template(architecture, buildnumber):
+		template = KerberosTemplate(architecture, buildnumber)
+		if architecture == 'x64':		
+			if WindowsMinBuild.WIN_XP.value <= buildnumber < WindowsMinBuild.WIN_2K3.value:
 				template.signature = b'\x48\x3b\xfe\x0f\x84'
 				template.first_entry_offset = -4
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_51
@@ -41,7 +34,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
 				
 				
-			elif WindowsMinBuild.WIN_2K3.value <= self.buildnumber < WindowsMinBuild.WIN_VISTA.value:
+			elif WindowsMinBuild.WIN_2K3.value <= buildnumber < WindowsMinBuild.WIN_VISTA.value:
 				template.signature = b'\x48\x3b\xfe\x0f\x84'
 				template.first_entry_offset = -4
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -50,7 +43,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_5
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
 				
-			elif WindowsMinBuild.WIN_VISTA.value <= self.buildnumber < WindowsMinBuild.WIN_7.value:
+			elif WindowsMinBuild.WIN_VISTA.value <= buildnumber < WindowsMinBuild.WIN_7.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -59,7 +52,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
 				
-			elif WindowsMinBuild.WIN_7.value <= self.buildnumber < WindowsMinBuild.WIN_8.value:
+			elif WindowsMinBuild.WIN_7.value <= buildnumber < WindowsMinBuild.WIN_8.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -68,7 +61,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
 			
-			elif WindowsMinBuild.WIN_8.value <= self.buildnumber < WindowsBuild.WIN_10_1507.value:
+			elif WindowsMinBuild.WIN_8.value <= buildnumber < WindowsBuild.WIN_10_1507.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -77,7 +70,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
 				
-			elif WindowsBuild.WIN_10_1507.value <= self.buildnumber < WindowsBuild.WIN_10_1511.value:
+			elif WindowsBuild.WIN_10_1507.value <= buildnumber < WindowsBuild.WIN_10_1511.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10
@@ -86,7 +79,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
 				
-			elif WindowsBuild.WIN_10_1607.value <= self.buildnumber:
+			elif WindowsBuild.WIN_10_1607.value <= buildnumber:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10
@@ -95,7 +88,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
 				
-			elif self.buildnumber >= WindowsBuild.WIN_10_1607.value:
+			elif buildnumber >= WindowsBuild.WIN_10_1607.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
@@ -105,11 +98,11 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
 				
 			else:
-				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (self.arch, self.buildnumber))
+				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (architecture, buildnumber))
 			
 		
-		elif self.arch == 'x86':
-			if WindowsMinBuild.WIN_XP.value <= self.buildnumber < WindowsMinBuild.WIN_2K3.value:
+		elif architecture == 'x86':
+			if WindowsMinBuild.WIN_XP.value <= buildnumber < WindowsMinBuild.WIN_2K3.value:
 				template.signature = b'\x8B\x7D\x08\x8B\x17\x39\x50'
 				template.first_entry_offset = -8
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_51
@@ -119,7 +112,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
 				
 				
-			elif WindowsMinBuild.WIN_2K3.value <= self.buildnumber < WindowsMinBuild.WIN_VISTA.value:
+			elif WindowsMinBuild.WIN_2K3.value <= buildnumber < WindowsMinBuild.WIN_VISTA.value:
 				template.signature = b'\x8B\x7D\x08\x8B\x17\x39\x50'
 				template.first_entry_offset = -8
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -128,7 +121,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_5
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
 				
-			elif WindowsMinBuild.WIN_VISTA.value <= self.buildnumber < WindowsMinBuild.WIN_7.value:
+			elif WindowsMinBuild.WIN_VISTA.value <= buildnumber < WindowsMinBuild.WIN_7.value:
 				template.signature = b'\x53\x8b\x18\x50\x56'
 				template.first_entry_offset = -11
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -137,7 +130,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
 				
-			elif WindowsMinBuild.WIN_7.value <= self.buildnumber < WindowsMinBuild.WIN_8.value:
+			elif WindowsMinBuild.WIN_7.value <= buildnumber < WindowsMinBuild.WIN_8.value:
 				template.signature = b'\x53\x8b\x18\x50\x56'
 				template.first_entry_offset = -11
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -146,7 +139,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
 				
-			elif WindowsMinBuild.WIN_8.value <= self.buildnumber < WindowsBuild.WIN_BLUE.value:
+			elif WindowsMinBuild.WIN_8.value <= buildnumber < WindowsBuild.WIN_BLUE.value:
 				template.signature = b'\x57\x8b\x38\x50\x68'
 				template.first_entry_offset = -14
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -155,7 +148,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
 				
-			elif WindowsMinBuild.WIN_BLUE.value <= self.buildnumber < WindowsBuild.WIN_10_1507.value:
+			elif WindowsMinBuild.WIN_BLUE.value <= buildnumber < WindowsBuild.WIN_10_1507.value:
 				template.signature = b'\x56\x8b\x30\x50\x57'
 				template.first_entry_offset = -15
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -164,7 +157,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
 				
-			elif WindowsBuild.WIN_10_1507.value <= self.buildnumber < WindowsBuild.WIN_10_1511.value:
+			elif WindowsBuild.WIN_10_1507.value <= buildnumber < WindowsBuild.WIN_10_1511.value:
 				template.signature = b'\x56\x8b\x30\x50\x57'
 				template.first_entry_offset = -15
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10
@@ -173,7 +166,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
 				
-			elif self.buildnumber >= WindowsBuild.WIN_10_1511.value:
+			elif buildnumber >= WindowsBuild.WIN_10_1511.value:
 				template.signature = b'\x56\x8b\x30\x50\x57'
 				template.first_entry_offset = -15
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
@@ -183,7 +176,7 @@ class KERBEROS_DECRYPTOR_TEMPLATE:
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
 		
 		else:
-			raise Exception('Unknown architecture! %s' % self.arch)
+			raise Exception('Unknown architecture! %s' % architecture)
 
 			
 		return template

@@ -8,36 +8,36 @@ import logging
 from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
+from pypykatz.lsadecryptor.package_commons import *
 
-class LiveSspTemplate:
+class LiveSspTemplate(PackageTemplate):
 	def __init__(self):
+		super().__init__('LiveSsp')
 		self.signature = None
 		self.first_entry_offset = None
 		self.list_entry = None
-			
-class LIVESSP_DECRYPTOR_TEMPLATE:
-	def __init__(self, arch, buildnumber):
-		self.arch = arch
-		self.buildnumber = buildnumber
-	
-	def get_template(self):
+		
+	@staticmethod
+	def get_template(sysinfo):
 		template = LiveSspTemplate()
 		template.list_entry = PKIWI_LIVESSP_LIST_ENTRY
+		template.log_template('list_entry', template.list_entry)
 		
-		if self.arch == 'x64':		
+		if sysinfo.architecture == KatzSystemArchitecture.X64:	
 			template.signature = b'\x74\x25\x8b'
 			template.first_entry_offset = -7
 			
 		
-		elif self.arch == 'x86':
+		elif sysinfo.architecture == KatzSystemArchitecture.X86:
 			template.signature = b'\x8b\x16\x39\x51\x24\x75\x08'
 			template.first_entry_offset = -8
 			
 		else:
-			raise Exception('Unknown architecture! %s' % self.arch)
+			raise Exception('Unknown architecture! %s' % architecture)
 
 			
 		return template
+	
 
 class PKIWI_LIVESSP_PRIMARY_CREDENTIAL(POINTER):
 	def __init__(self, reader):

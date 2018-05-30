@@ -261,3 +261,34 @@ class UniversalEncoder(json.JSONEncoder):
 		
 		else:
 			return json.JSONEncoder.default(self, obj)
+
+class KatzSystemArchitecture(enum.Enum):
+	X86 = enum.auto()
+	X64 = enum.auto()
+	
+
+class KatzSystemInfo:
+	def __init__(self):
+		self.arhcitecture = None
+		self.buildnumber = None
+		self.msv_dll_timestamp = None #this is needed :(
+		self.operating_system = None
+		
+	@staticmethod
+	def from_minidump(minidump):
+		sysinfo = KatzSystemInfo()
+		if minidump.sysinfo.ProcessorArchitecture == PROCESSOR_ARCHITECTURE.AMD64:
+			sysinfo.architecture = KatzSystemArchitecture.X64
+		elif minidump.sysinfo.ProcessorArchitecture == PROCESSOR_ARCHITECTURE.INTEL:
+			sysinfo.architecture = KatzSystemArchitecture.X86
+		
+		sysinfo.operating_system = minidump.sysinfo.OperatingSystem
+		sysinfo.buildnumber = minidump.sysinfo.BuildNumber
+		
+		sysinfo.msv_dll_timestamp = 0
+		for module in minidump.modules.modules:
+			if module.name.find('lsasrv.dll') != -1:
+				sysinfo.msv_dll_timestamp = module.timestamp
+	
+		return sysinfo
+	

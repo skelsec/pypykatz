@@ -7,9 +7,9 @@ import io
 import logging
 
 from pypykatz.commons.common import *
-from pypykatz.lsadecryptor.packages.kerberos.kerberos_templates import *
+from .templates import *
 		
-class KerberosDecryptor():
+class KerberosDecryptor:
 	def __init__(self, reader, decryptor_template, lsa_decryptor):
 		self.module_name = 'kerberos'
 		self.reader = reader

@@ -8,62 +8,62 @@ import logging
 from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
+from pypykatz.lsadecryptor.package_commons import *
 
-class WdigestTemplate:
+class WdigestTemplate(PackageTemplate):
 	def __init__(self):
+		super().__init__('Wdigest')
 		self.signature = None
 		self.first_entry_offset = None
 		self.list_entry = None
-			
-class WDIGEST_DECRYPTOR_TEMPLATE:
-	def __init__(self, arch, buildnumber):
-		self.arch = arch
-		self.buildnumber = buildnumber
 	
-	def get_template(self):
+	@staticmethod
+	def get_template(sysinfo):
 		template = WdigestTemplate()
 		template.list_entry = PWdigestListEntry
-		if self.arch == 'x64':
-			if WindowsMinBuild.WIN_XP.value <= self.buildnumber < WindowsMinBuild.WIN_2K3.value:
+		template.log_template('list_entry', template.list_entry)
+		if sysinfo.architecture == KatzSystemArchitecture.X64:
+			if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:
 				template.signature = b'\x48\x3b\xda\x74'
 				template.first_entry_offset = -4
 				
-			elif WindowsMinBuild.WIN_2K3.value <= self.buildnumber < WindowsMinBuild.WIN_VISTA.value:
+			elif WindowsMinBuild.WIN_2K3.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_VISTA.value:
 				template.signature = b'\x48\x3b\xda\x74'
 				template.first_entry_offset = -4
-			elif self.buildnumber >= WindowsMinBuild.WIN_VISTA.value:
+			elif sysinfo.buildnumber >= WindowsMinBuild.WIN_VISTA.value:
 				template.signature = b'\x48\x3b\xd9\x74'
 				template.first_entry_offset = -4
 				
 			else:
-				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (self.arch, self.buildnumber))
+				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (architecture, sysinfo.buildnumber))
 			
 		
-		elif self.arch == 'x86':
-			if WindowsMinBuild.WIN_XP.value <= self.buildnumber < WindowsMinBuild.WIN_2K3.value:
+		elif sysinfo.architecture == KatzSystemArchitecture.X86:
+			if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:
 				template.signature = b'\x74\x18\x8b\x4d\x08\x8b\x11'
 				template.first_entry_offset = -6
-			elif WindowsMinBuild.WIN_2K3.value <= self.buildnumber < WindowsMinBuild.WIN_VISTA.value:
+			elif WindowsMinBuild.WIN_2K3.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_VISTA.value:
 				template.signature = b'\x74\x18\x8b\x4d\x08\x8b\x11'
 				template.first_entry_offset = -6
 				
-			elif WindowsMinBuild.WIN_VISTA.value <= self.buildnumber < WindowsMinBuild.WIN_BLUE.value:
+			elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_BLUE.value:
 				template.signature = b'\x74\x11\x8b\x0b\x39\x4e\x10'
 				template.first_entry_offset = -6
 				
-			elif WindowsMinBuild.WIN_BLUE.value <= self.buildnumber < WindowsMinBuild.WIN_10.value:
+			elif WindowsMinBuild.WIN_BLUE.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_10.value:
 				template.signature = b'\x74\x15\x8b\x0a\x39\x4e\x10'
 				template.first_entry_offset = -4
 			
-			elif self.buildnumber >= WindowsMinBuild.WIN_10.value:
+			elif sysinfo.buildnumber >= WindowsMinBuild.WIN_10.value:
 				template.signature = b'\x74\x15\x8b\x0a\x39\x4e\x10'
 				template.first_entry_offset = -6
 		
 		else:
-			raise Exception('Unknown architecture! %s' % self.arch)
+			raise Exception('Unknown architecture! %s' % architecture)
 
-			
 		return template
+	
+	
 		
 class PWdigestListEntry(POINTER):
 	def __init__(self, reader):

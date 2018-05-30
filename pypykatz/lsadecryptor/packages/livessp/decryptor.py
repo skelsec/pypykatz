@@ -5,7 +5,7 @@
 #
 import io
 import logging
-from pypykatz.lsadecryptor.packages.wdigest.wdigest_templates import *
+from pypykatz.lsadecryptor.package_commons import *
 
 class LiveSspCredential:
 	def __init__(self):
@@ -33,9 +33,9 @@ class LiveSspCredential:
 		t += '\tpassword %s\n' % self.password
 		return t
 		
-class LiveSspDecryptor:
+class LiveSspDecryptor(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, lsa_decryptor):
-		self.module_name = 'livessp'
+		super().__init__('LiveSsp')
 		self.reader = reader
 		self.decryptor_template = decryptor_template
 		self.lsa_decryptor = lsa_decryptor
@@ -53,13 +53,6 @@ class LiveSspDecryptor:
 		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc
-	
-	def log_ptr(self, ptr, name, datasize = 0x80):
-		pos = self.reader.tell()
-		self.reader.move(ptr)
-		data = self.reader.peek(datasize)
-		self.reader.move(pos)
-		logging.log(1, '%s: %s\n%s' % (name, hex(ptr), hexdump(data, start = ptr)))
 		
 	def add_entry(self, ssp_entry):
 		c = LiveSspCredential()
@@ -69,38 +62,20 @@ class LiveSspDecryptor:
 			
 		c.username = suppCreds.credentials.UserName.read_string(self.reader)
 		c.domainname = suppCreds.credentials.Domaine.read_string(self.reader)
-		c.password = suppCreds.credentials.Password.read_string(self.reader)
+		if suppCreds.credentials.Password.Length != 0:
+			if suppCreds.credentials.Password.Length % 8 != 0:
+				#for orphaned creds
+				c.password = suppCreds.credentials.Password.read_data(self.reader)
+			else:
+				enc_data = suppCreds.credentials.Password.read_data(self.reader)
+				dec_data = self.lsa_decryptor.decrypt(enc_data)
+				try:
+					c.password = dec_data.decode('utf-16-le').rstrip('\x00')
+				except:
+					c.password = dec_data.hex()
+					pass
 	
 		self.credentials.append(c)
-		
-	def walk_list(self, entry_ptr, entry_ptr_location, callback, max_walk = 255, override_ptr = None):
-		"""
-		first_entry_ptr: pointer type object the will yiled the first entry when called read()
-		first_entry_ptr_location: memory address of the first_entry_ptr so we will know when the list loops
-		"""
-		
-		entries_seen = {}
-		entries_seen[entry_ptr_location] = 1
-		max_walk = max_walk
-		self.log_ptr(entry_ptr.value, 'List entry -%s-' % entry_ptr.finaltype.__name__)
-		while True:
-			if override_ptr:
-				entry = entry_ptr.read(self.reader, override_ptr)
-			else:
-				entry = entry_ptr.read(self.reader)
-				
-			callback(entry)
-			
-			max_walk -= 1
-			logging.log(1, '%s next ptr: %x' % (entry.Flink.finaltype.__name__, entry.Flink.value))
-			logging.log(1, '%s seen: %s' % (entry.Flink.finaltype.__name__, entry.Flink.value not in entries_seen))
-			logging.log(1, '%s max_walk: %d' % (entry.Flink.finaltype.__name__, max_walk))
-			if entry.Flink.value != 0 and entry.Flink.value not in entries_seen and max_walk != 0:
-				entries_seen[entry.Flink.value] = 1
-				self.log_ptr(entry.Flink.value, 'Next list entry -%s-' % entry.Flink.finaltype.__name__)
-				entry_ptr = entry.Flink
-			else:
-				break
 	
 	def start(self):
 		try:
@@ -110,4 +85,4 @@ class LiveSspDecryptor:
 			return
 		self.reader.move(entry_ptr_loc)
 		entry_ptr = self.decryptor_template.list_entry(self.reader)
-		self.walk_list(entry_ptr, entry_ptr_loc, self.add_entry)
+		self.walk_list(entry_ptr, self.add_entry)
