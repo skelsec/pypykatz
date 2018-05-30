@@ -34,6 +34,6 @@ setup(
 		"Operating System :: OS Independent",
 	),
 	install_requires=[
-		'minidump>=0.0.3',
+		'minidump>=0.0.4',
 	],
 )
