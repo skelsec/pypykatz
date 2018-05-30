@@ -63,7 +63,7 @@ class SspDecryptor(PackageDecryptor):
 		if ssp_entry.credentials.Password.Length != 0:
 			if ssp_entry.credentials.Password.Length % 8 != 0:
 				#for orphaned creds
-				c.password = ssp_entry.credentials.Password.read_string(self.reader)
+				c.password = ssp_entry.credentials.Password.read_data(self.reader)
 			else:
 				enc_data = ssp_entry.credentials.Password.read_string(self.reader)
 				dec_data = self.lsa_decryptor.decrypt(enc_data)
