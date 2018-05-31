@@ -8,6 +8,7 @@ import json
 import logging
 from pypykatz.commons.common import *
 from pypykatz.commons.filetime import *
+from pypykatz.commons.win_datatypes import *
 from pypykatz.lsadecryptor.packages.msv.templates import *
 from pypykatz.lsadecryptor.packages.credman.templates import *
 from pypykatz.lsadecryptor.package_commons import *
@@ -249,7 +250,7 @@ class MsvDecryptor(PackageDecryptor):
 			if credman_credential_entry.cbEncPassword % 8 == 0:
 				dec_data = self.lsa_decryptor.decrypt(enc_data)
 				try:
-					c.password = dec_data.decode('utf-16-le')
+					c.password = dec_data.decode('utf-16-le').rstrip('\x00')
 				except:
 					c.password = dec_data
 					pass

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import logging
 from pypykatz.commons.common import *
+from pypykatz.commons.win_datatypes import *
 
 class PackageTemplate:
 	def __init__(self, package_name):
@@ -25,7 +26,7 @@ class PackageDecryptor:
 	def log_decryptor(self):
 		pass
 		
-	def log_ptr(self, ptr, name, datasize = 0x50):
+	def log_ptr(self, ptr, name, datasize = 0x100):
 		"""
 		Reads datasize bytes from the memory region pointed by the pointer.
 		ptr = the pointer to be read
@@ -63,7 +64,8 @@ class PackageDecryptor:
 		entries_seen = {}
 		entries_seen[entry_ptr.location] = 1
 		max_walk = max_walk
-		self.log_ptr(entry_ptr.value, 'List entry -%s-' % entry_ptr.finaltype.__name__)
+		print('HELLO!')
+		self.log_ptr(entry_ptr.value, 'List entry -%s-' % entry_ptr.finaltype.__name__ if not override_ptr else override_ptr.__name__)
 		while True:
 			if override_ptr:
 				entry = entry_ptr.read(self.reader, override_ptr)
@@ -73,12 +75,12 @@ class PackageDecryptor:
 			callback(entry)
 			
 			max_walk -= 1
-			logging.log(1, '%s next ptr: %x' % (entry.Flink.finaltype.__name__, entry.Flink.value))
-			logging.log(1, '%s seen: %s' % (entry.Flink.finaltype.__name__, entry.Flink.value not in entries_seen))
-			logging.log(1, '%s max_walk: %d' % (entry.Flink.finaltype.__name__, max_walk))
+			logging.log(1, '%s next ptr: %x' % (entry.Flink.finaltype.__name__ if not override_ptr else override_ptr.__name__ , entry.Flink.value))
+			logging.log(1, '%s seen: %s' % (entry.Flink.finaltype.__name__ if not override_ptr else override_ptr.__name__ , entry.Flink.value not in entries_seen))
+			logging.log(1, '%s max_walk: %d' % (entry.Flink.finaltype.__name__ if not override_ptr else override_ptr.__name__ , max_walk))
 			if entry.Flink.value != 0 and entry.Flink.value not in entries_seen and max_walk != 0:
 				entries_seen[entry.Flink.value] = 1
-				self.log_ptr(entry.Flink.value, 'Next list entry -%s-' % entry.Flink.finaltype.__name__)
+				self.log_ptr(entry.Flink.value, 'Next list entry -%s-' % entry.Flink.finaltype.__name__ if not override_ptr else override_ptr.__name__)
 				entry_ptr = entry.Flink
 			else:
 				break

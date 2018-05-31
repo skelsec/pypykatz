@@ -21,10 +21,10 @@ class KerberosTemplate:
 		self.csp_info_struct = None
 		
 	@staticmethod
-	def get_template(architecture, buildnumber):
-		template = KerberosTemplate(architecture, buildnumber)
-		if architecture == 'x64':		
-			if WindowsMinBuild.WIN_XP.value <= buildnumber < WindowsMinBuild.WIN_2K3.value:
+	def get_template(sysinfo):
+		template = KerberosTemplate()
+		if sysinfo.architecture == KatzSystemArchitecture.X64:		
+			if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:
 				template.signature = b'\x48\x3b\xfe\x0f\x84'
 				template.first_entry_offset = -4
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_51
@@ -34,7 +34,7 @@ class KerberosTemplate:
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
 				
 				
-			elif WindowsMinBuild.WIN_2K3.value <= buildnumber < WindowsMinBuild.WIN_VISTA.value:
+			elif WindowsMinBuild.WIN_2K3.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_VISTA.value:
 				template.signature = b'\x48\x3b\xfe\x0f\x84'
 				template.first_entry_offset = -4
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -43,7 +43,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_5
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
 				
-			elif WindowsMinBuild.WIN_VISTA.value <= buildnumber < WindowsMinBuild.WIN_7.value:
+			elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_7.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -52,7 +52,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
 				
-			elif WindowsMinBuild.WIN_7.value <= buildnumber < WindowsMinBuild.WIN_8.value:
+			elif WindowsMinBuild.WIN_7.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -61,7 +61,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
 			
-			elif WindowsMinBuild.WIN_8.value <= buildnumber < WindowsBuild.WIN_10_1507.value:
+			elif WindowsMinBuild.WIN_8.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -70,7 +70,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
 				
-			elif WindowsBuild.WIN_10_1507.value <= buildnumber < WindowsBuild.WIN_10_1511.value:
+			elif WindowsBuild.WIN_10_1507.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1511.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10
@@ -79,7 +79,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
 				
-			elif WindowsBuild.WIN_10_1607.value <= buildnumber:
+			elif WindowsBuild.WIN_10_1607.value <= sysinfo.buildnumber:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10
@@ -88,7 +88,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
 				
-			elif buildnumber >= WindowsBuild.WIN_10_1607.value:
+			elif sysinfo.buildnumber >= WindowsBuild.WIN_10_1607.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
@@ -98,11 +98,11 @@ class KerberosTemplate:
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
 				
 			else:
-				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (architecture, buildnumber))
+				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (architecture, sysinfo.buildnumber))
 			
 		
-		elif architecture == 'x86':
-			if WindowsMinBuild.WIN_XP.value <= buildnumber < WindowsMinBuild.WIN_2K3.value:
+		elif sysinfo.architecture == KatzSystemArchitecture.X86:
+			if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:
 				template.signature = b'\x8B\x7D\x08\x8B\x17\x39\x50'
 				template.first_entry_offset = -8
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_51
@@ -112,7 +112,7 @@ class KerberosTemplate:
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
 				
 				
-			elif WindowsMinBuild.WIN_2K3.value <= buildnumber < WindowsMinBuild.WIN_VISTA.value:
+			elif WindowsMinBuild.WIN_2K3.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_VISTA.value:
 				template.signature = b'\x8B\x7D\x08\x8B\x17\x39\x50'
 				template.first_entry_offset = -8
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -121,7 +121,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_5
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
 				
-			elif WindowsMinBuild.WIN_VISTA.value <= buildnumber < WindowsMinBuild.WIN_7.value:
+			elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_7.value:
 				template.signature = b'\x53\x8b\x18\x50\x56'
 				template.first_entry_offset = -11
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -130,7 +130,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
 				
-			elif WindowsMinBuild.WIN_7.value <= buildnumber < WindowsMinBuild.WIN_8.value:
+			elif WindowsMinBuild.WIN_7.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
 				template.signature = b'\x53\x8b\x18\x50\x56'
 				template.first_entry_offset = -11
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -139,7 +139,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
 				
-			elif WindowsMinBuild.WIN_8.value <= buildnumber < WindowsBuild.WIN_BLUE.value:
+			elif WindowsMinBuild.WIN_8.value <= sysinfo.buildnumber < WindowsBuild.WIN_BLUE.value:
 				template.signature = b'\x57\x8b\x38\x50\x68'
 				template.first_entry_offset = -14
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -148,7 +148,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
 				
-			elif WindowsMinBuild.WIN_BLUE.value <= buildnumber < WindowsBuild.WIN_10_1507.value:
+			elif WindowsMinBuild.WIN_BLUE.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value:
 				template.signature = b'\x56\x8b\x30\x50\x57'
 				template.first_entry_offset = -15
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION
@@ -157,7 +157,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
 				
-			elif WindowsBuild.WIN_10_1507.value <= buildnumber < WindowsBuild.WIN_10_1511.value:
+			elif WindowsBuild.WIN_10_1507.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1511.value:
 				template.signature = b'\x56\x8b\x30\x50\x57'
 				template.first_entry_offset = -15
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10
@@ -166,7 +166,7 @@ class KerberosTemplate:
 				template.hash_password_struct = KERB_HASHPASSWORD_6
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
 				
-			elif buildnumber >= WindowsBuild.WIN_10_1511.value:
+			elif sysinfo.buildnumber >= WindowsBuild.WIN_10_1511.value:
 				template.signature = b'\x56\x8b\x30\x50\x57'
 				template.first_entry_offset = -15
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
@@ -406,7 +406,7 @@ class KIWI_KERBEROS_LOGON_SESSION_10:
 		self.unk11 = PVOID(reader).value
 		self.unk12 = PVOID(reader).value
 		self.unk13 = PVOID(reader).value
-		reader.align()
+		#reader.align()
 		self.credentials = KIWI_KERBEROS_10_PRIMARY_CREDENTIAL(reader)
 		self.unk14 = ULONG(reader).value
 		self.unk15 = ULONG(reader).value
@@ -510,7 +510,8 @@ class PKIWI_KERBEROS_INTERNAL_TICKET_51(POINTER):
 		
 class KIWI_KERBEROS_INTERNAL_TICKET_51:
 	def __init__(self, reader):
-		self.This = LIST_ENTRY(reader)
+		self.Flink = PKIWI_KERBEROS_INTERNAL_TICKET_51(reader)
+		self.Blink = PKIWI_KERBEROS_INTERNAL_TICKET_51(reader)
 		self.unk0 = PVOID(reader).value
 		self.unk1 = PVOID(reader).value
 		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
@@ -550,7 +551,8 @@ class PKIWI_KERBEROS_INTERNAL_TICKET_52(POINTER):
 
 class KIWI_KERBEROS_INTERNAL_TICKET_52:
 	def __init__(self, reader):
-		self.This = LIST_ENTRY(reader)
+		self.Flink = PKIWI_KERBEROS_INTERNAL_TICKET_52(reader)
+		self.Blink = PKIWI_KERBEROS_INTERNAL_TICKET_52(reader)
 		self.unk0 = PVOID(reader).value
 		self.unk1 = PVOID(reader).value
 		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
@@ -588,7 +590,8 @@ class PKIWI_KERBEROS_INTERNAL_TICKET_60(POINTER):
 
 class KIWI_KERBEROS_INTERNAL_TICKET_60:
 	def __init__(self, reader):
-		self.This = LIST_ENTRY(reader)
+		self.Flink = PKIWI_KERBEROS_INTERNAL_TICKET_60(reader)
+		self.Blink = PKIWI_KERBEROS_INTERNAL_TICKET_60(reader)
 		self.unk0 = PVOID(reader).value
 		self.unk1 = PVOID(reader).value
 		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
@@ -627,7 +630,10 @@ class PKIWI_KERBEROS_INTERNAL_TICKET_6(POINTER):
 		
 class KIWI_KERBEROS_INTERNAL_TICKET_6:
 	def __init__(self, reader):
-		self.This = LIST_ENTRY(reader)
+		#self.This = LIST_ENTRY(reader)
+		self.Flink = PKIWI_KERBEROS_INTERNAL_TICKET_6(reader)
+		self.Blink = PKIWI_KERBEROS_INTERNAL_TICKET_6(reader)
+		
 		self.unk0 = PVOID(reader).value
 		self.unk1 = PVOID(reader).value
 		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
@@ -636,7 +642,7 @@ class KIWI_KERBEROS_INTERNAL_TICKET_6:
 		self.TargetDomainName = LSA_UNICODE_STRING(reader)
 		self.Description = LSA_UNICODE_STRING(reader)
 		self.AltTargetDomainName = LSA_UNICODE_STRING(reader)
-		self.KDCServer = LSA_UNICODE_STRING #	//?(reader).value
+		self.KDCServer = LSA_UNICODE_STRING(reader) #	//?(reader).value
 		self.ClientName = PKERB_EXTERNAL_NAME(reader)
 		self.name0 = PVOID(reader).value
 		self.TicketFlags = ULONG(reader).value
@@ -668,7 +674,8 @@ class PKIWI_KERBEROS_INTERNAL_TICKET_10(POINTER):
 		
 class KIWI_KERBEROS_INTERNAL_TICKET_10:
 	def __init__(self, reader):
-		self.This = LIST_ENTRY(reader)
+		self.Flink = PKIWI_KERBEROS_INTERNAL_TICKET_10(reader)
+		self.Blink = PKIWI_KERBEROS_INTERNAL_TICKET_10(reader)
 		self.unk0 = PVOID(reader).value
 		self.unk1 = PVOID(reader).value
 		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
@@ -708,7 +715,8 @@ class PKIWI_KERBEROS_INTERNAL_TICKET_10_1607(POINTER):
 		
 class KIWI_KERBEROS_INTERNAL_TICKET_10_1607:
 	def __init__(self, reader):
-		self.This = LIST_ENTRY(reader)
+		self.Flink = PKIWI_KERBEROS_INTERNAL_TICKET_10_1607(reader)
+		self.Blink = PKIWI_KERBEROS_INTERNAL_TICKET_10_1607(reader)
 		self.unk0 = PVOID(reader).value
 		self.unk1 = PVOID(reader).value
 		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
@@ -725,6 +733,7 @@ class KIWI_KERBEROS_INTERNAL_TICKET_10_1607:
 		self.unk2 = ULONG(reader).value
 		self.unk14393_0 = PVOID(reader).value
 		self.KeyType = ULONG(reader).value
+		reader.align()
 		self.Key = KIWI_KERBEROS_BUFFER(reader)
 		self.unk14393_1 = PVOID(reader).value
 		self.unk3 = PVOID(reader).value										# // ULONG		KeyType2 = (reader).value
@@ -737,10 +746,12 @@ class KIWI_KERBEROS_INTERNAL_TICKET_10_1607:
 		self.unk7 = ULONG(reader).value
 		self.domain = PCWSTR(reader).value
 		self.unk8 = ULONG(reader).value
+		reader.align()
 		self.strangeNames = PVOID(reader).value
 		self.unk9 = ULONG(reader).value
 		self.TicketEncType = ULONG(reader).value
 		self.TicketKvno = ULONG(reader).value
+		reader.align()
 		self.Ticket = KIWI_KERBEROS_BUFFER(reader)
 
 class PKERB_HASHPASSWORD_GENERIC(POINTER):
@@ -749,8 +760,8 @@ class PKERB_HASHPASSWORD_GENERIC(POINTER):
 		
 class KERB_HASHPASSWORD_GENERIC:
 	def __init__(self, reader):
-		print('KERB_HASHPASSWORD_GENERIC')
-		print(hexdump(reader.peek(0x50), start = reader.tell()))
+		#print('KERB_HASHPASSWORD_GENERIC')
+		#print(hexdump(reader.peek(0x50), start = reader.tell()))
 		self.Type = DWORD(reader).value
 		reader.align()
 		self.Size = SIZE_T(reader).value
@@ -771,8 +782,8 @@ class PKERB_HASHPASSWORD_6(POINTER):
 		
 class KERB_HASHPASSWORD_6 :
 	def __init__(self, reader):
-		print('KERB_HASHPASSWORD_6')
-		print(hexdump(reader.peek(0x100), start = reader.tell()))
+		#print('KERB_HASHPASSWORD_6')
+		#input(hexdump(reader.peek(0x100), start = reader.tell()))
 		self.salt = LSA_UNICODE_STRING(reader)	#// http://tools.ietf.org/html/rfc3962
 		self.stringToKey = PVOID(reader) # // AES Iterations (dword ?)
 		self.generic = KERB_HASHPASSWORD_GENERIC(reader)
@@ -804,8 +815,8 @@ class PKIWI_KERBEROS_KEYS_LIST_6(POINTER):
 		super().__init__(reader, KIWI_KERBEROS_KEYS_LIST_6)
 class KIWI_KERBEROS_KEYS_LIST_6:
 	def __init__(self, reader):
-		print('KIWI_KERBEROS_KEYS_LIST_6')
-		print(hexdump(reader.peek(0x100), start = reader.tell()))
+		#print('KIWI_KERBEROS_KEYS_LIST_6')
+		#print(hexdump(reader.peek(0x100), start = reader.tell()))
 		self.unk0 = DWORD(reader).value	#	// dword_1233EC8 dd 4(reader).value
 		self.cbItem = DWORD(reader).value #	// debug048:01233ECC dd 5(reader).value
 		self.unk1 = PVOID(reader).value
@@ -833,4 +844,8 @@ class KIWI_KERBEROS_ENUM_DATA_TICKET:
 class KIWI_KERBEROS_BUFFER:
 	def __init__(self, reader):
 		self.Length = ULONG(reader).value
+		reader.align()
 		self.Value = PVOID(reader)
+		
+	def read(self, reader):
+		return self.Value.read_raw(reader, self.Length)

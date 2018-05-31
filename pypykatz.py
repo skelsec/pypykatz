@@ -114,7 +114,7 @@ if __name__ == '__main__':
 			if args.halt_on_error == True:
 				raise e
 			else:
-				pass
+				traceback.print_exc()
 		if args.outfile and args.json:
 			with open(args.outfile, 'w') as f:
 				json.dump(mimi, f, cls = UniversalEncoder, indent=4, sort_keys=True)

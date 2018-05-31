@@ -7,6 +7,7 @@ import io
 import enum
 import logging
 from minidump.win_datatypes import *
+from pypykatz.commons.common import *
 
 class LARGE_INTEGER:
 	def __init__(self, reader):
@@ -109,8 +110,10 @@ class PKERB_EXTERNAL_NAME(POINTER):
 
 class KERB_EXTERNAL_NAME:
 	def __init__(self, reader):
+		input('KERB_EXTERNAL_NAME\n%s' % hexdump(reader.peek(0x30)))
 		self.NameType = SHORT(reader).value #KerberosNameType(SHORT(reader).value)
 		self.NameCount = USHORT(reader).value
+		reader.align()
 		self.Names = []	# list of LSA_UNICODE_STRING
 		for i in range(self.NameCount):
 			self.Names.append(LSA_UNICODE_STRING(reader))

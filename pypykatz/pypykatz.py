@@ -102,17 +102,17 @@ class pypykatz:
 				self.orphaned_creds.append(cred)
 	
 	def get_kerberos(self):
-		kerberos_dec_template = KERBEROS_DECRYPTOR_TEMPLATE(self.sysinfo).get_template()
+		kerberos_dec_template = KerberosTemplate.get_template(self.sysinfo)
 		kerberos_dec = KerberosDecryptor(self.reader,kerberos_dec_template, self.lsa_decryptor)
 		kerberos_dec.start()			
 	
 	def start(self):
 		self.lsa_decryptor = self.get_lsa()
 		self.get_logoncreds()
-		self.get_wdigest()
+		#self.get_wdigest()
 		#CHICKEN BITS - UNTESTED!!! DO NOT UNCOMMENT
-		#self.get_kerberos()
-		self.get_tspkg()
-		self.get_ssp()
-		self.get_livessp()
-		self.get_dpapi()
+		self.get_kerberos()
+		#self.get_tspkg()
+		#self.get_ssp()
+		#self.get_livessp()
+		#self.get_dpapi()
