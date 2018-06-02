@@ -110,7 +110,6 @@ class PKERB_EXTERNAL_NAME(POINTER):
 
 class KERB_EXTERNAL_NAME:
 	def __init__(self, reader):
-		input('KERB_EXTERNAL_NAME\n%s' % hexdump(reader.peek(0x30)))
 		self.NameType = SHORT(reader).value #KerberosNameType(SHORT(reader).value)
 		self.NameCount = USHORT(reader).value
 		reader.align()

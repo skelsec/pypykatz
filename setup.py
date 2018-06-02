@@ -35,5 +35,6 @@ setup(
 	),
 	install_requires=[
 		'minidump>=0.0.4',
+		'minikerberos',
 	],
 )
