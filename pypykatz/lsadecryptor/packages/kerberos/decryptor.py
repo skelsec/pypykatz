@@ -8,80 +8,10 @@ import logging
 
 from pypykatz.commons.common import *
 from pypykatz.commons.filetime import *
+from pypykatz.commons.kerberosticket import *
 from .templates import *
 from pypykatz.lsadecryptor.package_commons import *
 
-class KerberosTicket:
-	def __init__(self):
-		self.ServiceName = None
-		self.DomainName = None
-		self.ETargetName = None
-		self.TargetDomainName = None
-		self.EClientName = None
-		self.AltTargetDomainName = None
-		self.Description = None
-
-		self.StartTime = None
-		self.EndTime = None
-		self.RenewUntil = None
-
-		self.KeyType = None
-		self.Key = None
-
-		self.TicketFlags = None
-		self.TicketEncType = None
-		self.TicketKvno = None
-		self.Ticket = None
-		
-	def parse(kerberos_ticket, reader):
-		kt = KerberosTicket()
-		kt.ServiceName = kerberos_ticket.ServiceName.read(reader).read(reader)
-		print(kt.ServiceName)
-		kt.DomainName = kerberos_ticket.DomainName.read_string(reader)
-		kt.ETargetName = kerberos_ticket.TargetName.read(reader).read(reader) #### ENCRYPTED????
-		input(kt.ETargetName)
-		kt.TargetDomainName = kerberos_ticket.TargetDomainName.read_string(reader) 
-		#input('%x'%kerberos_ticket.ClientName.value)
-		kt.EClientName = kerberos_ticket.ClientName.read(reader).read(reader) #### ENCRYPTED????
-		kt.AltTargetDomainName = kerberos_ticket.AltTargetDomainName.read_string(reader)
-		kt.Description = kerberos_ticket.Description.read_string(reader)
-        
-		kt.StartTime = filetime_to_dt(kerberos_ticket.StartTime)
-		kt.EndTime = filetime_to_dt(kerberos_ticket.StartTime)
-		kt.RenewUntil = filetime_to_dt(kerberos_ticket.StartTime)
-        
-		kt.KeyType = kerberos_ticket.KeyType
-		kt.Key = kerberos_ticket.Key.read(reader)
-        
-		kt.TicketFlags = kerberos_ticket.TicketFlags
-		kt.TicketEncType = kerberos_ticket.TicketEncType
-		kt.TicketKvno = kerberos_ticket.TicketKvno
-		kt.Ticket = kerberos_ticket.Ticket.read(reader)
-		
-		input(hexdump(kt.Ticket))
-		
-		return kt
-	
-	def __str__(self):
-		t =  '== Kerberos Ticket ==\n'
-		t += 'ServiceName: %s\n'% self.ServiceName
-		t += 'DomainName: %s\n'% self.DomainName
-		t += 'ETargetName: %s\n'% self.ETargetName
-		t += 'TargetDomainName: %s\n'% self.TargetDomainName
-		t += 'EClientName: %s\n'% self.EClientName
-		t += 'AltTargetDomainName: %s\n'% self.AltTargetDomainName
-		t += 'Description: %s\n'% self.Description
-		t += 'StartTime: %s\n'% self.StartTime.isoformat()
-		t += 'EndTime: %s\n'% self.EndTime.isoformat()
-		t += 'RenewUntil: %s\n'% self.RenewUntil.isoformat()
-		t += 'KeyType: %s\n'% self.KeyType
-		t += 'Key: %s\n'% self.Key
-		t += 'TicketFlags: %s\n'% self.TicketFlags
-		t += 'TicketEncType: %s\n'% self.TicketEncType
-		t += 'TicketKvno: %s\n'% self.TicketKvno
-		t += 'Ticket: %s\n'% self.Ticket.hex()		
-		return t
-		
 class KerberosDecryptor(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, lsa_decryptor):
 		super().__init__('Kerberos')
@@ -211,15 +141,15 @@ class KerberosDecryptor(PackageDecryptor):
 				
 				# getting ticket granting service tickets
 				if kerberos_logon_session.Tickets_1.Flink.value != 0 and kerberos_logon_session.Tickets_1.Flink.value != kerberos_logon_session.Tickets_1.Flink.location:
-					input('getting ticket granting service tickets')
+					#input('getting ticket granting service tickets')
 					self.walk_list(kerberos_logon_session.Tickets_1.Flink, self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 				
-				#if kerberos_logon_session.Tickets_2.Flink.value != 0:
-				#	self.walk_list(kerberos_logon_session.Tickets_2.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
+				if kerberos_logon_session.Tickets_2.Flink.value != 0 and kerberos_logon_session.Tickets_2.Flink.value != kerberos_logon_session.Tickets_2.Flink.location:
+					self.walk_list(kerberos_logon_session.Tickets_2.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 				
-				#if kerberos_logon_session.Tickets_3.Flink.value != 0:
-				#	self.walk_list(kerberos_logon_session.Tickets_3.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
-				input('push button')
+				if kerberos_logon_session.Tickets_3.Flink.value != 0 and kerberos_logon_session.Tickets_3.Flink.value != kerberos_logon_session.Tickets_3.Flink.location:
+					self.walk_list(kerberos_logon_session.Tickets_3.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
+				#input('push button')
 			"""
 			self.reader.move(entry_ptr_loc)
 			
