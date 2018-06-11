@@ -8,10 +8,11 @@ import logging
 from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
+from pypykatz.lsadecryptor.package_commons import *
 
-class KerberosTemplate:
-	def __init__(self):
-		
+class KerberosTemplate(PackageTemplate):
+	def __init__(self, sysinfo):
+		super().__init__('Kerberos', sysinfo)
 		self.signature = None
 		self.first_entry_offset = None
 		self.kerberos_session_struct = None
@@ -22,7 +23,7 @@ class KerberosTemplate:
 		
 	@staticmethod
 	def get_template(sysinfo):
-		template = KerberosTemplate()
+		template = KerberosTemplate(sysinfo)
 		if sysinfo.architecture == KatzSystemArchitecture.X64:		
 			if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:
 				template.signature = b'\x48\x3b\xfe\x0f\x84'
@@ -847,5 +848,9 @@ class KIWI_KERBEROS_BUFFER:
 		reader.align()
 		self.Value = PVOID(reader)
 		
+		##not part of struct
+		self.Data = None
+		
 	def read(self, reader):
-		return self.Value.read_raw(reader, self.Length)
+		self.Data = self.Value.read_raw(reader, self.Length)
+		return self.Data

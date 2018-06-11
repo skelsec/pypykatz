@@ -11,6 +11,8 @@ import struct
 import logging
 import traceback
 import json
+import ntpath
+
 
 from pypykatz.pypykatz import pypykatz
 from pypykatz.commons.common import UniversalEncoder
@@ -27,6 +29,8 @@ if __name__ == '__main__':
 	parser.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
 	parser.add_argument('-e','--halt-on-error', action='store_true',help = 'Stops parsing when a file cannot be parsed')
 	parser.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+	parser.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
+	
 	
 	args = parser.parse_args()
 	if args.verbose == 0:
@@ -38,6 +42,7 @@ if __name__ == '__main__':
 		
 	files_with_error = []
 	
+	results = {}
 	if args.directory:
 		dir_fullpath = os.path.abspath(args.minidumpfile)
 		file_pattern = '*.dmp'
@@ -45,7 +50,7 @@ if __name__ == '__main__':
 			globdata = os.path.join(dir_fullpath, '**', file_pattern)
 		else:	
 			globdata = os.path.join(dir_fullpath, file_pattern)
-		results = {}
+			
 		logging.info('Parsing folder %s' % dir_fullpath)
 		for filename in glob.glob(globdata, recursive=args.recursive):
 			logging.info('Parsing file %s' % filename)
@@ -110,6 +115,7 @@ if __name__ == '__main__':
 		logging.info('Parsing file %s' % args.minidumpfile)
 		try:
 			mimi = pypykatz.parse_minidump_file(args.minidumpfile)
+			results[args.minidumpfile] = mimi
 		except Exception as e:
 			if args.halt_on_error == True:
 				raise e
@@ -142,3 +148,22 @@ if __name__ == '__main__':
 				print('== Orphaned credentials ==')
 				for cred in mimi.orphaned_creds:
 					print(str(cred))
+					
+	if args.kerberos_dir:
+		dir = os.path.abspath(args.kerberos_dir)
+		logging.info('Writing kerberos tickets to %s' % dir)
+		for filename in results:
+			base_filename = ntpath.basename(filename)
+			ccache_filename = '%s_%s.ccache' % (base_filename, os.urandom(4).hex()) #to avoid collisions
+			results[filename].kerberos_ccache.to_file(os.path.join(dir, ccache_filename))
+			for luid in results[filename].logon_sessions:
+				for kcred in results[filename].logon_sessions[luid].kerberos_creds:
+					for ticket in kcred.tickets:
+						ticket.to_kirbi(dir)
+						
+			for cred in results[filename].orphaned_creds:
+				if cred.credtype == 'kerberos':
+					for ticket in cred.tickets:
+						ticket.to_kirbi(dir)			
+		
+	

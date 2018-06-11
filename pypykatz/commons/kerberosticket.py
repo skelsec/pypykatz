@@ -1,14 +1,45 @@
 from asn1crypto import core
 from pypykatz.commons.filetime import *
 from pypykatz.commons.common import *
+from pypykatz.commons.win_datatypes import *
 from minikerberos.asn1_structs import *
-from minikerberos.ccache import CCACHE
+from minikerberos.constants import *
+
 import enum
 import os
+import hashlib
+
+class KerberosTicketType(enum.Enum):
+	TGT = enum.auto()
+	TGS = enum.auto()
+	CLIENT = enum.auto() #?
 	
+class KerberosSessionKey:
+	def __init__(self):
+		self.keydata = None
+		self.sessionkey = None
+		
+	def parse(key_struct, sysinfo):
+		ksk = KerberosSessionKey()
+		ksk.keydata = key_struct.Data
+		
+		if sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value or key_struct.Length < LSAISO_DATA_BLOB.size:
+			ksk.sessionkey = ksk.keydata
+		else:
+			reader = GenericReader(ksk.keydata, processor_architecture = sysinfo.architecture)
+			if key_struct.Length <= (LSAISO_DATA_BLOB.size + len("KerberosKey")-1 + 32) :
+				blob = LSAISO_DATA_BLOB(reader)
+				blob.Data = reader.read(-1)
+			else:
+				blob = ENC_LSAISO_DATA_BLOB(reader)
+				blob.Data = reader.read(-1)
+			
+			ksk.sessionkey = blob.Data
+		return ksk
 	
 class KerberosTicket:
 	def __init__(self):
+		self.type = None
 		self.ServiceName = None
 		self.ServiceName_type = None
 		self.DomainName = None
@@ -32,103 +63,63 @@ class KerberosTicket:
 		self.TicketKvno = None
 		self.Ticket = None
 		
-		self.kirbi_data = None
-		self.ccache_data = None
+		self.kirbi_data = {}
+		self.session_key = None
 		
+	def generate_filename(self):
+		return '%s@%s_%s' % ('-'.join(self.EClientName) , '-'.join(self.ServiceName), hashlib.sha1(self.Ticket).hexdigest()[:8])
+	
+	def to_dict(self):
+		#not sure if anyone would need this, so only parts will be shown
+		t = {}
+		t['type'] = self.type
+		t['ServiceName'] = self.ServiceName
+		t['DomainName'] = self.DomainName
+		t['ETargetName'] = self.ETargetName
+		t['TargetDomainName'] = self.TargetDomainName
+		t['EClientName'] = self.EClientName
+		t['AltTargetDomainName'] = self.AltTargetDomainName
+		t['StartTime'] = self.StartTime
+		t['EndTime'] = self.EndTime
+		t['RenewUntil'] = self.RenewUntil
+		t['KeyType'] = self.KeyType
+		t['Key'] = self.Key
+		
+		return t
+		
+	
 	def to_asn1(self):
-		#this will in fact return a KRBCRED object, not a Ticket object!!!
-		krbcred = {}
-		krb = {}
+		krbcredinfo = {}
+		krbcredinfo['key'] = EncryptionKey({'keytype': self.KeyType, 'keyvalue':self.Key})
+		krbcredinfo['prealm'] = self.AltTargetDomainName
+		krbcredinfo['pname'] = PrincipalName({'name-type': self.EClientName_type, 'name-string':self.EClientName})
+		krbcredinfo['flags'] = core.IntegerBitString(self.TicketFlags).cast(TicketFlags)
+		krbcredinfo['starttime'] = self.StartTime
+		krbcredinfo['endtime'] = self.EndTime
+		krbcredinfo['renew-till'] = self.RenewUntil
+		krbcredinfo['srealm'] = self.DomainName
+		krbcredinfo['sname'] = PrincipalName({'name-type': self.ServiceName_type, 'name-string':self.ServiceName})
+		
+		enc_krbcred = {}
+		enc_krbcred['ticket-info'] = [KrbCredInfo(krbcredinfo)]
+		
 		ticket = {}
-		tickets = SequenceOfTicket()
+		ticket['tkt-vno'] = krb5_pvno
+		ticket['realm'] = self.DomainName
+		ticket['sname'] = PrincipalName({'name-type': NAME_TYPE.SRV_INST.value, 'name-string':self.ServiceName})
+		ticket['enc-part'] = EncryptedData({'etype': self.TicketEncType, 'kvno': self.TicketKvno, 'cipher': self.Ticket})
 		
-		#encpart
-		encpart = {}
-		encpart['etype']  = self.TicketEncType
-		encpart['kvno']   =  self.TicketKvno
-		encpart['cipher'] = self.Ticket
-		ticket['enc-part'] = EncryptedData(encpart)
+		krbcred = {}
+		krbcred['pvno'] = krb5_pvno
+		krbcred['msg-type'] = MESSAGE_TYPE.KRB_CRED.value
+		krbcred['tickets'] = [Ticket(ticket)]
+		krbcred['enc-part'] = EncryptedData({'etype': EncryptionType.NULL.value, 'cipher': EncKrbCredPart(enc_krbcred).dump()})
+	
+		return KRBCRED(krbcred)
 		
-		#sname
-		sname = {}
-		sname['name-type'] = self.ServiceName_type
-		t = SequenceOfKerberosString()
-		for s in self.ServiceName:
-			a = KerberosString(s)
-			t.append(a)
-		sname['name-string'] = SequenceOfKerberosString(t)
-		ticket['sname'] = PrincipalName(sname)
-		
-		#realm
-		realm = Realm(self.DomainName)
-		ticket['realm'] = realm
-		
-		#vno
-		ticket['tkt-vno'] = self.TicketKvno #check this, not sure if this is correct!!!!
-		tickets.append(Ticket(ticket))
-		
-		############# krb
-		key = {}
-		key['keytype'] = self.KeyType
-		key['keyvalue'] = self.Key
-		krb['key'] = EncryptionKey(key)
-		
-		prealm = Realm(self.AltTargetDomainName)
-		krb['prealm'] = prealm
-		
-		pname = {}
-		pname['name-type'] = self.EClientName_type
-		pname['name-string'] = self.EClientName
-		krb['pname'] = PrincipalName(pname)
-		#input('tb %x' % self.TicketFlags)
-		flags = tuple([self.TicketFlags >> i & 1 for i in range(self.TicketFlags.bit_length() - 1,-1,-1)])
-		krb['flags'] = TicketFlags(flags)
-		
-		krb['starttime'] = KerberosTime(self.StartTime)
-		krb['endtime'] = KerberosTime(self.EndTime)
-		krb['renew-till'] = KerberosTime(self.RenewUntil)		
-		
-		srealm = Realm(self.DomainName)
-		krb['srealm'] = srealm
-		
-		sname = {}
-		sname['name-type'] = self.ServiceName_type
-		sname['name-string'] = self.ServiceName
-		krb['sname'] = PrincipalName(sname)
-		
-		krb = KrbCredInfo(krb)
-		with open('new.asn1','wb') as f:
-			f.write(krb.dump())
-		
-		krbcred['pvno'] = 5
-		krbcred['msg-type'] = 22
-		krbcred['tickets'] = tickets
-		
-		r = SequenceOfKrbCredInfo()
-		r.append(krb)
-		
-		enckrbcredpart = {}
-		enckrbcredpart['ticket-info'] = r 
-		
-		encpart = {}
-		encpart['etype']  = KerberosEncryptonType.NULL.value
-		encpart['cipher'] = EncKrbCredPart(enckrbcredpart).dump()
-		
-		
-		encpart = EncryptedData(encpart)
-		
-		with open('new2.asn1','wb') as f:
-			f.write(EncKrbCredPart(enckrbcredpart).dump())
-		
-		
-		krbcred['enc-part'] = encpart
-		
-		#input('ENCPART: \n%s' % hexdump(encpart.dump()))
-		
-		return KRBCRED(krbcred)		
-		
-	def parse(kerberos_ticket, reader):
+	def parse(kerberos_ticket, reader, sysinfo, type = None):
 		kt = KerberosTicket()
+		kt.type = type
 		kt.ServiceName_type = kerberos_ticket.ServiceName.read(reader).NameType
 		kt.ServiceName = kerberos_ticket.ServiceName.read(reader).read(reader)
 		kt.DomainName = kerberos_ticket.DomainName.read_string(reader)
@@ -142,24 +133,35 @@ class KerberosTicket:
 		kt.Description = kerberos_ticket.Description.read_string(reader)
 		
 		kt.StartTime = filetime_to_dt(kerberos_ticket.StartTime)
-		kt.EndTime = filetime_to_dt(kerberos_ticket.StartTime)
-		kt.RenewUntil = filetime_to_dt(kerberos_ticket.StartTime)
+		kt.EndTime = filetime_to_dt(kerberos_ticket.EndTime)
+		kt.RenewUntil = filetime_to_dt(kerberos_ticket.RenewUntil)
 		
 		kt.KeyType = kerberos_ticket.KeyType
 		kt.Key = kerberos_ticket.Key.read(reader)
+		kt.session_key = KerberosSessionKey.parse(kerberos_ticket.Key, sysinfo)
 		
-		kt.TicketFlags = KerberosTicketFlags(kerberos_ticket.TicketFlags)
+		kt.TicketFlags = kerberos_ticket.TicketFlags
 		kt.TicketEncType = kerberos_ticket.TicketEncType
 		kt.TicketKvno = kerberos_ticket.TicketKvno
 		kt.Ticket = kerberos_ticket.Ticket.read(reader)
 		
-		kt.kirbi_data = kt.to_asn1().dump()
-		kt.ccache_data = CCACHE.from_kirbi(kt.kirbi_data).to_bytes()
+		kirbi = kt.to_asn1()
+		kt.kirbi_data[kt.generate_filename()] = kirbi
 		
 		return kt
+		
+	def generate_filename(self):
+		t = '%s' % ('_'.join([self.type.name, self.DomainName, '_'.join(self.EClientName), '_'.join(self.ServiceName), hashlib.sha1(self.Ticket).hexdigest()[:8]]))
+		return '%s.kirbi' % t.replace('..','!')
+		
+	def to_kirbi(self, dir):
+		for filename in self.kirbi_data:
+			with open(os.path.join(dir, filename), 'wb') as f:
+				f.write(self.kirbi_data[filename].dump())
 	
 	def __str__(self):
 		t =  '== Kerberos Ticket ==\n'
+		t += 'Type: %s\n'% self.type
 		t += 'ServiceName: %s\n'% self.ServiceName
 		t += 'DomainName: %s\n'% self.DomainName
 		t += 'ETargetName: %s\n'% self.ETargetName
@@ -175,6 +177,8 @@ class KerberosTicket:
 		t += 'TicketFlags: %s\n'% self.TicketFlags
 		t += 'TicketEncType: %s\n'% self.TicketEncType
 		t += 'TicketKvno: %s\n'% self.TicketKvno
-		t += 'Ticket: %s\n'% self.Ticket.hex()		
+		t += 'Ticket: %s\n'% self.Ticket.hex()	
+		t += 'SessionKey: %s\n'% self.session_key.sessionkey.hex()	
+	
 		return t
 		

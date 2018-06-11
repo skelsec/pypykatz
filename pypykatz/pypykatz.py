@@ -2,7 +2,7 @@ from .commons.common import *
 from .lsadecryptor import *
 
 from minidump.minidumpfile import MinidumpFile
-from minidump.streams.SystemInfoStream import PROCESSOR_ARCHITECTURE		
+from minikerberos.ccache import CCACHE
 
 class pypykatz:
 	"""mimikatz offline"""
@@ -17,6 +17,7 @@ class pypykatz:
 		
 		self.logon_sessions = []
 		self.orphaned_creds = []
+		self.kerberos_ccache = CCACHE()
 		
 	def to_dict(self):
 		t = {}
@@ -106,8 +107,12 @@ class pypykatz:
 		dec = KerberosDecryptor(self.reader,dec_template, self.lsa_decryptor)
 		dec.start()	
 		for cred in dec.credentials:
+			for ticket in cred.tickets:
+				for fn in ticket.kirbi_data:
+					self.kerberos_ccache.add_kirbi(ticket.kirbi_data[fn].native)
+			
 			if cred.luid in self.logon_sessions:
-				self.logon_sessions[cred.luid].dpapi_creds.append(cred)
+				self.logon_sessions[cred.luid].kerberos_creds.append(cred)
 			else:
 				self.orphaned_creds.append(cred)
 	

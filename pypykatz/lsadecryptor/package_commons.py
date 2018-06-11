@@ -4,8 +4,9 @@ from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 
 class PackageTemplate:
-	def __init__(self, package_name):
+	def __init__(self, package_name, sysinfo = None):
 		self.package_name = package_name
+		self.sysinfo = sysinfo
 	
 	def log_template(self, struct_var_name, struct_template_obj):
 		""""

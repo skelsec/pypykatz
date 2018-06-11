@@ -14,6 +14,7 @@ from pypykatz.lsadecryptor.package_commons import *
 
 class KerberosCredential:
 	def __init__(self):
+		self.credtype = 'kerberos'
 		self.username = None
 		self.password = None
 		self.domainname = None
@@ -25,8 +26,21 @@ class KerberosCredential:
 		t += '\t\tUsername: %s\n' % self.username
 		t += '\t\tDomain: %s\n' % self.domainname
 		t += '\t\tPassword: %s\n' % self.password
-		#for ticket in self.tickets:
-		#	t += '\t\t%s' % str(ticket).replace('\n','\n\t\t\t')[:-3]
+		for ticket in self.tickets:
+			t += '\t\t%s' % str(ticket).replace('\n','\n\t\t\t')[:-3]
+		
+		return t
+		
+	def to_dict(self):
+		t = {}
+		t['credtype'] = self.credtype
+		t['username'] = self.username
+		t['password'] = self.password
+		t['domainname'] = self.domainname
+		t['luid'] = self.luid
+		t['tickets'] = []
+		for ticket in self.tickets:
+			t['tickets'] = ticket.to_dict()
 		
 		return t
 		
@@ -39,6 +53,7 @@ class KerberosDecryptor(PackageDecryptor):
 		self.lsa_decryptor = lsa_decryptor
 		self.credentials = []
 		
+		self.current_ticket_type = None
 		self.current_cred = None
 		
 	def find_signature(self):
@@ -53,22 +68,14 @@ class KerberosDecryptor(PackageDecryptor):
 		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc
-		
-	def add_entry(self, wdigest_entry):
-		input('Press for next list')
 	
 	def handle_ticket(self, kerberos_ticket):
 		try:
-			kt = KerberosTicket.parse(kerberos_ticket, self.reader)
+			kt = KerberosTicket.parse(kerberos_ticket, self.reader, self.decryptor_template.sysinfo, self.current_ticket_type)
 			self.current_cred.tickets.append(kt)
 			#print(str(kt))
 		except Exception as e:
 			raise e
-		#input('ticket')
-		
-	def handle_session_key(self, session):
-		input('key')
-		
 	
 	def start(self):
 		try:
@@ -89,14 +96,15 @@ class KerberosDecryptor(PackageDecryptor):
 				self.log_ptr(ptr, self.decryptor_template.kerberos_session_struct.__name__, datasize= 0x200)
 				self.reader.move(ptr)
 				kerberos_logon_session = self.decryptor_template.kerberos_session_struct(self.reader)
-				print('LUID: %x' % kerberos_logon_session.LocallyUniqueIdentifier)
 				self.current_cred = KerberosCredential()
 				self.current_cred.luid = kerberos_logon_session.LocallyUniqueIdentifier
 				
 				self.current_cred.username = kerberos_logon_session.credentials.UserName.read_string(self.reader)
 				self.current_cred.domainname = kerberos_logon_session.credentials.Domaine.read_string(self.reader)
-				
-				password_crear = self.lsa_decryptor.decrypt(kerberos_logon_session.credentials.Password.read_data(self.reader))
+				#input(self.current_cred.username)
+				#input(self.current_cred.domainname)
+				#input('PWsize: %d' % kerberos_logon_session.credentials.Password.MaximumLength)
+				password_crear = self.lsa_decryptor.decrypt(kerberos_logon_session.credentials.Password.read_maxdata(self.reader))
 				self.current_cred.password = password_crear
 				
 				#### key list (still in session) this is not a linked list (thank god!)
@@ -159,14 +167,17 @@ class KerberosDecryptor(PackageDecryptor):
 				# getting ticket granting service tickets
 				if kerberos_logon_session.Tickets_1.Flink.value != 0 and kerberos_logon_session.Tickets_1.Flink.value != kerberos_logon_session.Tickets_1.Flink.location:
 					#input('getting ticket granting service tickets')
+					self.current_ticket_type = KerberosTicketType.TGS
 					self.walk_list(kerberos_logon_session.Tickets_1.Flink, self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 				
 				if kerberos_logon_session.Tickets_2.Flink.value != 0 and kerberos_logon_session.Tickets_2.Flink.value != kerberos_logon_session.Tickets_2.Flink.location:
+					self.current_ticket_type = KerberosTicketType.CLIENT
 					self.walk_list(kerberos_logon_session.Tickets_2.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 				
 				if kerberos_logon_session.Tickets_3.Flink.value != 0 and kerberos_logon_session.Tickets_3.Flink.value != kerberos_logon_session.Tickets_3.Flink.location:
+					self.current_ticket_type = KerberosTicketType.TGT
 					self.walk_list(kerberos_logon_session.Tickets_3.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
-				
+				self.current_ticket_type = None
 				self.credentials.append(self.current_cred)
 			
 	

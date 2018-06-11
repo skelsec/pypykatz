@@ -62,6 +62,12 @@ class LSA_UNICODE_STRING:
 		reader.move(self.Buffer)
 		return reader.read(self.Length)
 		
+	def read_maxdata(self, reader):
+		if self.Buffer == 0 or self.Length == 0:
+			return b''
+		reader.move(self.Buffer)
+		return reader.read(self.MaximumLength)
+		
 # https://msdn.microsoft.com/en-us/library/windows/hardware/ff540605(v=vs.85).aspx
 class PANSI_STRING(POINTER):
 	def __init__(self, reader):
