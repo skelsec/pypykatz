@@ -52,7 +52,7 @@ class SspDecryptor(PackageDecryptor):
 		c.username = ssp_entry.credentials.UserName.read_string(self.reader)
 		c.domainname = ssp_entry.credentials.Domaine.read_string(self.reader)
 		if ssp_entry.credentials.Password.Length != 0:
-			c.password = ssp_entry.credentials.Password.read_maxdata(self.reader).hex()
+			c.password = self.decrypt_password(ssp_entry.credentials.Password.read_maxdata(self.reader))
 					
 		self.credentials.append(c)
 	
