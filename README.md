@@ -1,5 +1,64 @@
 # pypykatz
-Mimikatz implementation in pure Python
+Mimikatz implementation in pure Python. -offline minidump parsing currently-  
+Runs on all OS's which support python>=3.6
+
+## Usage
+Install prerequirements
+```
+pip3 install minidump minikerberos asn1crypto
+```
+Clone this repo
+```
+git clone https://github.com/skelsec/pypykatz.git
+cd pypykatz
+```
+Have fun
+```
+python3 pypykatz.py <dumpfile>
+```
+## Useful commands
+**Foreword: there is an awesome help menu as well.**  
+
+### Store output in file:  
+Parameter: ```-o <output_file>```  
+Example: 
+```
+pypykatz.py <dumpfile> -o <output_file>
+```
+### Store JSON output in file
+Parameter: ```--json```  
+Example: 
+```
+pypykatz.py <dumpfile> --json -o <output file>
+```
+### Directory parsing AKA "I have some dmp files and want to get a meaningful output from ALL of them"
+Parameter: ```-d```  
+Example:  
+```
+pypykatz.py <folder_with_dumpfiles> -d --json -o <output file>
+```
+### Recursive parsing AKA "Okay, I actually run a botnet that sends me those files"
+Parameter: ```-r```  
+Example:  
+```
+pypykatz.py <folder_with_folder_of_dumpfiles> -d -r --json -o <output file>
+```
+### Debug info AKA "Feel like a haxx0r"
+Parameter: ```-vv```  
+Example:  
+```
+pypykatz.py <dumpfile> -vv
+```
+
+### Kerberos 
+The kerberos tickets will be dumped BOTH in ```.kirbi``` and ```.ccache``` format.  
+**WARNING!** An output directory is expected, as the ```.kirbi``` format supports only ONE ticket/file so get prepared to be swimming in those files when dealing with multiple/large dump files.  
+  
+Parameter: ```-k <output_dir>```  
+Example:  
+```
+pypykatz.py <dumpfile> -vv
+```
 
 # HELP WANTED
 If you want to help me getting this project into a stable release you can send mindiumps of the lsass.exe process to the following link: https://pypykatz.ocloud.de/index.php/s/NTErmGJxA42irfj  
@@ -21,10 +80,12 @@ This project is still work in progress, there is no guarantee that anything will
 
 ## Prerequisites
 Most of my big python projects are aiming for maximum protability, meaning I only use 3rd party packages where absolutely necessary. 
-As of this point only one additional package is used, and I intend to keep it this way.
+As of this point three additional packages are used, and I intend to keep it this way.
 
 Python>=3.6  
-[minidump](https://github.com/skelsec/minidump)
+[minidump](https://github.com/skelsec/minidump)  
+[minikerberos](https://github.com/skelsec/minikerberos)  
+[asn1crypto](https://github.com/wbond/asn1crypto)  
 
 ## Kudos
 Benjamin DELPY @gentilkiwi for [Mimikatz](https://github.com/gentilkiwi/mimikatz)  
