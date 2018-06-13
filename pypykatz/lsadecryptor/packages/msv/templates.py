@@ -568,6 +568,7 @@ class KIWI_MSV1_0_LIST_63:
 		self.unk25 = ULONG(reader).value
 		self.unk26 = ULONG(reader).value
 		reader.align()
+		#input('CredentialManager\n' + hexdump(reader.peek(0x100)))
 		self.unk27 = PVOID(reader).value
 		self.unk28 = PVOID(reader).value
 		self.unk29 = PVOID(reader).value

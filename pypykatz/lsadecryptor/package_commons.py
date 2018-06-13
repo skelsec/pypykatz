@@ -27,7 +27,7 @@ class PackageDecryptor:
 	def log_decryptor(self):
 		pass
 		
-	def log_ptr(self, ptr, name, datasize = 0x100):
+	def log_ptr(self, ptr, name, datasize = 0x10):
 		"""
 		Reads datasize bytes from the memory region pointed by the pointer.
 		ptr = the pointer to be read
@@ -65,7 +65,6 @@ class PackageDecryptor:
 		entries_seen = {}
 		entries_seen[entry_ptr.location] = 1
 		max_walk = max_walk
-		print('HELLO!')
 		self.log_ptr(entry_ptr.value, 'List entry -%s-' % entry_ptr.finaltype.__name__ if not override_ptr else override_ptr.__name__)
 		while True:
 			if override_ptr:

@@ -169,6 +169,10 @@ class RTL_AVL_TABLE:
 		self.FreeRoutine = PVOID(reader)#//
 		TableContext = PVOID(reader)
 
+class PLSAISO_DATA_BLOB(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, LSAISO_DATA_BLOB)
+		
 class LSAISO_DATA_BLOB:
 	size = 9*4 + 3*16 + 16 #+sizeof array ?ANYSIZE_ARRAY
 	def __init__(self, reader):

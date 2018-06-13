@@ -59,7 +59,7 @@ if __name__ == '__main__':
 				results[filename] = mimi
 			except Exception as e:
 				files_with_error.append(filename)
-				logging.exception('Error parsing file %s' % filename)
+				logging.exception('Error parsing file %s ' % filename)
 				if args.halt_on_error == True:
 					raise e
 				else:
@@ -117,6 +117,7 @@ if __name__ == '__main__':
 			mimi = pypykatz.parse_minidump_file(args.minidumpfile)
 			results[args.minidumpfile] = mimi
 		except Exception as e:
+			logging.exception()
 			if args.halt_on_error == True:
 				raise e
 			else:

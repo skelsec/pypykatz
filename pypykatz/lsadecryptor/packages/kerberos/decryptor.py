@@ -166,7 +166,6 @@ class KerberosDecryptor(PackageDecryptor):
 				
 				# getting ticket granting service tickets
 				if kerberos_logon_session.Tickets_1.Flink.value != 0 and kerberos_logon_session.Tickets_1.Flink.value != kerberos_logon_session.Tickets_1.Flink.location:
-					#input('getting ticket granting service tickets')
 					self.current_ticket_type = KerberosTicketType.TGS
 					self.walk_list(kerberos_logon_session.Tickets_1.Flink, self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 				
