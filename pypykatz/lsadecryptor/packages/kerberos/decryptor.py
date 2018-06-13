@@ -46,25 +46,16 @@ class KerberosCredential:
 		
 
 class KerberosDecryptor(PackageDecryptor):
-	def __init__(self, reader, decryptor_template, lsa_decryptor):
-		super().__init__('Kerberos')
-		self.reader = reader
+	def __init__(self, reader, decryptor_template, lsa_decryptor, sysinfo):
+		super().__init__('Kerberos', lsa_decryptor, sysinfo, reader)
 		self.decryptor_template = decryptor_template
-		self.lsa_decryptor = lsa_decryptor
 		self.credentials = []
 		
 		self.current_ticket_type = None
 		self.current_cred = None
-		
-	def find_signature(self):
-		logging.log(1, '[KerberosDecryptor] Searching for key struct signature')
-		fl = self.reader.find_in_module('kerberos.dll',self.decryptor_template.signature)
-		if len(fl) == 0:
-			raise Exception('[KerberosDecryptor] Signature was not found! %s' % self.decryptor_template.signature.hex())
-		return fl[0]
 
 	def find_first_entry(self):
-		position = self.find_signature()
+		position = self.find_signature('kerberos.dll',self.decryptor_template.signature)
 		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc
@@ -81,7 +72,7 @@ class KerberosDecryptor(PackageDecryptor):
 		try:
 			entry_ptr_value, entry_ptr_loc = self.find_first_entry()
 		except Exception as e:
-			logging.log(1,'Failed to find Wdigest structs! Reason: %s' % e)
+			self.log('Failed to find structs! Reason: %s' % e)
 			return
 			
 		if self.reader.reader.sysinfo.MajorVersion < 6:
@@ -91,9 +82,9 @@ class KerberosDecryptor(PackageDecryptor):
 			self.reader.move(entry_ptr_value)
 			start_node = PRTL_AVL_TABLE(self.reader).read(self.reader)
 			self.walk_avl(start_node.BalancedRoot.RightChild, result_ptr_list)
-			print(result_ptr_list)
+			
 			for ptr in result_ptr_list:
-				self.log_ptr(ptr, self.decryptor_template.kerberos_session_struct.__name__, datasize= 0x200)
+				self.log_ptr(ptr, self.decryptor_template.kerberos_session_struct.__name__)
 				self.reader.move(ptr)
 				kerberos_logon_session = self.decryptor_template.kerberos_session_struct(self.reader)
 				self.current_cred = KerberosCredential()
@@ -101,11 +92,7 @@ class KerberosDecryptor(PackageDecryptor):
 				
 				self.current_cred.username = kerberos_logon_session.credentials.UserName.read_string(self.reader)
 				self.current_cred.domainname = kerberos_logon_session.credentials.Domaine.read_string(self.reader)
-				#input(self.current_cred.username)
-				#input(self.current_cred.domainname)
-				#input('PWsize: %d' % kerberos_logon_session.credentials.Password.MaximumLength)
-				password_crear = self.lsa_decryptor.decrypt(kerberos_logon_session.credentials.Password.read_maxdata(self.reader))
-				self.current_cred.password = password_crear
+				self.current_cred.password = self.decrypt_password(kerberos_logon_session.credentials.Password.read_maxdata(self.reader))
 				
 				#### key list (still in session) this is not a linked list (thank god!)
 				if kerberos_logon_session.pKeyList.value != 0:
@@ -113,7 +100,8 @@ class KerberosDecryptor(PackageDecryptor):
 					#print(key_list.cbItem)
 					key_list.read(self.reader, self.decryptor_template.hash_password_struct)
 					for key in key_list.KeyEntries:
-						print(key.generic.Checksump.value)
+						pass
+						#print(key.generic.Checksump.value)
 						
 						#self.log_ptr(key.generic.Checksump.value, 'Checksump', datasize = key.generic.Size)
 						#if self.reader.reader.sysinfo.BuildNumber < WindowsBuild.WIN_10_1507.value and key.generic.Size > LSAISO_DATA_BLOB.size:

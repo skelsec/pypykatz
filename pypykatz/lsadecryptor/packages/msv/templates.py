@@ -381,6 +381,7 @@ class PKIWI_MSV1_0_LIST_61(POINTER):
 		
 class KIWI_MSV1_0_LIST_61:
 	def __init__(self, reader):
+		
 		self.Flink = PKIWI_MSV1_0_LIST_61(reader)
 		self.Blink = PKIWI_MSV1_0_LIST_61(reader)
 		self.unk0 = PVOID(reader).value

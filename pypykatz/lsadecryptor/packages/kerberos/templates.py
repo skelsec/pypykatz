@@ -950,7 +950,6 @@ class KIWI_KERBEROS_KEYS_LIST_6:
 	def read(self, reader, keyentries_type):
 		reader.move(self.KeyEntries_start)
 		for i in range(self.cbItem):
-			print(i)
 			self.KeyEntries.append(keyentries_type(reader))
 			#//KERB_HASHPASSWORD_6 KeysEntries[ANYSIZE_ARRAY] = (reader).value
 

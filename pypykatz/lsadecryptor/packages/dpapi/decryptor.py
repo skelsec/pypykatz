@@ -37,22 +37,14 @@ class DpapiCredential:
 		return t
 		
 class DpapiDecryptor(PackageDecryptor):
-	def __init__(self, reader, decryptor_template, lsa_decryptor):
-		super().__init__('Dpapi')
-		self.reader = reader
+	def __init__(self, reader, decryptor_template, lsa_decryptor, sysinfo):
+		super().__init__('Dpapi', lsa_decryptor, sysinfo, reader)
 		self.decryptor_template = decryptor_template
-		self.lsa_decryptor = lsa_decryptor
 		self.credentials = []
 		
-	def find_signature(self, modulename):
-		logging.log(1, '[DpapiDecryptor] Searching for key struct signature')
-		fl = self.reader.find_in_module(modulename,self.decryptor_template.signature)
-		if len(fl) == 0:
-			raise Exception('[DpapiDecryptor] Signature was not found! %s' % self.decryptor_template.signature.hex())
-		return fl[0]
 
 	def find_first_entry(self, modulename):
-		position = self.find_signature(modulename)
+		position = self.find_signature(modulename,self.decryptor_template.signature)
 		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc
@@ -60,7 +52,7 @@ class DpapiDecryptor(PackageDecryptor):
 	def add_entry(self, dpapi_entry):
 		
 		if dpapi_entry.keySize > 0 and dpapi_entry.keySize % 8 == 0:
-			dec_masterkey = self.lsa_decryptor.decrypt(dpapi_entry.key)
+			dec_masterkey = self.decrypt_password(dpapi_entry.key, bytes_expected = True)
 			sha_masterkey = hashlib.sha1(dec_masterkey).hexdigest()
 			
 			c = DpapiCredential()
@@ -75,7 +67,7 @@ class DpapiDecryptor(PackageDecryptor):
 			try:
 				entry_ptr_value, entry_ptr_loc = self.find_first_entry(modulename)
 			except Exception as e:
-				logging.log(1,'Failed to find Dpapi structs! Reason: %s' % e)
+				self.log('Failed to find structs! Reason: %s' % e)
 				continue
 			self.reader.move(entry_ptr_loc)
 			entry_ptr = self.decryptor_template.list_entry(self.reader)

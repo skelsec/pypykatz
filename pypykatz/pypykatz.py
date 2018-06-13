@@ -39,22 +39,21 @@ class pypykatz:
 		return mimi
 		
 	def get_logoncreds(self):
-		#extra info needed here!	
 		credman_template = CredmanTemplate.get_template(self.sysinfo)
-		template = MsvTemplate.get_template(self.sysinfo)
-		logoncred_decryptor = MsvDecryptor(self.reader, template, self.lsa_decryptor, credman_template)
+		msv_template = MsvTemplate.get_template(self.sysinfo)
+		logoncred_decryptor = MsvDecryptor(self.reader, msv_template, self.lsa_decryptor, credman_template, self.sysinfo)
 		logoncred_decryptor.start()
 		self.logon_sessions = logoncred_decryptor.logon_sessions
 	
 	def get_lsa(self):
 		lsa_dec_template = LsaTemplate.get_template(self.sysinfo)
-		lsa_dec = LsaDecryptor(self.reader, lsa_dec_template)
+		lsa_dec = LsaDecryptor(self.reader, lsa_dec_template, self.sysinfo)
 		logging.debug(lsa_dec.dump())
 		return lsa_dec
 	
 	def get_wdigest(self):
 		decryptor_template = WdigestTemplate.get_template(self.sysinfo)
-		decryptor = WdigestDecryptor(self.reader, decryptor_template, self.lsa_decryptor)
+		decryptor = WdigestDecryptor(self.reader, decryptor_template, self.lsa_decryptor, self.sysinfo)
 		decryptor.start()
 		for cred in decryptor.credentials:
 			if cred.luid in self.logon_sessions:
@@ -64,7 +63,7 @@ class pypykatz:
 	
 	def get_tspkg(self):
 		tspkg_dec_template = TspkgTemplate.get_template(self.sysinfo)
-		tspkg_dec = TspkgDecryptor(self.reader,tspkg_dec_template, self.lsa_decryptor)
+		tspkg_dec = TspkgDecryptor(self.reader,tspkg_dec_template, self.lsa_decryptor, self.sysinfo)
 		tspkg_dec.start()
 		for cred in tspkg_dec.credentials:
 			if cred.luid in self.logon_sessions:
@@ -74,7 +73,7 @@ class pypykatz:
 				
 	def get_ssp(self):
 		dec_template = SspTemplate.get_template(self.sysinfo)
-		dec = SspDecryptor(self.reader, dec_template, self.lsa_decryptor)
+		dec = SspDecryptor(self.reader, dec_template, self.lsa_decryptor, self.sysinfo)
 		dec.start()
 		for cred in dec.credentials:
 			if cred.luid in self.logon_sessions:
@@ -84,7 +83,7 @@ class pypykatz:
 				
 	def get_livessp(self):
 		livessp_dec_template = LiveSspTemplate.get_template(self.sysinfo)
-		livessp_dec = LiveSspDecryptor(self.reader, livessp_dec_template, self.lsa_decryptor)
+		livessp_dec = LiveSspDecryptor(self.reader, livessp_dec_template, self.lsa_decryptor, self.sysinfo)
 		livessp_dec.start()
 		for cred in livessp_dec.credentials:
 			if cred.luid in self.logon_sessions:
@@ -94,7 +93,7 @@ class pypykatz:
 				
 	def get_dpapi(self):
 		dec_template = DpapiTemplate.get_template(self.sysinfo)
-		dec = DpapiDecryptor(self.reader, dec_template, self.lsa_decryptor)
+		dec = DpapiDecryptor(self.reader, dec_template, self.lsa_decryptor, self.sysinfo)
 		dec.start()
 		for cred in dec.credentials:
 			if cred.luid in self.logon_sessions:
@@ -104,7 +103,7 @@ class pypykatz:
 	
 	def get_kerberos(self):
 		dec_template = KerberosTemplate.get_template(self.sysinfo)
-		dec = KerberosDecryptor(self.reader,dec_template, self.lsa_decryptor)
+		dec = KerberosDecryptor(self.reader, dec_template, self.lsa_decryptor, self.sysinfo)
 		dec.start()	
 		for cred in dec.credentials:
 			for ticket in cred.tickets:
