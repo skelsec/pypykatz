@@ -117,11 +117,9 @@ class KIWI_CREDMAN_LIST_ENTRY_X86:
 	def __init__(self, reader):
 		#IMPORTANT NOTICE, THE STRUCTURE STARTS BEFORE THE FLINK/BLINK POINTER, SO WE NEED TO READ BACKWARDS
 		#
-		input('KIWI_CREDMAN_LIST_ENTRY_X86 \n%s' % hexdump(reader.peek(0x50), start = reader.tell()))
 		reader.move(reader.tell() - 32)
 		reader.align() #not sure if it's needed here
 		
-		input('KIWI_CREDMAN_LIST_ENTRY_X86 \n%s' % hexdump(reader.peek(0x200), start = reader.tell()))
 		#
 		self.cbEncPassword = ULONG(reader).value
 		reader.align()
