@@ -1,16 +1,40 @@
 from abc import ABC, abstractmethod
 import logging
 from pypykatz.commons.common import *
+from pypykatz.commons.win_datatypes import *
+
+class Logger:
+	def __init__(self, module_name, package_name, sysinfo):
+		self.package_name = package_name
+		self.module_name = module_name
+		self.sysinfo = sysinfo
+		
+	def get_level(self):
+		return logging.getLogger().getEffectiveLevel()
+		
+	def log(self, msg, loglevel = 1):
+		first = True
+		for line in msg.split('\n'):
+			if first == True:
+				logging.log(loglevel, '[%s] [%s] %s' % (self.package_name, self.module_name, line))
+				first = False
+			else:
+				logging.log(loglevel, '[%s] [%s]    %s' % (self.package_name, self.module_name, line))
 
 class PackageTemplate:
-	def __init__(self, package_name):
+	def __init__(self, package_name, sysinfo = None):
+		self.logger = Logger('template', package_name, sysinfo)
 		self.package_name = package_name
+		self.sysinfo = sysinfo
+		
+	def log(self, msg, loglevel = 1):
+		self.logger.log(loglevel, '%s' % msg)
 	
-	def log_template(self, struct_var_name, struct_template_obj):
+	def log_template(self, struct_var_name, struct_template_obj, loglevel = 1):
 		""""
 		Generic logging function to show which template was selected for which structure
 		"""
-		logging.log(1, 'Package %s: Selecting template for %s: %s' % (self.package_name, struct_var_name, struct_template_obj.__name__))
+		self.logger.log('Selecting template for %s: %s' % (struct_var_name, struct_template_obj.__name__), loglevel)
 	
 	
 	@staticmethod
@@ -18,28 +42,76 @@ class PackageTemplate:
 	def get_template(sysinfo):
 		pass
 		
+
 class PackageDecryptor:
-	def __init__(self, package_name):
+	def __init__(self, package_name, lsa_decryptor, sysinfo, reader):
+		self.logger = Logger('decryptor', package_name, sysinfo)
 		self.package_name = package_name
+		self.lsa_decryptor = lsa_decryptor
+		self.sysinfo = sysinfo
+		self.reader = reader
 	
-	def log_decryptor(self):
-		pass
+	def log(self, msg, loglevel = 1):
+		self.logger.log('%s' % msg, loglevel)
 		
-	def log_ptr(self, ptr, name, datasize = 0x50):
+	def find_signature(self, module_name, signature):
+		"""
+		Searches for a sequence of bytes in the module identified by module_name
+		"""
+		self.log('Searching for key struct signature')
+		fl = self.reader.find_in_module(module_name,self.decryptor_template.signature)
+		if len(fl) == 0:
+			raise Exception('Signature was not found in module %s Signature: %s' % (module_name, self.decryptor_template.signature.hex()))
+		return fl[0]
+		
+	def log_ptr(self, ptr, name, datasize = 0x10):
 		"""
 		Reads datasize bytes from the memory region pointed by the pointer.
 		ptr = the pointer to be read
 		name = display name for the memory structure, usually the data structure's name the pointer is pointing at
 		"""
+		if self.logger.get_level() != 1: #we dont log pointers above deepdebug (loglevel == 1) because it slows down the script
+			return
 		pos = self.reader.tell()
 		self.reader.move(ptr)
 		data = self.reader.peek(datasize)
 		self.reader.move(pos)
-		logging.log(1, '%s: %s\n%s' % (name, hex(ptr), hexdump(data, start = ptr)))
+		self.log('%s: %s\n%s' % (name, hex(ptr), hexdump(data, start = ptr)))
+		
+	def decrypt_password(self, enc_password, bytes_expected = False, trim_zeroes = True):
+		"""
+		Common decryption method for LSA encrypted passwords. Result be string or hex encoded bytes (for machine accounts).
+		Also supports bad data, as orphaned credentials may contain actual password OR garbage
+		
+		enc_password: bytes The encrypted password bytes
+		bytes_expected: bool :indication that the result of decryption is bytes, no need for encoding
+		trim_zeroes: bool: if a text is expected then this variable tells wether we should trim the trailing zeroes after decryption
+		"""
+		dec_password = None
+		if len(enc_password) % 8 == 0: # checking if encrypted password is of correct blocksize
+			temp = self.lsa_decryptor.decrypt(enc_password)
+			if temp and len(temp) > 0:
+				if bytes_expected == False:
+					try: # normal password
+						dec_password = temp.decode('utf-16-le')
+					except: # machine password
+						dec_password = temp.hex()
+					else: # if not machine password, then check if we should trim it
+						if trim_zeroes == True:
+							dec_password = dec_password.rstrip('\x00')
+				else:
+					dec_password = temp
+		
+		else: # special case for (unusable/plaintext?) orphaned credentials
+			dec_password = enc_password
+		
+		return dec_password
 		
 	def walk_avl(self, node_ptr, result_ptr_list):
 		"""
 		Walks the AVL tree, extracts all OrderedPointer values and returns them in a list
+		node_ptr: POINTER : the Parent->RightChild pointer in the AVL tree
+		result_ptr_list: list: the list to store the results in
 		"""
 		node = node_ptr.read(self.reader, override_finaltype = RTL_AVL_TABLE)
 		if node.OrderedPointer.value != 0:
@@ -63,7 +135,7 @@ class PackageDecryptor:
 		entries_seen = {}
 		entries_seen[entry_ptr.location] = 1
 		max_walk = max_walk
-		self.log_ptr(entry_ptr.value, 'List entry -%s-' % entry_ptr.finaltype.__name__)
+		self.log_ptr(entry_ptr.value, 'List entry -%s-' % entry_ptr.finaltype.__name__ if not override_ptr else override_ptr.__name__)
 		while True:
 			if override_ptr:
 				entry = entry_ptr.read(self.reader, override_ptr)
@@ -73,12 +145,12 @@ class PackageDecryptor:
 			callback(entry)
 			
 			max_walk -= 1
-			logging.log(1, '%s next ptr: %x' % (entry.Flink.finaltype.__name__, entry.Flink.value))
-			logging.log(1, '%s seen: %s' % (entry.Flink.finaltype.__name__, entry.Flink.value not in entries_seen))
-			logging.log(1, '%s max_walk: %d' % (entry.Flink.finaltype.__name__, max_walk))
+			self.log('%s next ptr: %x' % (entry.Flink.finaltype.__name__ if not override_ptr else override_ptr.__name__ , entry.Flink.value))
+			self.log('%s seen: %s' % (entry.Flink.finaltype.__name__ if not override_ptr else override_ptr.__name__ , entry.Flink.value not in entries_seen))
+			self.log('%s max_walk: %d' % (entry.Flink.finaltype.__name__ if not override_ptr else override_ptr.__name__ , max_walk))
 			if entry.Flink.value != 0 and entry.Flink.value not in entries_seen and max_walk != 0:
 				entries_seen[entry.Flink.value] = 1
-				self.log_ptr(entry.Flink.value, 'Next list entry -%s-' % entry.Flink.finaltype.__name__)
+				self.log_ptr(entry.Flink.value, 'Next list entry -%s-' % entry.Flink.finaltype.__name__ if not override_ptr else override_ptr.__name__)
 				entry_ptr = entry.Flink
 			else:
 				break

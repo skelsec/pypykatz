@@ -274,6 +274,8 @@ class KatzSystemInfo:
 		self.msv_dll_timestamp = None #this is needed :(
 		self.operating_system = None
 		
+	def __str__(self):
+		return '%s %s' % (self.architecture.name, self.buildnumber)
 	@staticmethod
 	def from_minidump(minidump):
 		sysinfo = KatzSystemInfo()

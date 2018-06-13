@@ -7,6 +7,7 @@ import io
 import enum
 import logging
 from minidump.win_datatypes import *
+from pypykatz.commons.common import *
 
 class LARGE_INTEGER:
 	def __init__(self, reader):
@@ -61,6 +62,12 @@ class LSA_UNICODE_STRING:
 		reader.move(self.Buffer)
 		return reader.read(self.Length)
 		
+	def read_maxdata(self, reader):
+		if self.Buffer == 0 or self.Length == 0:
+			return b''
+		reader.move(self.Buffer)
+		return reader.read(self.MaximumLength)
+		
 # https://msdn.microsoft.com/en-us/library/windows/hardware/ff540605(v=vs.85).aspx
 class PANSI_STRING(POINTER):
 	def __init__(self, reader):
@@ -111,6 +118,7 @@ class KERB_EXTERNAL_NAME:
 	def __init__(self, reader):
 		self.NameType = SHORT(reader).value #KerberosNameType(SHORT(reader).value)
 		self.NameCount = USHORT(reader).value
+		reader.align()
 		self.Names = []	# list of LSA_UNICODE_STRING
 		for i in range(self.NameCount):
 			self.Names.append(LSA_UNICODE_STRING(reader))
@@ -161,6 +169,10 @@ class RTL_AVL_TABLE:
 		self.FreeRoutine = PVOID(reader)#//
 		TableContext = PVOID(reader)
 
+class PLSAISO_DATA_BLOB(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, LSAISO_DATA_BLOB)
+		
 class LSAISO_DATA_BLOB:
 	size = 9*4 + 3*16 + 16 #+sizeof array ?ANYSIZE_ARRAY
 	def __init__(self, reader):

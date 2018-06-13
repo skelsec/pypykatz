@@ -35,22 +35,13 @@ class SspCredential:
 		return t
 		
 class SspDecryptor(PackageDecryptor):
-	def __init__(self, reader, decryptor_template, lsa_decryptor):
-		super().__init__('Ssp')
-		self.reader = reader
+	def __init__(self, reader, decryptor_template, lsa_decryptor, sysinfo):
+		super().__init__('Ssp', lsa_decryptor, sysinfo, reader)
 		self.decryptor_template = decryptor_template
-		self.lsa_decryptor = lsa_decryptor
 		self.credentials = []
-		
-	def find_signature(self):
-		logging.log(1, '[SspDecryptor] Searching for key struct signature')
-		fl = self.reader.find_in_module('msv1_0.dll',self.decryptor_template.signature)
-		if len(fl) == 0:
-			raise Exception('[SspDecryptor] Signature was not found! %s' % self.decryptor_template.signature.hex())
-		return fl[0]
 
 	def find_first_entry(self):
-		position = self.find_signature()
+		position = self.find_signature('msv1_0.dll',self.decryptor_template.signature)
 		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc
@@ -61,17 +52,7 @@ class SspDecryptor(PackageDecryptor):
 		c.username = ssp_entry.credentials.UserName.read_string(self.reader)
 		c.domainname = ssp_entry.credentials.Domaine.read_string(self.reader)
 		if ssp_entry.credentials.Password.Length != 0:
-			if ssp_entry.credentials.Password.Length % 8 != 0:
-				#for orphaned creds
-				c.password = ssp_entry.credentials.Password.read_data(self.reader).hex()
-			else:
-				enc_data = ssp_entry.credentials.Password.read_data(self.reader)
-				dec_data = self.lsa_decryptor.decrypt(enc_data)
-				try:
-					c.password = dec_data.decode('utf-16-le').rstrip('\x00')
-				except:
-					c.password = dec_data.hex()
-					pass
+			c.password = ssp_entry.credentials.Password.read_maxdata(self.reader).hex()
 					
 		self.credentials.append(c)
 	
@@ -79,7 +60,7 @@ class SspDecryptor(PackageDecryptor):
 		try:
 			entry_ptr_value, entry_ptr_loc = self.find_first_entry()
 		except Exception as e:
-			logging.log(1,'Failed to find Ssp structs! Reason: %s' % e)
+			self.log('Failed to find structs! Reason: %s' % e)
 			return
 		self.reader.move(entry_ptr_loc)
 		entry_ptr = self.decryptor_template.list_entry(self.reader)

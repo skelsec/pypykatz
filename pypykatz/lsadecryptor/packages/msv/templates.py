@@ -381,6 +381,7 @@ class PKIWI_MSV1_0_LIST_61(POINTER):
 		
 class KIWI_MSV1_0_LIST_61:
 	def __init__(self, reader):
+		
 		self.Flink = PKIWI_MSV1_0_LIST_61(reader)
 		self.Blink = PKIWI_MSV1_0_LIST_61(reader)
 		self.unk0 = PVOID(reader).value
@@ -568,6 +569,7 @@ class KIWI_MSV1_0_LIST_63:
 		self.unk25 = ULONG(reader).value
 		self.unk26 = ULONG(reader).value
 		reader.align()
+		#input('CredentialManager\n' + hexdump(reader.peek(0x100)))
 		self.unk27 = PVOID(reader).value
 		self.unk28 = PVOID(reader).value
 		self.unk29 = PVOID(reader).value

@@ -8,6 +8,7 @@ import json
 import logging
 from pypykatz.commons.common import *
 from pypykatz.commons.filetime import *
+from pypykatz.commons.win_datatypes import *
 from pypykatz.lsadecryptor.packages.msv.templates import *
 from pypykatz.lsadecryptor.packages.credman.templates import *
 from pypykatz.lsadecryptor.package_commons import *
@@ -187,27 +188,18 @@ class LogonSession:
 		return t
 		
 class MsvDecryptor(PackageDecryptor):
-	def __init__(self, reader, decryptor_template, lsa_decryptor, credman_template):
-		super().__init__('Msv')
-		self.reader = reader
+	def __init__(self, reader, decryptor_template, lsa_decryptor, credman_template, sysinfo):
+		super().__init__('Msv', lsa_decryptor, sysinfo, reader)
 		self.decryptor_template = decryptor_template
-		self.lsa_decryptor = lsa_decryptor
 		self.credman_decryptor_template = credman_template
 		self.entries = []
 		self.entries_seen = {}
 		self.logon_sessions = {}
 		
 		self.current_logonsession = None
-		
-	def find_signature(self):
-		logging.log(1, '[LogonCredDecryptor] Searching for key struct signature')
-		fl = self.reader.find_in_module('lsasrv.dll',self.decryptor_template.signature)
-		if len(fl) == 0:
-			raise Exception('Signature was not found! %s' % self.decryptor_template.signature.hex())
-		return fl[0]
 
 	def find_first_entry(self):
-		position = self.find_signature()
+		position = self.find_signature('lsasrv.dll',self.decryptor_template.signature)
 		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc
@@ -220,7 +212,7 @@ class MsvDecryptor(PackageDecryptor):
 		if entry.Credentials_list_ptr.value != 0:			
 			self.walk_list(entry.Credentials_list_ptr, self.add_credentials)
 		else:
-			logging.log(1, 'No credentials in this structure!')
+			self.log('No credentials in this structure!')
 		
 		self.logon_sessions[self.current_logonsession.luid] = self.current_logonsession
 		
@@ -236,7 +228,7 @@ class MsvDecryptor(PackageDecryptor):
 		self.log_ptr(credman_set_list_entry.list1.value, 'KIWI_CREDMAN_LIST_STARTER')
 		list_starter = credman_set_list_entry.list1.read(self.reader, override_finaltype = KIWI_CREDMAN_LIST_STARTER)
 		if list_starter.start.value != list_starter.start.location:
-			self.walk_list(list_starter.start, self.add_credman_credential)
+			self.walk_list(list_starter.start, self.add_credman_credential, override_ptr = self.credman_decryptor_template.list_entry)
 		
 	def add_credman_credential(self, credman_credential_entry):
 		
@@ -246,17 +238,8 @@ class MsvDecryptor(PackageDecryptor):
 		
 		if credman_credential_entry.cbEncPassword and credman_credential_entry.cbEncPassword != 0:
 			enc_data = credman_credential_entry.encPassword.read_raw(self.reader, credman_credential_entry.cbEncPassword)
-			if credman_credential_entry.cbEncPassword % 8 == 0:
-				dec_data = self.lsa_decryptor.decrypt(enc_data)
-				try:
-					c.password = dec_data.decode('utf-16-le')
-				except:
-					c.password = dec_data
-					pass
-			else:
-				#orphaned, sure to be false stuff
-				c.password = enc_data
-				
+			c.password = self.decrypt_password(enc_data)
+		
 		c.luid = self.current_logonsession.luid
 			
 		self.current_logonsession.credman_creds.append(c)
@@ -266,10 +249,10 @@ class MsvDecryptor(PackageDecryptor):
 		
 		encrypted_credential_data = primary_credentials_entry.encrypted_credentials.read_data(self.reader)
 		
-		logging.log(1, 'Encrypted credential data \n%s' % hexdump(encrypted_credential_data))
-		logging.log(1, 'Decrypting credential structure')
-		dec_data = self.lsa_decryptor.decrypt(encrypted_credential_data)
-		logging.log(1, '%s: \n%s' % (self.decryptor_template.decrypted_credential_struct.__name__, hexdump(dec_data)))
+		self.log('Encrypted credential data \n%s' % hexdump(encrypted_credential_data))
+		self.log('Decrypting credential structure')
+		dec_data = self.decrypt_password(encrypted_credential_data, bytes_expected = True)
+		self.log('%s: \n%s' % (self.decryptor_template.decrypted_credential_struct.__name__, hexdump(dec_data)))
 			
 		if len(dec_data) == MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC.size and dec_data[4:8] == b'\xcc\xcc\xcc\xcc':
 			creds_struct = MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC(GenericReader(dec_data, self.reader.reader.sysinfo.ProcessorArchitecture))
@@ -283,12 +266,12 @@ class MsvDecryptor(PackageDecryptor):
 			try:
 				cred.username = creds_struct.UserName.read_string(reader)
 			except Exception as e:
-				logging.log(1, 'Failed to get username')
+				self.log('Failed to get username')
 		if creds_struct.LogonDomainName:
 			try:
 				cred.domainname = creds_struct.LogonDomainName.read_string(reader)
 			except Exception as e:
-				logging.log(1, 'Failed to get username')
+				self.log('Failed to get username')
 				
 		cred.NThash = creds_struct.NtOwfPassword
 		
