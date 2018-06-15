@@ -75,7 +75,7 @@ class KerberosDecryptor(PackageDecryptor):
 			self.log('Failed to find structs! Reason: %s' % e)
 			return
 			
-		if self.reader.reader.sysinfo.MajorVersion < 6:
+		if self.sysinfo.major_version < 6:
 			raise Exception("Not yet implemented")
 		else:
 			result_ptr_list = []

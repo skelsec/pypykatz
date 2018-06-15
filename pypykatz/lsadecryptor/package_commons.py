@@ -114,6 +114,9 @@ class PackageDecryptor:
 		result_ptr_list: list: the list to store the results in
 		"""
 		node = node_ptr.read(self.reader, override_finaltype = RTL_AVL_TABLE)
+		if node is None:
+			self.log('AVL walker found empty tree')
+			return
 		if node.OrderedPointer.value != 0:
 			result_ptr_list.append(node.OrderedPointer.value)
 			if node.BalancedRoot.LeftChild.value != 0 :
