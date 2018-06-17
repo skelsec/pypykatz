@@ -3,7 +3,8 @@ Mimikatz implementation in pure Python. -offline minidump parsing currently-
 Runs on all OS's which support python>=3.6
 
 ## Installing
-Install it via pip or by cloning it from github.
+Install it via pip or by cloning it from github.  
+The installer will create a pypykatz executable in the python's Script directory. You can run it from there, should be in your PATH.  
 
 ### Via PIP
 ```
