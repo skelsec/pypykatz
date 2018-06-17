@@ -72,7 +72,7 @@ class Page:
 		self.data = ReadProcessMemory(lsass_process_handle, self.BaseAddress, self.RegionSize)
 		
 	def inrange(self, addr):
-		return self.BaseAddress <= addr <= self.EndAddress
+		return self.BaseAddress <= addr < self.EndAddress
 		
 	def search(self, pattern, lsass_process_handle):
 		if len(pattern) > self.RegionSize:
@@ -182,7 +182,7 @@ class BufferedLiveReader:
 		Returns up to length bytes from the current memory segment
 		"""
 		t = self.current_position + length
-		if not self.current_segment.inrange(t):
+		if not self.current_segment.inrange(t-1): #-1 to enable reading till the end of the page
 			raise Exception('Would read over segment boundaries!')
 		return self.current_segment.data[self.current_position - self.current_segment.BaseAddress :t - self.current_segment.BaseAddress]
 	
@@ -202,7 +202,7 @@ class BufferedLiveReader:
 			return self.current_segment.data[old_new_pos - self.current_segment.BaseAddress:]
 		
 		t = self.current_position + size
-		if not self.current_segment.inrange(t):
+		if not self.current_segment.inrange(t - 1): #-1 to enable reading till the end of the page
 			raise Exception('Would read over segment boundaries!')
 		
 		old_new_pos = self.current_position
