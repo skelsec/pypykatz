@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
+
 import ctypes
 from ctypes import windll
 from ctypes.wintypes import ULONG, BOOL,LONG

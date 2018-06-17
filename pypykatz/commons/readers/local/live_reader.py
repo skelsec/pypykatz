@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
+
 from .common.live_reader_ctypes import *
 from .common.privileges import enable_debug_privilege
 from .common.psapi import *
