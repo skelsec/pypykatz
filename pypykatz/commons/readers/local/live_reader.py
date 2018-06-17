@@ -320,29 +320,29 @@ class LiveReader:
 		
 		
 	def setup(self):
-		logging.info('Enabling debug privilege')
+		logging.log(1, 'Enabling debug privilege')
 		enable_debug_privilege()
-		logging.info('Getting generic system info')
+		logging.log(1, 'Getting generic system info')
 		sysinfo = GetSystemInfo()
 		self.processor_architecture = PROCESSOR_ARCHITECTURE(sysinfo.id.w.wProcessorArchitecture)
 		
-		logging.info('Getting build number')
+		logging.log(1, 'Getting build number')
 		self.BuildNumber = GetVersionEx().dwBuildNumber
 		
-		logging.info('Searching for lsass.exe')
+		logging.log(1, 'Searching for lsass.exe')
 		pid = get_lsass_pid()
-		logging.info('Lsass.exe found at PID %d' % pid)
-		logging.info('Opening lsass.exe')
+		logging.log(1, 'Lsass.exe found at PID %d' % pid)
+		logging.log(1, 'Opening lsass.exe')
 		self.lsass_process_handle = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
 		if self.lsass_process_handle is None:
 			raise Exception('Failed to open lsass.exe Reason: %s' % WinError(get_last_error()))
 		
-		logging.info('Enumerating modules')
+		logging.log(1, 'Enumerating modules')
 		module_handles = EnumProcessModules(self.lsass_process_handle)
 		for module_handle in module_handles:
 			
 			module_file_path = GetModuleFileNameExW(self.lsass_process_handle, module_handle)
-			logging.info(module_file_path)
+			logging.log(1, module_file_path)
 			timestamp = 0
 			if ntpath.basename(module_file_path).lower() == 'msv1_0.dll':
 				timestamp = int(os.stat(module_file_path).st_ctime)
@@ -350,7 +350,7 @@ class LiveReader:
 			modinfo = GetModuleInformation(self.lsass_process_handle, module_handle)
 			self.modules.append(Module.parse(module_file_path, modinfo, timestamp))
 			
-		logging.info('Found %d modules' % len(self.modules))
+		logging.log(1, 'Found %d modules' % len(self.modules))
 			
 		current_address = sysinfo.lpMinimumApplicationAddress
 		while current_address < sysinfo.lpMaximumApplicationAddress:
@@ -359,19 +359,18 @@ class LiveReader:
 			
 			current_address += page_info.RegionSize
 			
-		logging.info('Found %d pages' % len(self.pages))
+		logging.log(1, 'Found %d pages' % len(self.pages))
 		
 		
 		for page in self.pages:
-			print(str(page))
+			#self.log(str(page))
 		
 			for mod in self.modules:
 				if mod.inrange(page.BaseAddress) == True:
-					print(str(mod))
 					mod.pages.append(page)
 		
-		for mod in self.modules:
-			print('%s %d' % (mod.name, len(mod.pages)))
+		#for mod in self.modules:
+		#	self.log('%s %d' % (mod.name, len(mod.pages)))
 		
 	def get_buffered_reader(self):
 		return BufferedLiveReader(self)			

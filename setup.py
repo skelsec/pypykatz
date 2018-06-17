@@ -34,7 +34,15 @@ setup(
 		"Operating System :: OS Independent",
 	),
 	install_requires=[
-		'minidump>=0.0.5',
-		'minikerberos>=0.0.3',
+		'minidump>=0.0.6',
+		'minikerberos>=0.0.4',
 	],
+	
+	entry_points={
+		'console_scripts': [
+			'pypykatz = pypykatz.bin.pypykatz:main',
+		],
+	}
+	
+	
 )
