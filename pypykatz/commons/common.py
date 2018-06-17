@@ -290,7 +290,7 @@ class KatzSystemInfo:
 			
 		sysinfo.buildnumber = lr.BuildNumber
 		
-		sysinfo.msv_dll_timestamp = 0	
+		sysinfo.msv_dll_timestamp = lr.msv_dll_timestamp	
 		return sysinfo
 		
 	@staticmethod

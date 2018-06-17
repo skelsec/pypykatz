@@ -3,7 +3,7 @@ from .lsadecryptor import *
 
 from minidump.minidumpfile import MinidumpFile
 from minikerberos.ccache import CCACHE
-from .plugins.live_reader import LiveReader
+from .commons.readers.local.live_reader import LiveReader
 
 class pypykatz:
 	"""mimikatz offline"""

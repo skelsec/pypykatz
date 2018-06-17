@@ -27,7 +27,7 @@ class PackageTemplate:
 		self.package_name = package_name
 		self.sysinfo = sysinfo
 		
-	def log(self, msg, loglevel = 1):
+	def log(self, msg, loglevel = 6):
 		self.logger.log(loglevel, '%s' % msg)
 	
 	def log_template(self, struct_var_name, struct_template_obj, loglevel = 1):
@@ -51,7 +51,7 @@ class PackageDecryptor:
 		self.sysinfo = sysinfo
 		self.reader = reader
 	
-	def log(self, msg, loglevel = 1):
+	def log(self, msg, loglevel = 6):
 		self.logger.log('%s' % msg, loglevel)
 		
 	def find_signature(self, module_name, signature):
@@ -64,14 +64,28 @@ class PackageDecryptor:
 			raise Exception('Signature was not found in module %s Signature: %s' % (module_name, self.decryptor_template.signature.hex()))
 		return fl[0]
 		
-	def log_ptr(self, ptr, name, datasize = 0x10):
+	def log_ptr(self, ptr, name, datasize = None):
 		"""
 		Reads datasize bytes from the memory region pointed by the pointer.
 		ptr = the pointer to be read
 		name = display name for the memory structure, usually the data structure's name the pointer is pointing at
 		"""
-		if self.logger.get_level() != 1: #we dont log pointers above deepdebug (loglevel == 1) because it slows down the script
+		level = self.logger.get_level()
+		if level > 6 or level == 0:
 			return
+			
+		if not datasize:
+			if level == 5:
+				datasize = 0x10
+			if level == 4:
+				datasize = 0x20
+			if level == 3:
+				datasize = 0x50
+			if level == 2:
+				datasize = 0x100
+			if level == 1:
+				datasize = 0x200			
+			
 		pos = self.reader.tell()
 		self.reader.move(ptr)
 		data = self.reader.peek(datasize)

@@ -1,14 +1,17 @@
-from .live_reader_ctypes import enum_process_names, OpenProcess, PROCESS_ALL_ACCESS, get_lsass_pid, GetTimestampForLoadedLibrary
-from .privileges import enable_debug_privilege
-from .psapi import *
-from .version import *
-from .kernel32 import *
-from .fileinfo import *
+from .common.live_reader_ctypes import *
+from .common.privileges import enable_debug_privilege
+from .common.psapi import *
+from .common.version import *
+from .common.kernel32 import *
+from .common.fileinfo import *
 from minidump.streams.SystemInfoStream import PROCESSOR_ARCHITECTURE
 
 import logging
 import sys
 import copy
+import platform
+import os
+import ntpath
 
 class Module:
 	def __init__(self):
@@ -292,8 +295,29 @@ class LiveReader:
 		self.modules = []
 		self.pages = []
 		
+		self.msv_dll_timestamp = None #a special place in our hearts....
 		
+		self.sanity_check()
 		self.setup()
+		
+	def sanity_check(self):
+		"""
+		Check if user is insane
+		Windows API functions don't like when a 32 bit process is accessing a 64 bit process's memory space,
+		Therefore you must use a 64 bit python on a 64bit Windows and a 32bit python on a 32bit Windows
+		"""
+		is_python_64 = sys.maxsize > 2**32
+		is_windows = platform.system() == 'Windows'
+		is_windows_64 = platform.machine().endswith('64')
+		if is_windows == False:
+			raise Exception('This will only run on Windows')
+		
+		if is_windows_64 != is_python_64:
+			raise Exception('Python interpreter must be the same architecure of the OS you are running it on.')
+		
+		
+		
+		
 		
 	def setup(self):
 		logging.info('Enabling debug privilege')
@@ -317,12 +341,14 @@ class LiveReader:
 		module_handles = EnumProcessModules(self.lsass_process_handle)
 		for module_handle in module_handles:
 			
-			name = GetModuleFileNameExW(self.lsass_process_handle, module_handle)
-			logging.info(name)
+			module_file_path = GetModuleFileNameExW(self.lsass_process_handle, module_handle)
+			logging.info(module_file_path)
+			timestamp = 0
+			if ntpath.basename(module_file_path).lower() == 'msv1_0.dll':
+				timestamp = int(os.stat(module_file_path).st_ctime)
+				self.msv_dll_timestamp = timestamp
 			modinfo = GetModuleInformation(self.lsass_process_handle, module_handle)
-			timestamp = get_file_version_info(name)
-			print(timestamp)
-			self.modules.append(Module.parse(name, modinfo, timestamp))
+			self.modules.append(Module.parse(module_file_path, modinfo, timestamp))
 			
 		logging.info('Found %d modules' % len(self.modules))
 			
@@ -379,30 +405,4 @@ if __name__ == '__main__':
 	blr = lr.get_buffered_reader()
 	
 	blr.move(0x1000)
-	
-	"""
-	print('hello!')
-	enable_debug_privilege()
-	
-	input(pid)
-	process_handle = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
-	if process_handle is None:
-		logging.warning('Failed to open process PID: %d' % pid)
-		logging.error(WinError(get_last_error()))
-		sys.exit()
-	logging.debug('Process handle: 0x%04x' % process_handle)
-	is64 = is64bitProc(process_handle)
-	if is64 != IS_PYTHON_64:
-		logging.warning('process architecture mismatch! This could case error! Python arch: %s Target process arch: %s' % ('x86' if not IS_PYTHON_64 else 'x64', 'x86' if not is64 else 'x64'))
-	
-	print('hello!')
-	module_handles = EnumProcessModules(process_handle)
-	for module_handle in module_handles:
-		print(GetModuleFileNameExW(process_handle, module_handle))
-		modinfo = GetModuleInformation(process_handle, module_handle)
-		print(modinfo.lpBaseOfDll)
-		
-	alma = ReadProcessMemory(process_handle, 140726149054464, 0x10)
-	print(alma)
-	"""
 	

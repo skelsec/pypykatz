@@ -7,14 +7,14 @@
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-#     * Redistributions of source code must retain the above copyright notice,
-#       this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above copyright
-#       notice,this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
-#     * Neither the name of the copyright holder nor the names of its
-#       contributors may be used to endorse or promote products derived from
-#       this software without specific prior written permission.
+#	 * Redistributions of source code must retain the above copyright notice,
+#	   this list of conditions and the following disclaimer.
+#	 * Redistributions in binary form must reproduce the above copyright
+#	   notice,this list of conditions and the following disclaimer in the
+#	   documentation and/or other materials provided with the distribution.
+#	 * Neither the name of the copyright holder nor the names of its
+#	   contributors may be used to endorse or promote products derived from
+#	   this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -31,37 +31,37 @@
 
 from .defines import *
 
-PAGE_NOACCESS          = 0x01
-PAGE_READONLY          = 0x02
-PAGE_READWRITE         = 0x04
-PAGE_WRITECOPY         = 0x08
-PAGE_EXECUTE           = 0x10
-PAGE_EXECUTE_READ      = 0x20
+PAGE_NOACCESS		  = 0x01
+PAGE_READONLY		  = 0x02
+PAGE_READWRITE		 = 0x04
+PAGE_WRITECOPY		 = 0x08
+PAGE_EXECUTE		   = 0x10
+PAGE_EXECUTE_READ	  = 0x20
 PAGE_EXECUTE_READWRITE = 0x40
 PAGE_EXECUTE_WRITECOPY = 0x80
-PAGE_GUARD            = 0x100
-PAGE_NOCACHE          = 0x200
-PAGE_WRITECOMBINE     = 0x400
-MEM_COMMIT           = 0x1000
-MEM_RESERVE          = 0x2000
-MEM_DECOMMIT         = 0x4000
-MEM_RELEASE          = 0x8000
-MEM_FREE            = 0x10000
-MEM_PRIVATE         = 0x20000
-MEM_MAPPED          = 0x40000
-MEM_RESET           = 0x80000
-MEM_TOP_DOWN       = 0x100000
-MEM_WRITE_WATCH    = 0x200000
-MEM_PHYSICAL       = 0x400000
+PAGE_GUARD			= 0x100
+PAGE_NOCACHE		  = 0x200
+PAGE_WRITECOMBINE	 = 0x400
+MEM_COMMIT		   = 0x1000
+MEM_RESERVE		  = 0x2000
+MEM_DECOMMIT		 = 0x4000
+MEM_RELEASE		  = 0x8000
+MEM_FREE			= 0x10000
+MEM_PRIVATE		 = 0x20000
+MEM_MAPPED		  = 0x40000
+MEM_RESET		   = 0x80000
+MEM_TOP_DOWN	   = 0x100000
+MEM_WRITE_WATCH	= 0x200000
+MEM_PHYSICAL	   = 0x400000
 MEM_LARGE_PAGES  = 0x20000000
-MEM_4MB_PAGES    = 0x80000000
-SEC_FILE           = 0x800000
-SEC_IMAGE         = 0x1000000
-SEC_RESERVE       = 0x4000000
-SEC_COMMIT        = 0x8000000
-SEC_NOCACHE      = 0x10000000
+MEM_4MB_PAGES	= 0x80000000
+SEC_FILE		   = 0x800000
+SEC_IMAGE		 = 0x1000000
+SEC_RESERVE	   = 0x4000000
+SEC_COMMIT		= 0x8000000
+SEC_NOCACHE	  = 0x10000000
 SEC_LARGE_PAGES  = 0x80000000
-MEM_IMAGE         = SEC_IMAGE
+MEM_IMAGE		 = SEC_IMAGE
 WRITE_WATCH_FLAG_RESET = 0x01
 FILE_MAP_ALL_ACCESS = 0xF001F
 
@@ -268,6 +268,71 @@ class MEMORY_BASIC_INFORMATION(Structure):
 PMEMORY_BASIC_INFORMATION = POINTER(MEMORY_BASIC_INFORMATION)
 
 
+# BOOL WINAPI CloseHandle(
+#   __in  HANDLE hObject
+# );
+def CloseHandle(hHandle):
+	if isinstance(hHandle, Handle):
+		# Prevents the handle from being closed without notifying the Handle object.
+		hHandle.close()
+	else:
+		_CloseHandle = windll.kernel32.CloseHandle
+		_CloseHandle.argtypes = [HANDLE]
+		_CloseHandle.restype  = bool
+		_CloseHandle.errcheck = RaiseIfZero
+	_CloseHandle(hHandle)
+
+
+# DWORD WINAPI GetCurrentProcessId(void);
+def GetCurrentProcessId():
+	_GetCurrentProcessId = windll.kernel32.GetCurrentProcessId
+	_GetCurrentProcessId.argtypes = []
+	_GetCurrentProcessId.restype  = DWORD
+	return _GetCurrentProcessId()
+
+# BOOL WINAPI QueryFullProcessImageName(
+#   __in	 HANDLE hProcess,
+#   __in	 DWORD dwFlags,
+#   __out	LPTSTR lpExeName,
+#   __inout  PDWORD lpdwSize
+# );
+def QueryFullProcessImageNameW(hProcess, dwFlags = 0):
+	_QueryFullProcessImageNameW = windll.kernel32.QueryFullProcessImageNameW
+	_QueryFullProcessImageNameW.argtypes = [HANDLE, DWORD, LPWSTR, PDWORD]
+	_QueryFullProcessImageNameW.restype  = bool
+
+	dwSize = MAX_PATH
+	while 1:
+		lpdwSize = DWORD(dwSize)
+		lpExeName = ctypes.create_unicode_buffer('', lpdwSize.value + 1)
+		success = _QueryFullProcessImageNameW(hProcess, dwFlags, lpExeName, byref(lpdwSize))
+		if success and 0 < lpdwSize.value < dwSize:
+			break
+		error = GetLastError()
+		if error != ERROR_INSUFFICIENT_BUFFER:
+			raise ctypes.WinError(error)
+		dwSize = dwSize + 256
+		if dwSize > 0x1000:
+			# this prevents an infinite loop in Windows 2008 when the path has spaces,
+			# see http://msdn.microsoft.com/en-us/library/ms684919(VS.85).aspx#4
+			raise ctypes.WinError(error)
+	return lpExeName.value
+
+# HANDLE WINAPI OpenProcess(
+#   __in  DWORD dwDesiredAccess,
+#   __in  BOOL bInheritHandle,
+#   __in  DWORD dwProcessId
+# );
+def OpenProcess(dwDesiredAccess, bInheritHandle, dwProcessId):
+	_OpenProcess = windll.kernel32.OpenProcess
+	_OpenProcess.argtypes = [DWORD, BOOL, DWORD]
+	_OpenProcess.restype  = HANDLE
+
+	hProcess = _OpenProcess(dwDesiredAccess, bool(bInheritHandle), dwProcessId)
+	if hProcess == NULL:
+		raise ctypes.WinError()
+	return hProcess
+
 
 # BOOL WINAPI ReadProcessMemory(
 #   __in   HANDLE hProcess,
@@ -326,3 +391,4 @@ def VirtualQueryEx(hProcess, lpAddress):
 	if success == 0:
 		raise ctypes.WinError()
 	return MemoryBasicInformation(lpBuffer)
+	
