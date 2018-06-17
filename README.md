@@ -2,7 +2,14 @@
 Mimikatz implementation in pure Python. -offline minidump parsing currently-  
 Runs on all OS's which support python>=3.6
 
-## Usage
+## Installing
+Install it via pip or by cloning it from github.
+
+### Via PIP
+```
+pip3 install pypykatz
+```
+### Via Github
 Install prerequirements
 ```
 pip3 install minidump minikerberos asn1crypto
@@ -12,53 +19,75 @@ Clone this repo
 git clone https://github.com/skelsec/pypykatz.git
 cd pypykatz
 ```
-Have fun
+Install it
 ```
-python3 pypykatz.py <dumpfile>
+python3 setup.py install
 ```
-## Useful commands
-**Foreword: there is an awesome help menu as well.**  
+## Quickwin
+Dumping LIVE system LSA secrets  
+```pypykatz live lsa```  
 
-### Store output in file:  
+Parsing minidump file of the LSASS process  
+```pypykatz minidump <minidump file>```  
+
+
+## Using pypykatz -detailed-
+**Foreword: there is an awesome help menu as well.**  
+The command structure is the following  
+```pypykatz <ouput options> <command> <subcommand (opt)>```
+
+### Output options
+Omitting the ```-o``` filed will result in output being printed to ```stdout```   
+  
+#### Debug info
+Increasing the number of ```v``` increases the size of memory to be shown on the screen.  
+**Warning! Too much data might result in cross-boundary read attempts!**
+Parameter: ```-v```  
+Example:  
+```
+pypykatz.py -vv mindidump <minidumpfile>
+```
+
+#### Write output to file:  
 Parameter: ```-o <output_file>```  
 Example: 
 ```
-pypykatz.py <dumpfile> -o <output_file>
+pypykatz.py -o <output_file> minidump <dumpfile> 
 ```
-### Store JSON output in file
+  
+#### Write output in JSON format to file
 Parameter: ```--json```  
 Example: 
 ```
-pypykatz.py <dumpfile> --json -o <output file>
-```
-### Directory parsing AKA "I have some dmp files and want to get a meaningful output from ALL of them"
-Parameter: ```-d```  
-Example:  
-```
-pypykatz.py <folder_with_dumpfiles> -d --json -o <output file>
-```
-### Recursive parsing AKA "Okay, I actually run a botnet that sends me those files"
-Parameter: ```-r```  
-Example:  
-```
-pypykatz.py <folder_with_folder_of_dumpfiles> -d -r --json -o <output file>
-```
-### Debug info AKA "Feel like a haxx0r"
-Parameter: ```-vv```  
-Example:  
-```
-pypykatz.py <dumpfile> -vv
-```
-
+pypykatz.py --json -o <output file> minidump <dumpfile> 
+```  
 ### Kerberos 
-The kerberos tickets will be dumped BOTH in ```.kirbi``` and ```.ccache``` format.  
+Stores the kerberos tickets in BOTH ```.kirbi``` and ```.ccache``` formats to the directory given.  
 **WARNING!** An output directory is expected, as the ```.kirbi``` format supports only ONE ticket/file so get prepared to be swimming in those files when dealing with multiple/large dump files.  
   
 Parameter: ```-k <output_dir>```  
 Example:  
 ```
-pypykatz.py <dumpfile> -vv
+pypykatz.py -k <output_dir> minidump <dumpfile>
 ```
+
+### Minidump command options  
+#### Directory parsing
+This parameter tells pypykatz to look for all ```.dmp``` files in a given directory
+Parameter: ```-d```  
+Example:  
+```
+pypykatz.py minidump <folder_with_dumpfiles> -d 
+```  
+
+#### Recursive parsing
+Supplying this parameter will force pypykatz to recursively look for ```.dmp``` files  
+Only works together with directory parsing.   
+Parameter: ```-r```  
+Example:  
+```
+pypykatz.py minidump <folder_with_folder_of_dumpfiles> -d -r
+```  
 
 # HELP WANTED
 If you want to help me getting this project into a stable release you can send mindiumps of the lsass.exe process to the following link: https://pypykatz.ocloud.de/index.php/s/NTErmGJxA42irfj  
