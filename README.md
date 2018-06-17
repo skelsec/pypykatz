@@ -25,16 +25,22 @@ python3 setup.py install
 ```
 ## Quickwin
 Dumping LIVE system LSA secrets  
-```pypykatz live lsa```  
+```
+pypykatz live lsa
+```  
 
 Parsing minidump file of the LSASS process  
-```pypykatz minidump <minidump file>```  
+```
+pypykatz minidump <minidump file>
+```  
 
 
 ## Using pypykatz -detailed-
 **Foreword: there is an awesome help menu as well.**  
 The command structure is the following  
-```pypykatz <ouput options> <command> <subcommand (opt)>```
+```
+pypykatz <ouput options> <command> <subcommand (opt)>
+```
 
 ### Output options
 Omitting the ```-o``` filed will result in output being printed to ```stdout```   
@@ -55,7 +61,9 @@ Example:
 pypykatz.py -o <output_file> minidump <dumpfile> 
 ```
   
-#### Write output in JSON format to file
+#### Write output in JSON
+Together with the ```-o``` option it will write the output to a file, otherwise will print the output to ```stdout```   
+
 Parameter: ```--json```  
 Example: 
 ```
@@ -73,7 +81,8 @@ pypykatz.py -k <output_dir> minidump <dumpfile>
 
 ### Minidump command options  
 #### Directory parsing
-This parameter tells pypykatz to look for all ```.dmp``` files in a given directory
+This parameter tells pypykatz to look for all ```.dmp``` files in a given directory  
+
 Parameter: ```-d```  
 Example:  
 ```
@@ -83,6 +92,7 @@ pypykatz.py minidump <folder_with_dumpfiles> -d
 #### Recursive parsing
 Supplying this parameter will force pypykatz to recursively look for ```.dmp``` files  
 Only works together with directory parsing.   
+
 Parameter: ```-r```  
 Example:  
 ```
