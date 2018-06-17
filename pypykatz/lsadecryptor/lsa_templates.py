@@ -21,6 +21,8 @@ class LsaTemplate(PackageTemplate):
 	def get_template(sysinfo):
 		template = LsaTemplate()
 		#identify the OS
+		logging.debug('Buildnumber: %s' % sysinfo.buildnumber)
+		
 		if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:
 			raise Exception("Maybe implemented later")
 		
@@ -58,7 +60,7 @@ class LsaTemplate(PackageTemplate):
 				template.key_struct = KIWI_BCRYPT_KEY
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 			else:
-				raise Exception('Unknown CPU architecture %s' % self.arch)
+				raise Exception('Unknown CPU architecture %s' % sysinfo.architecture)
 		
 		elif WindowsMinBuild.WIN_7.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
 			#windows 7
@@ -91,7 +93,7 @@ class LsaTemplate(PackageTemplate):
 				template.key_struct = KIWI_BCRYPT_KEY
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 			else:
-				raise Exception('Unknown CPU architecture %s' % self.arch)
+				raise Exception('Unknown CPU architecture %s' % sysinfo.architecture)
 			
 		elif WindowsMinBuild.WIN_8.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_BLUE.value:
 			if sysinfo.architecture == KatzSystemArchitecture.X64:
@@ -123,7 +125,7 @@ class LsaTemplate(PackageTemplate):
 				template.key_struct = KIWI_BCRYPT_KEY8
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 			else:
-				raise Exception('Unknown CPU architecture %s' % self.arch)
+				raise Exception('Unknown CPU architecture %s' % sysinfo.architecture)
 			
 		elif WindowsMinBuild.WIN_BLUE.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_10.value:
 			#Windows 8.1
@@ -156,10 +158,10 @@ class LsaTemplate(PackageTemplate):
 				template.key_struct = KIWI_BCRYPT_KEY81
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 			else:
-				raise Exception('Unknown CPU architecture %s' % self.arch)
+				raise Exception('Unknown CPU architecture %s' % sysinfo.architecture)
 			
 		#elif WindowsMinBuild.WIN_10.value <= sysinfo.buildnumber <= WindowsBuild.WIN_10_1507.value:
-		elif WindowsMinBuild.WIN_10.value <= sysinfo.buildnumber <= 20000:
+		elif WindowsMinBuild.WIN_10.value <= sysinfo.buildnumber:
 			if sysinfo.architecture == KatzSystemArchitecture.X64:
 				logging.debug('Using template for Windows 10 x64')
 				
@@ -188,13 +190,10 @@ class LsaTemplate(PackageTemplate):
 				template.key_struct = KIWI_BCRYPT_KEY81
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 			else:
-				raise Exception('Unknown CPU architecture %s' % self.arch)
-		
-		elif sysinfo.buildnumber > WindowsBuild.WIN_10_1507.value:
-			raise Exception('LOL! You\'re on your own, fam! Buildnumber: %s' % sysinfo.buildnumber)
+				raise Exception('Unknown CPU architecture %s' % sysinfo.architecture)
 			
 		else:
-			raise Exception('Missing LSA decrpytor template for Architecture: %s , Build number %s' % (self.arch, sysinfo.buildnumber))
+			raise Exception('Missing LSA decrpytor template for Architecture: %s , Build number %s' % (sysinfo.architecture, sysinfo.buildnumber))
 			
 		template.log_template('key_handle_struct', template.key_handle_struct)
 		template.log_template('key_struct', template.key_struct)
