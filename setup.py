@@ -5,7 +5,7 @@ setup(
 	name="pypykatz",
 
 	# Version number (initial):
-	version="0.0.2",
+	version="0.0.3",
 
 	# Application author details:
 	author="Tamas Jos",
@@ -40,7 +40,7 @@ setup(
 	
 	entry_points={
 		'console_scripts': [
-			'pypykatz = pypykatz.bin.pypykatz_main:main',
+			'pypykatz = pypykatz.__main__:main',
 		],
 	}
 	
