@@ -72,7 +72,7 @@ class Page:
 		self.data = ReadProcessMemory(lsass_process_handle, self.BaseAddress, self.RegionSize)
 		
 	def inrange(self, addr):
-		return self.BaseAddress <= addr < self.EndAddress
+		return self.BaseAddress <= addr <= self.EndAddress
 		
 	def search(self, pattern, lsass_process_handle):
 		if len(pattern) > self.RegionSize:

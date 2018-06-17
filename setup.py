@@ -40,7 +40,7 @@ setup(
 	
 	entry_points={
 		'console_scripts': [
-			'pypykatz = pypykatz.bin.pypykatz_main:main',
+			'pypykatz = pypykatz.__main__:main',
 		],
 	}
 	
