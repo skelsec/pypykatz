@@ -75,7 +75,8 @@ def main():
 				if args.halt_on_error == True:
 					raise e
 				else:
-					print('Exception while dumping LSA credentials from memory. Reason: %s' % e)
+					print('Exception while dumping LSA credentials from memory.')
+					traceback.print_exc()
 					pass
 		
 	###### Minidump
@@ -108,7 +109,7 @@ def main():
 				mimi = pypykatz.parse_minidump_file(args.minidumpfile)
 				results[args.minidumpfile] = mimi
 			except Exception as e:
-				logging.exception()
+				logging.exception('Error while parsing file %s' % args.minidumpfile)
 				if args.halt_on_error == True:
 					raise e
 				else:

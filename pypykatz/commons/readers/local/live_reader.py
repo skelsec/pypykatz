@@ -18,6 +18,7 @@ import copy
 import platform
 import os
 import ntpath
+import winreg
 
 class Module:
 	def __init__(self):
@@ -333,7 +334,11 @@ class LiveReader:
 		self.processor_architecture = PROCESSOR_ARCHITECTURE(sysinfo.id.w.wProcessorArchitecture)
 		
 		logging.log(1, 'Getting build number')
-		self.BuildNumber = GetVersionEx().dwBuildNumber
+		#self.BuildNumber = GetVersionEx().dwBuildNumber #this one doesnt work reliably on frozen binaries :(((
+		key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\')
+		buildnumber, t = winreg.QueryValueEx(key, 'CurrentBuildNumber')
+		self.BuildNumber = int(buildnumber)
+		
 		
 		logging.log(1, 'Searching for lsass.exe')
 		pid = get_lsass_pid()
