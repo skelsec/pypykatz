@@ -182,7 +182,7 @@ class BufferedLiveReader:
 		Returns up to length bytes from the current memory segment
 		"""
 		t = self.current_position + length
-		if not self.current_segment.inrange(t-1): #-1 to enable reading till the end of the page
+		if not self.current_segment.inrange(t):
 			raise Exception('Would read over segment boundaries!')
 		return self.current_segment.data[self.current_position - self.current_segment.BaseAddress :t - self.current_segment.BaseAddress]
 	
@@ -202,7 +202,7 @@ class BufferedLiveReader:
 			return self.current_segment.data[old_new_pos - self.current_segment.BaseAddress:]
 		
 		t = self.current_position + size
-		if not self.current_segment.inrange(t - 1): #-1 to enable reading till the end of the page
+		if not self.current_segment.inrange(t):
 			raise Exception('Would read over segment boundaries!')
 		
 		old_new_pos = self.current_position
