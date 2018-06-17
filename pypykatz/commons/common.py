@@ -8,8 +8,12 @@ import json
 import datetime
 from minidump.streams.SystemInfoStream import PROCESSOR_ARCHITECTURE
 
+class KatzSystemArchitecture(enum.Enum):
+	X86 = enum.auto()
+	X64 = enum.auto()
+
 class GenericReader:
-	def __init__(self, data, processor_architecture = PROCESSOR_ARCHITECTURE.AMD64):
+	def __init__(self, data, processor_architecture = KatzSystemArchitecture.X64):
 		"""
 		data is bytes
 		"""	
@@ -58,7 +62,7 @@ class GenericReader:
 		Repositions the current reader to match architecture alignment
 		"""
 		if alignment is None:
-			if self.processor_architecture == PROCESSOR_ARCHITECTURE.AMD64:
+			if self.processor_architecture == KatzSystemArchitecture.X64:
 				alignment = 8
 			else:
 				alignment = 4
@@ -109,7 +113,7 @@ class GenericReader:
 		Reads a 4 byte small-endian singed int on 32 bit arch
 		Reads an 8 byte small-endian singed int on 64 bit arch
 		"""
-		if self.processor_architecture == PROCESSOR_ARCHITECTURE.AMD64:
+		if self.processor_architecture == KatzSystemArchitecture.X64:
 			return int.from_bytes(self.read(8), byteorder = 'little', signed = True)
 		else:
 			return int.from_bytes(self.read(4), byteorder = 'little', signed = True)
@@ -120,7 +124,7 @@ class GenericReader:
 		Reads a 4 byte small-endian unsinged int on 32 bit arch
 		Reads an 8 byte small-endian unsinged int on 64 bit arch
 		"""
-		if self.processor_architecture == PROCESSOR_ARCHITECTURE.AMD64:
+		if self.processor_architecture == KatzSystemArchitecture.X64:
 			return int.from_bytes(self.read(8), byteorder = 'little', signed = False)
 		else:
 			return int.from_bytes(self.read(4), byteorder = 'little', signed = False)
@@ -155,7 +159,7 @@ class GenericReader:
 		#return struct.unpack(self.unpack_ptr, raw_data)[0]
 	
 	def get_ptr_with_offset(self, pos):
-		if self.processor_architecture == PROCESSOR_ARCHITECTURE.AMD64:
+		if self.processor_architecture == KatzSystemArchitecture.X64:
 			self.move(pos)
 			ptr = int.from_bytes(self.read(4), byteorder = 'little', signed = True)
 			return pos + 4 + ptr
@@ -262,9 +266,7 @@ class UniversalEncoder(json.JSONEncoder):
 		else:
 			return json.JSONEncoder.default(self, obj)
 
-class KatzSystemArchitecture(enum.Enum):
-	X86 = enum.auto()
-	X64 = enum.auto()
+
 	
 
 class KatzSystemInfo:
@@ -273,9 +275,24 @@ class KatzSystemInfo:
 		self.buildnumber = None
 		self.msv_dll_timestamp = None #this is needed :(
 		self.operating_system = None
+		self.major_version = 6
 		
 	def __str__(self):
 		return '%s %s' % (self.architecture.name, self.buildnumber)
+	
+	@staticmethod
+	def from_live_reader(lr):
+		sysinfo = KatzSystemInfo()
+		if lr.processor_architecture == PROCESSOR_ARCHITECTURE.AMD64:
+			sysinfo.architecture = KatzSystemArchitecture.X64
+		elif lr.processor_architecture == PROCESSOR_ARCHITECTURE.INTEL:
+			sysinfo.architecture = KatzSystemArchitecture.X86
+			
+		sysinfo.buildnumber = lr.BuildNumber
+		
+		sysinfo.msv_dll_timestamp = lr.msv_dll_timestamp	
+		return sysinfo
+		
 	@staticmethod
 	def from_minidump(minidump):
 		sysinfo = KatzSystemInfo()

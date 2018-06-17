@@ -42,7 +42,7 @@ class TspkgDecryptor(PackageDecryptor):
 		
 
 	def find_first_entry(self):
-		position = self.find_signature('tspkg.dll',self.decryptor_template.signature)
+		position = self.find_signature('TSpkg.dll',self.decryptor_template.signature)
 		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.avl_offset)
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc

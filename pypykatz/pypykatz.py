@@ -3,6 +3,7 @@ from .lsadecryptor import *
 
 from minidump.minidumpfile import MinidumpFile
 from minikerberos.ccache import CCACHE
+from .commons.readers.local.live_reader import LiveReader
 
 class pypykatz:
 	"""mimikatz offline"""
@@ -28,6 +29,13 @@ class pypykatz:
 	def to_json(self):
 		return json.dumps(self.to_dict())
 		
+	@staticmethod
+	def go_live():
+		reader = LiveReader()
+		sysinfo = KatzSystemInfo.from_live_reader(reader)
+		mimi = pypykatz(reader.get_buffered_reader(), sysinfo)
+		mimi.start()
+		return mimi
 		
 	@staticmethod
 	def parse_minidump_file(filename):
