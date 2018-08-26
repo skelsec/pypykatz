@@ -1,18 +1,16 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from minidump.win_datatypes import *
+import struct
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 from pypykatz.lsadecryptor.package_commons import *
 
 class WdigestTemplate(PackageTemplate):
 	def __init__(self):
-		super().__init__('Wdigest')
+		super(WdigestTemplate, self).__init__('Wdigest')
 		self.signature = None
 		self.first_entry_offset = None
 		self.list_entry = None
@@ -36,8 +34,7 @@ class WdigestTemplate(PackageTemplate):
 				
 			else:
 				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (architecture, sysinfo.buildnumber))
-			
-		
+
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
 			if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:
 				template.signature = b'\x74\x18\x8b\x4d\x08\x8b\x11'
@@ -67,7 +64,7 @@ class WdigestTemplate(PackageTemplate):
 		
 class PWdigestListEntry(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, WdigestListEntry)
+		super(PWdigestListEntry, self).__init__(reader, WdigestListEntry)
 		
 class WdigestListEntry:
 	def __init__(self, reader):
@@ -77,7 +74,7 @@ class WdigestListEntry:
 		reader.align()
 		self.this_entry = PWdigestListEntry(reader)
 		self.luid = LUID(reader).value
-		self.flag = int.from_bytes(reader.read(8), byteorder = 'little', signed = False) 
+		self.flag = struct.unpack("<Q", reader.read(8))[0] 
 		self.UserName = LSA_UNICODE_STRING(reader)
 		self.DomainName = LSA_UNICODE_STRING(reader)
 		self.Password = LSA_UNICODE_STRING(reader)

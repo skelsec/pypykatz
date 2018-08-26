@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
@@ -10,15 +10,20 @@ from .common.psapi import *
 from .common.version import *
 from .common.kernel32 import *
 from .common.fileinfo import *
-from minidump.streams.SystemInfoStream import PROCESSOR_ARCHITECTURE
 
 import logging
 import sys
+import struct
 import copy
 import platform
 import os
 import ntpath
-import winreg
+
+try:
+	import winreg
+except ImportError:
+	import _winreg as winreg
+
 
 class Module:
 	def __init__(self):
@@ -34,7 +39,8 @@ class Module:
 		
 	def inrange(self, addr):
 		return self.baseaddress <= addr < self.endaddress
-		
+	
+	@staticmethod
 	def parse(name, module_info, timestamp):
 		m = Module()
 		m.name = name
@@ -58,7 +64,8 @@ class Page:
 		self.EndAddress = None
 		
 		self.data = None
-		
+	
+	@staticmethod
 	def parse(page_info):
 		p = Page()
 		p.BaseAddress = page_info.BaseAddress
@@ -216,9 +223,9 @@ class BufferedLiveReader:
 		Reads an 8 byte small-endian singed int on 64 bit arch
 		"""
 		if self.reader.processor_architecture == PROCESSOR_ARCHITECTURE.AMD64:
-			return int.from_bytes(self.read(8), byteorder = 'little', signed = True)
+			return struct.unpack("<q", self.read(8))[0]
 		else:
-			return int.from_bytes(self.read(4), byteorder = 'little', signed = True)
+			return struct.unpack("<l", self.read(4))[0]
 	
 	def read_uint(self):
 		"""
@@ -227,9 +234,9 @@ class BufferedLiveReader:
 		Reads an 8 byte small-endian unsinged int on 64 bit arch
 		"""
 		if self.reader.processor_architecture == PROCESSOR_ARCHITECTURE.AMD64:
-			return int.from_bytes(self.read(8), byteorder = 'little', signed = False)
+			return struct.unpack("<Q", self.read(8))[0]
 		else:
-			return int.from_bytes(self.read(4), byteorder = 'little', signed = False)
+			return struct.unpack("<L", self.read(4))[0]
 	
 	def find(self, pattern):
 		"""
@@ -281,7 +288,7 @@ class BufferedLiveReader:
 	def get_ptr_with_offset(self, pos):
 		if self.reader.processor_architecture == PROCESSOR_ARCHITECTURE.AMD64:
 			self.move(pos)
-			ptr = int.from_bytes(self.read(4), byteorder = 'little', signed = True)
+			ptr = struct.unpack("<l", self.read(4))[0]
 			return pos + 4 + ptr
 		else:
 			self.move(pos)

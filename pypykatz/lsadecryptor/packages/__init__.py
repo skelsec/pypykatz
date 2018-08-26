@@ -1,8 +1,6 @@
 from .credman.templates import *
 from .dpapi.templates import *
 from .dpapi.decryptor import *
-from .kerberos.templates import *
-from .kerberos.decryptor import *
 from .livessp.templates import *
 from .livessp.decryptor import *
 from .msv.templates import *
@@ -14,9 +12,15 @@ from .tspkg.decryptor import *
 from .wdigest.templates import *
 from .wdigest.decryptor import *
 
+try:
+	from .kerberos.templates import *
+	from .kerberos.decryptor import *
+	__kerberos__ = ['KerberosTemplate','KerberosDecryptor']
+except Exception:
+	__kerberos__ = []
+
 __credman__ = ['CredmanTemplate']
 __dpapi__ = ['DpapiTemplate', 'DpapiDecryptor', 'DpapiCredential']
-__kerberos__ = ['KerberosTemplate','KerberosDecryptor']
 __msv__ = ['MsvTemplate', 'MsvDecryptor', 'MsvCredential']
 __ssp__ = ['SspTemplate', 'SspDecryptor', 'SspCredential']
 __livessp__ = ['LiveSspTemplate', 'LiveSspDecryptor', 'LiveSspCredential']

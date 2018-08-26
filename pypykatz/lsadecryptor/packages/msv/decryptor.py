@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
+import codecs
 import json
-import logging
 from pypykatz.commons.common import *
 from pypykatz.commons.filetime import *
 from pypykatz.commons.win_datatypes import *
@@ -38,9 +37,9 @@ class MsvCredential:
 		t = '\t== MSV ==\n'
 		t += '\t\tUsername: %s\n' % (self.username if self.username else 'NA')
 		t += '\t\tDomain: %s\n' % (self.domainname if self.domainname else 'NA')
-		t += '\t\tLM: %s\n' % (self.LMHash.hex() if self.LMHash else 'NA')
-		t += '\t\tNT: %s\n' % (self.NThash.hex() if self.NThash else 'NA')
-		t += '\t\tSHA1: %s\n' % (self.SHAHash.hex() if self.SHAHash else 'NA')
+		t += '\t\tLM: %s\n' % (codecs.encode(self.LMHash, 'hex') if self.LMHash else 'NA')
+		t += '\t\tNT: %s\n' % (codecs.encode(self.NThash, 'hex') if self.NThash else 'NA')
+		t += '\t\tSHA1: %s\n' % (codecs.encode(self.SHAHash, 'hex') if self.SHAHash else 'NA')
 		return t
 		
 class CredmanCredential:
@@ -189,7 +188,7 @@ class LogonSession:
 		
 class MsvDecryptor(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, lsa_decryptor, credman_template, sysinfo):
-		super().__init__('Msv', lsa_decryptor, sysinfo, reader)
+		super(MsvDecryptor, self).__init__('Msv', lsa_decryptor, sysinfo, reader)
 		self.decryptor_template = decryptor_template
 		self.credman_decryptor_template = credman_template
 		self.entries = []

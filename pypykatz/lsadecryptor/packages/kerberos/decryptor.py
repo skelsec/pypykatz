@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
+import json
 
 from pypykatz.commons.common import *
 from pypykatz.commons.filetime import *
@@ -47,7 +46,7 @@ class KerberosCredential:
 
 class KerberosDecryptor(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, lsa_decryptor, sysinfo):
-		super().__init__('Kerberos', lsa_decryptor, sysinfo, reader)
+		super(KerberosDecryptor, self).__init__('Kerberos', lsa_decryptor, sysinfo, reader)
 		self.decryptor_template = decryptor_template
 		self.credentials = []
 		

@@ -35,6 +35,7 @@ Some functions here are really from kernel32.dll, others from version.dll.
 """
 
 from .defines import *
+import enum
 
 #==============================================================================
 # This is used later on to calculate the list of exported symbols.
@@ -336,6 +337,16 @@ PROCESSOR_ARM820        = 2080   # ARM 820 (Windows CE)
 PROCESSOR_ARM920        = 2336   # ARM 920 (Windows CE)
 PROCESSOR_ARM_7TDMI     = 70001  # ARM 7TDMI (Windows CE)
 PROCESSOR_OPTIL         = 0x494F # MSIL
+
+
+# https://msdn.microsoft.com/en-us/library/windows/desktop/ms680396(v=vs.85).aspx
+class PROCESSOR_ARCHITECTURE(enum.Enum):
+    AMD64 = PROCESSOR_ARCHITECTURE_AMD64  #x64 (AMD or Intel)
+    ARM = PROCESSOR_ARCHITECTURE_ARM  #ARM
+    IA64 = PROCESSOR_ARCHITECTURE_IA64  #Intel Itanium
+    INTEL = PROCESSOR_ARCHITECTURE_INTEL  #x86
+    UNKNOWN = PROCESSOR_ARCHITECTURE_UNKNOWN  #Unknown processor
+
 
 # typedef struct _SYSTEM_INFO {
 #   union {

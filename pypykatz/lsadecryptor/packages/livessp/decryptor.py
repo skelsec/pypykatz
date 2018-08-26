@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
+import json
 from pypykatz.lsadecryptor.package_commons import *
 
 class LiveSspCredential:
@@ -23,6 +22,7 @@ class LiveSspCredential:
 		t['password'] = self.password
 		t['luid'] = self.luid
 		return t
+
 	def to_json(self):
 		return json.dumps(self.to_dict())
 		
@@ -35,7 +35,7 @@ class LiveSspCredential:
 		
 class LiveSspDecryptor(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, lsa_decryptor, sysinfo):
-		super().__init__('LiveSsp', lsa_decryptor, sysinfo, reader)
+		super(LiveSspDecryptor, self).__init__('LiveSsp', lsa_decryptor, sysinfo, reader)
 		self.decryptor_template = decryptor_template
 		self.credentials = []
 

@@ -1,8 +1,11 @@
-import os
-import sys
 import ctypes
 import enum
-import logging
+try:
+	import winreg
+except ImportError:
+	import _winreg as winreg
+
+from ctypes.wintypes import BYTE, WORD, DWORD, WCHAR
 
 from .kernel32 import *
 from .psapi import *
@@ -18,21 +21,27 @@ class WindowsMinBuild(enum.Enum):
 
 	
 #utter microsoft bullshit commencing..
-def getWindowsBuild():   
-    class OSVersionInfo(ctypes.Structure):
-        _fields_ = [
-            ("dwOSVersionInfoSize" , ctypes.c_int),
-            ("dwMajorVersion"      , ctypes.c_int),
-            ("dwMinorVersion"      , ctypes.c_int),
-            ("dwBuildNumber"       , ctypes.c_int),
-            ("dwPlatformId"        , ctypes.c_int),
-            ("szCSDVersion"        , ctypes.c_char*128)];
-    GetVersionEx = getattr( ctypes.windll.kernel32 , "GetVersionExA")
-    version  = OSVersionInfo()
-    version.dwOSVersionInfoSize = ctypes.sizeof(OSVersionInfo)
-    GetVersionEx( ctypes.byref(version) )    
-    return version.dwBuildNumber
-	
+# def getWindowsBuild():   
+#     class OSVersionInfo(ctypes.Structure):
+#         _fields_ = [
+#             ("dwOSVersionInfoSize" , ctypes.c_int),
+#             ("dwMajorVersion"      , ctypes.c_int),
+#             ("dwMinorVersion"      , ctypes.c_int),
+#             ("dwBuildNumber"       , ctypes.c_int),
+#             ("dwPlatformId"        , ctypes.c_int),
+#             ("szCSDVersion"        , ctypes.c_char*128)];
+#     GetVersionEx = getattr( ctypes.windll.kernel32 , "GetVersionExA")
+#     version  = OSVersionInfo()
+#     version.dwOSVersionInfoSize = ctypes.sizeof(OSVersionInfo)
+#     GetVersionEx( ctypes.byref(version) )  
+#     return version.dwBuildNumber
+
+
+def getWindowsBuild():
+	key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\')
+	buildnumber, t = winreg.QueryValueEx(key, 'CurrentBuildNumber')
+	return int(buildnumber)
+
 DELETE = 0x00010000
 READ_CONTROL = 0x00020000
 WRITE_DAC = 0x00040000

@@ -1,9 +1,7 @@
 from .commons.common import *
 from .lsadecryptor import *
-
-from minidump.minidumpfile import MinidumpFile
-from minikerberos.ccache import CCACHE
 from .commons.readers.local.live_reader import LiveReader
+
 
 class pypykatz:
 	"""mimikatz offline"""
@@ -18,7 +16,7 @@ class pypykatz:
 		
 		self.logon_sessions = []
 		self.orphaned_creds = []
-		self.kerberos_ccache = CCACHE()
+		self.kerberos_ccache = None
 		
 	def to_dict(self):
 		t = {}
@@ -39,6 +37,11 @@ class pypykatz:
 		
 	@staticmethod
 	def parse_minidump_file(filename):
+		try:
+			from minidump.minidumpfile import MinidumpFile
+		except ImportError:
+			raise ImportError('You need to install minidump dependency')
+
 		minidump = MinidumpFile.parse(filename)
 		reader = minidump.get_reader().get_buffered_reader()
 		sysinfo = KatzSystemInfo.from_minidump(minidump)
@@ -110,6 +113,12 @@ class pypykatz:
 				self.orphaned_creds.append(cred)
 	
 	def get_kerberos(self):
+		try:
+			from minikerberos.ccache import CCACHE
+		except ImportError:
+			raise ImportError('You need to install minikerberos dependency')
+
+		self.kerberos_ccache = CCACHE()
 		dec_template = KerberosTemplate.get_template(self.sysinfo)
 		dec = KerberosDecryptor(self.reader, dec_template, self.lsa_decryptor, self.sysinfo)
 		dec.start()	
@@ -128,7 +137,11 @@ class pypykatz:
 		self.get_logoncreds()
 		self.get_wdigest()
 		#CHICKEN BITS - UNTESTED!!! DO NOT UNCOMMENT
-		self.get_kerberos()
+		try:
+			import minikerberos
+			self.get_kerberos()
+		except ImportError:
+			pass
 		self.get_tspkg()
 		self.get_ssp()
 		self.get_livessp()

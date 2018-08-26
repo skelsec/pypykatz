@@ -1,17 +1,15 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from minidump.win_datatypes import *
+from pypykatz.commons.win_datatypes import *
 from pypykatz.commons.common import *
 from .package_commons import *
 
 class LsaTemplate(PackageTemplate):
 	def __init__(self):
-		super().__init__('LSA Decryptor')
+		super(LsaTemplate, self).__init__('LSA Decryptor')
 		self.key_pattern = None
 		self.key_handle_struct = None
 		self.key_struct = None
@@ -270,7 +268,7 @@ class KIWI_BCRYPT_KEY81:
 
 class PKIWI_BCRYPT_KEY(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_BCRYPT_KEY)
+		super(PKIWI_BCRYPT_KEY, self).__init__(reader, KIWI_BCRYPT_KEY)
 
 class KIWI_BCRYPT_HANDLE_KEY:
 	def __init__(self, reader):

@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
 
+import json
 from pypykatz.lsadecryptor.package_commons import *
 
 class TspkgCredential:
@@ -24,6 +23,7 @@ class TspkgCredential:
 		t['password'] = self.password
 		t['luid'] = self.luid
 		return t
+
 	def to_json(self):
 		return json.dumps(self.to_dict())
 		
@@ -36,7 +36,7 @@ class TspkgCredential:
 		
 class TspkgDecryptor(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, lsa_decryptor, sysinfo):
-		super().__init__('Tspkg', lsa_decryptor, sysinfo, reader)
+		super(TspkgDecryptor, self).__init__('Tspkg', lsa_decryptor, sysinfo, reader)
 		self.decryptor_template = decryptor_template
 		self.credentials = []
 		

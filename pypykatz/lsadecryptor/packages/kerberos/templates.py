@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from minidump.win_datatypes import *
+import struct
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 from pypykatz.lsadecryptor.package_commons import *
@@ -636,7 +634,7 @@ class KIWI_KERBEROS_INTERNAL_TICKET_51:
 		self.Description = LSA_UNICODE_STRING(reader)
 		self.AltTargetDomainName = LSA_UNICODE_STRING(reader)
 		self.ClientName = PKERB_EXTERNAL_NAME(reader)
-		self.TicketFlags = int.from_bytes(reader.read(4), byteorder = 'big', signed = False)
+		self.TicketFlags = struct.unpack(">L", reader.read(4))[0]
 		self.unk2 = ULONG(reader).value
 		self.KeyType = ULONG(reader).value
 		self.Key = KIWI_KERBEROS_BUFFER(reader)
@@ -678,7 +676,7 @@ class KIWI_KERBEROS_INTERNAL_TICKET_52:
 		self.AltTargetDomainName = LSA_UNICODE_STRING(reader)
 		self.ClientName = PKERB_EXTERNAL_NAME(reader)
 		self.name0 = PVOID(reader).value
-		self.TicketFlags = int.from_bytes(reader.read(4), byteorder = 'big', signed = False)
+		self.TicketFlags = struct.unpack(">L", reader.read(4))[0]
 		self.unk2 = ULONG(reader).value
 		self.KeyType = ULONG(reader).value
 		self.Key = KIWI_KERBEROS_BUFFER(reader)
@@ -718,7 +716,7 @@ class KIWI_KERBEROS_INTERNAL_TICKET_60:
 		#//LSA_UNICODE_STRING	KDCServer = 	//?(reader).value
 		self.ClientName = PKERB_EXTERNAL_NAME(reader)
 		self.name0 = PVOID(reader).value
-		self.TicketFlags = int.from_bytes(reader.read(4), byteorder = 'big', signed = False)
+		self.TicketFlags = struct.unpack(">L", reader.read(4))[0]
 		self.unk2 = ULONG(reader).value
 		self.KeyType = ULONG(reader).value
 		self.Key = KIWI_KERBEROS_BUFFER(reader)
@@ -760,7 +758,7 @@ class KIWI_KERBEROS_INTERNAL_TICKET_6:
 		self.KDCServer = LSA_UNICODE_STRING(reader) #	//?(reader).value
 		self.ClientName = PKERB_EXTERNAL_NAME(reader)
 		self.name0 = PVOID(reader).value
-		self.TicketFlags =  int.from_bytes(reader.read(4), byteorder = 'big', signed = False)#ULONG(reader).value
+		self.TicketFlags =  struct.unpack(">L", reader.read(4))[0]#ULONG(reader).value
 		self.unk2 = ULONG(reader).value
 		self.KeyType = ULONG(reader).value
 		reader.align()
@@ -804,7 +802,7 @@ class KIWI_KERBEROS_INTERNAL_TICKET_10:
 		self.unk10586_d = LSA_UNICODE_STRING#	//?(reader).value
 		self.ClientName = PKERB_EXTERNAL_NAME(reader)
 		self.name0 = PVOID(reader).value
-		self.TicketFlags = int.from_bytes(reader.read(4), byteorder = 'big', signed = False)
+		self.TicketFlags = struct.unpack(">L", reader.read(4))[0]
 		self.unk2 = ULONG(reader).value
 		self.KeyType = ULONG(reader).value
 		reader.align()
@@ -850,7 +848,7 @@ class KIWI_KERBEROS_INTERNAL_TICKET_10_1607:
 		self.unk10586_d = LSA_UNICODE_STRING(reader)					#//?(reader).value
 		self.ClientName = PKERB_EXTERNAL_NAME(reader)
 		self.name0 = PVOID(reader).value
-		self.TicketFlags = int.from_bytes(reader.read(4), byteorder = 'big', signed = False)
+		self.TicketFlags = struct.unpack(">L", reader.read(4))[0]
 		self.unk2 = ULONG(reader).value
 		self.unk14393_0 = PVOID(reader).value
 		self.KeyType = ULONG(reader).value

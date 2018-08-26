@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 
@@ -13,7 +10,7 @@ from pypykatz.lsadecryptor.package_commons import *
 
 class SspTemplate(PackageTemplate):
 	def __init__(self):
-		super().__init__('Ssp')
+		super(SspTemplate, self).__init__('Ssp')
 		self.signature = None
 		self.first_entry_offset = None
 		self.list_entry = None
@@ -55,7 +52,7 @@ class SspTemplate(PackageTemplate):
 
 class PKIWI_SSP_CREDENTIAL_LIST_ENTRY(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_SSP_CREDENTIAL_LIST_ENTRY)
+		super(PKIWI_SSP_CREDENTIAL_LIST_ENTRY, self).__init__(reader, KIWI_SSP_CREDENTIAL_LIST_ENTRY)
 		
 class KIWI_SSP_CREDENTIAL_LIST_ENTRY:
 	def __init__(self, reader):

@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
+import codecs
+import json
 import hashlib
 from pypykatz.lsadecryptor.package_commons import *
 
@@ -38,7 +38,7 @@ class DpapiCredential:
 		
 class DpapiDecryptor(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, lsa_decryptor, sysinfo):
-		super().__init__('Dpapi', lsa_decryptor, sysinfo, reader)
+		super(DpapiDecryptor, self).__init__('Dpapi', lsa_decryptor, sysinfo, reader)
 		self.decryptor_template = decryptor_template
 		self.credentials = []
 		
@@ -58,7 +58,7 @@ class DpapiDecryptor(PackageDecryptor):
 			c = DpapiCredential()
 			c.luid = dpapi_entry.LogonId
 			c.key_guid = dpapi_entry.KeyUid
-			c.masterkey = dec_masterkey.hex()
+			c.masterkey = codecs.encode(dec_masterkey, 'hex')
 			c.sha1_masterkey = sha_masterkey
 			self.credentials.append(c)	
 	

@@ -1,18 +1,15 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 from pypykatz.lsadecryptor.package_commons import *
 
 class LiveSspTemplate(PackageTemplate):
 	def __init__(self):
-		super().__init__('LiveSsp')
+		super(LiveSspTemplate, self).__init__('LiveSsp')
 		self.signature = None
 		self.first_entry_offset = None
 		self.list_entry = None
@@ -41,7 +38,7 @@ class LiveSspTemplate(PackageTemplate):
 
 class PKIWI_LIVESSP_PRIMARY_CREDENTIAL(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_LIVESSP_PRIMARY_CREDENTIAL)
+		super(PKIWI_LIVESSP_PRIMARY_CREDENTIAL, self).__init__(reader, KIWI_LIVESSP_PRIMARY_CREDENTIAL)
 		
 class KIWI_LIVESSP_PRIMARY_CREDENTIAL:
 	def __init__(self, reader):
@@ -52,7 +49,7 @@ class KIWI_LIVESSP_PRIMARY_CREDENTIAL:
 
 class PKIWI_LIVESSP_LIST_ENTRY(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_LIVESSP_LIST_ENTRY)
+		super(PKIWI_LIVESSP_LIST_ENTRY, self).__init__(reader, KIWI_LIVESSP_LIST_ENTRY)
 		
 class KIWI_LIVESSP_LIST_ENTRY:
 	def __init__(self, reader):

@@ -1,18 +1,18 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from minidump.win_datatypes import *
+
+from pypykatz.commons.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 from pypykatz.lsadecryptor.package_commons import *
 
+
 class CredmanTemplate(PackageTemplate):
 	def __init__(self):
-		super().__init__('Credman')
+		super(CredmanTemplate, self).__init__('Credman')
 		self.signature = None
 		self.first_entry_offset = None
 		self.list_entry = None
@@ -42,7 +42,7 @@ class CredmanTemplate(PackageTemplate):
 	
 class PKIWI_CREDMAN_LIST_ENTRY_5_X86(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_CREDMAN_LIST_ENTRY_5_X86)
+		super(PKIWI_CREDMAN_LIST_ENTRY_5_X86, self).__init__(reader, KIWI_CREDMAN_LIST_ENTRY_5_X86)
 		
 class KIWI_CREDMAN_LIST_ENTRY_5_X86:
 	def __init__(self, reader):
@@ -73,7 +73,7 @@ class KIWI_CREDMAN_LIST_ENTRY_5_X86:
 	
 class PKIWI_CREDMAN_LIST_ENTRY_60_X86(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_CREDMAN_LIST_ENTRY_60_X86)
+		super(PKIWI_CREDMAN_LIST_ENTRY_60_X86, self).__init__(reader, KIWI_CREDMAN_LIST_ENTRY_60_X86)
 
 class KIWI_CREDMAN_LIST_ENTRY_60_X86:
 	def __init__(self, reader):
@@ -111,7 +111,7 @@ class KIWI_CREDMAN_LIST_ENTRY_60_X86:
 	
 class PKIWI_CREDMAN_LIST_ENTRY_X86(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_CREDMAN_LIST_ENTRY_X86)
+		super(PKIWI_CREDMAN_LIST_ENTRY_X86, self).__init__(reader, KIWI_CREDMAN_LIST_ENTRY_X86)
 		
 class KIWI_CREDMAN_LIST_ENTRY_X86:
 	def __init__(self, reader):
@@ -150,7 +150,7 @@ class KIWI_CREDMAN_LIST_ENTRY_X86:
 		
 class PKIWI_CREDMAN_LIST_ENTRY_5(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_CREDMAN_LIST_ENTRY_5)
+		super(PKIWI_CREDMAN_LIST_ENTRY_5, self).__init__(reader, KIWI_CREDMAN_LIST_ENTRY_5)
 		
 class KIWI_CREDMAN_LIST_ENTRY_5:
 	def __init__(self, reader):
@@ -181,7 +181,7 @@ class KIWI_CREDMAN_LIST_ENTRY_5:
 	
 class PKIWI_CREDMAN_LIST_ENTRY_60(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_CREDMAN_LIST_ENTRY_60)
+		super(PKIWI_CREDMAN_LIST_ENTRY_60, self).__init__(reader, KIWI_CREDMAN_LIST_ENTRY_60)
 
 class KIWI_CREDMAN_LIST_ENTRY_60:
 	def __init__(self, reader):
@@ -219,7 +219,7 @@ class KIWI_CREDMAN_LIST_ENTRY_60:
 	
 class PKIWI_CREDMAN_LIST_ENTRY(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_CREDMAN_LIST_ENTRY)
+		super(PKIWI_CREDMAN_LIST_ENTRY, self).__init__(reader, KIWI_CREDMAN_LIST_ENTRY)
 		
 class KIWI_CREDMAN_LIST_ENTRY:
 	def __init__(self, reader):
@@ -259,7 +259,7 @@ class KIWI_CREDMAN_LIST_ENTRY:
 
 class PKIWI_CREDMAN_LIST_STARTER(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_CREDMAN_LIST_STARTER)
+		super(PKIWI_CREDMAN_LIST_STARTER, self).__init__(reader, KIWI_CREDMAN_LIST_STARTER)
 		
 class KIWI_CREDMAN_LIST_STARTER:
 	def __init__(self, reader):
@@ -270,7 +270,7 @@ class KIWI_CREDMAN_LIST_STARTER:
 	
 class PKIWI_CREDMAN_SET_LIST_ENTRY(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_CREDMAN_SET_LIST_ENTRY)
+		super(PKIWI_CREDMAN_SET_LIST_ENTRY, self).__init__(reader, KIWI_CREDMAN_SET_LIST_ENTRY)
 		
 class KIWI_CREDMAN_SET_LIST_ENTRY:
 	def __init__(self, reader):

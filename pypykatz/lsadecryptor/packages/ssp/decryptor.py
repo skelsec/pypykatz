@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
+import json
 from pypykatz.lsadecryptor.package_commons import *
 
 class SspCredential:
@@ -36,7 +35,7 @@ class SspCredential:
 		
 class SspDecryptor(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, lsa_decryptor, sysinfo):
-		super().__init__('Ssp', lsa_decryptor, sysinfo, reader)
+		super(SspDecryptor, self).__init__('Ssp', lsa_decryptor, sysinfo, reader)
 		self.decryptor_template = decryptor_template
 		self.credentials = []
 

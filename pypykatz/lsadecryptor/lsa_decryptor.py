@@ -1,10 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
 import io
 import logging
+import codecs
 from pypykatz.commons.common import *
 from pypykatz.crypto.des import *
 from pypykatz.crypto.aes import AESModeOfOperationCBC
@@ -12,7 +13,7 @@ from pypykatz.lsadecryptor.lsa_templates import *
 
 class LsaDecryptor(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, sysinfo):
-		super().__init__('LsaDecryptor', None, sysinfo, reader)
+		super(LsaDecryptor, self).__init__('LsaDecryptor', None, sysinfo, reader)
 		self.decryptor_template = decryptor_template
 		self.iv = None
 		self.aes_key = None
@@ -102,6 +103,8 @@ class LsaDecryptor(PackageDecryptor):
 
 	def dump(self):
 		self.log('Recovered LSA encryption keys\n')
-		self.log('IV ({}): {}'.format(len(self.iv), self.iv.hex()))
-		self.log('DES_KEY ({}): {}'.format(len(self.des_key), self.des_key.hex()))
-		self.log('AES_KEY ({}): {}'.format(len(self.aes_key), self.aes_key.hex()))
+		self.log('IV ({}): {}'.format(len(self.iv), codecs.encode(self.iv, 'hex')))
+		self.log('DES_KEY ({}): {}'.format(len(self.des_key), codecs.encode(self.des_key, 'hex')))
+		self.log('AES_KEY ({}): {}'.format(len(self.aes_key), codecs.encode(self.aes_key, 'hex')))
+
+		

@@ -1,18 +1,15 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 from pypykatz.lsadecryptor.package_commons import *
 
 class MsvTemplate(PackageTemplate):
 	def __init__(self):
-		super().__init__('Msv')
+		super(MsvTemplate, self).__init__('Msv')
 		
 		self.signature = None
 		self.first_entry_offset = None
@@ -246,11 +243,11 @@ class KIWI_MSV1_0_PRIMARY_CREDENTIAL_ENC:
 		
 class PKIWI_MSV1_0_PRIMARY_CREDENTIAL_ENC(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_MSV1_0_PRIMARY_CREDENTIAL_ENC)
+		super(PKIWI_MSV1_0_PRIMARY_CREDENTIAL_ENC, self).__init__(reader, KIWI_MSV1_0_PRIMARY_CREDENTIAL_ENC)
 
 class PKIWI_MSV1_0_CREDENTIAL_LIST(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, PKIWI_MSV1_0_CREDENTIAL_LIST)
+		super(PKIWI_MSV1_0_CREDENTIAL_LIST, self).__init__(reader, PKIWI_MSV1_0_CREDENTIAL_LIST)
 
 class KIWI_MSV1_0_CREDENTIAL_LIST:
 	def __init__(self, reader):
@@ -262,11 +259,11 @@ class KIWI_MSV1_0_CREDENTIAL_LIST:
 
 class PKIWI_MSV1_0_CREDENTIAL_LIST(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_MSV1_0_CREDENTIAL_LIST)
+		super(PKIWI_MSV1_0_CREDENTIAL_LIST, self).__init__(reader, KIWI_MSV1_0_CREDENTIAL_LIST)
 		
 class PKIWI_MSV1_0_LIST_51(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_MSV1_0_LIST_51)
+		super(PKIWI_MSV1_0_LIST_51, self).__init__(reader, KIWI_MSV1_0_LIST_51)
 		
 class KIWI_MSV1_0_LIST_51:
 	def __init__(self, reader):
@@ -281,7 +278,7 @@ class KIWI_MSV1_0_LIST_51:
 		self.LogonType = ULONG(reader).value
 		self.Session = ULONG(reader).value
 		reader.align()
-		self.LogonTime = int.from_bytes(reader.read(8), byteorder = 'little', signed = False) #autoalign x86
+		self.LogonTime = struct.unpack("<Q", reader.read(8))[0] #autoalign x86
 		self.LogonServer = LSA_UNICODE_STRING(reader)
 		self.Credentials_list_ptr = PKIWI_MSV1_0_CREDENTIAL_LIST(reader)
 		self.unk19 = ULONG(reader).value
@@ -295,7 +292,7 @@ class KIWI_MSV1_0_LIST_51:
 
 class PKIWI_MSV1_0_LIST_52(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_MSV1_0_LIST_52)
+		super(PKIWI_MSV1_0_LIST_52, self).__init__(reader, KIWI_MSV1_0_LIST_52)
 		
 class KIWI_MSV1_0_LIST_52:
 	def __init__(self, reader):
@@ -310,7 +307,7 @@ class KIWI_MSV1_0_LIST_52:
 		self.LogonType = ULONG(reader).value
 		self.Session = ULONG(reader).value
 		reader.align()
-		self.LogonTime = int.from_bytes(reader.read(8), byteorder = 'little', signed = False) #autoalign x86
+		self.LogonTime = struct.unpack("<Q", reader.read(8))[0] #autoalign x86
 		self.LogonServer = LSA_UNICODE_STRING(reader)
 		self.Credentials_list_ptr = PKIWI_MSV1_0_CREDENTIAL_LIST(reader)
 		self.unk19 = ULONG(reader).value
@@ -323,7 +320,7 @@ class KIWI_MSV1_0_LIST_52:
 
 class PKIWI_MSV1_0_LIST_60(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_MSV1_0_LIST_60)
+		super(PKIWI_MSV1_0_LIST_60, self).__init__(reader, KIWI_MSV1_0_LIST_60)
 
 class KIWI_MSV1_0_LIST_60:
 	def __init__(self, reader):
@@ -352,8 +349,8 @@ class KIWI_MSV1_0_LIST_60:
 		reader.align()
 		self.unk13 = PVOID(reader).value
 		reader.align()
-		self.LocallyUniqueIdentifier = int.from_bytes(reader.read(8), byteorder = 'little', signed = False)
-		self.SecondaryLocallyUniqueIdentifier = int.from_bytes(reader.read(8), byteorder = 'little', signed = False)
+		self.LocallyUniqueIdentifier = struct.unpack("<Q", reader.read(8))[0]
+		self.SecondaryLocallyUniqueIdentifier = struct.unpack("<Q", reader.read(8))[0]
 		reader.align()
 		self.UserName = LSA_UNICODE_STRING(reader)
 		self.Domaine = LSA_UNICODE_STRING(reader)
@@ -363,7 +360,7 @@ class KIWI_MSV1_0_LIST_60:
 		self.LogonType = ULONG(reader).value
 		self.Session = ULONG(reader).value
 		reader.align(8)
-		self.LogonTime = int.from_bytes(reader.read(8), byteorder = 'little', signed = False) #autoalign x86
+		self.LogonTime = struct.unpack("<Q", reader.read(8))[0] #autoalign x86
 		self.LogonServer = LSA_UNICODE_STRING(reader)
 		self.Credentials_list_ptr = PKIWI_MSV1_0_CREDENTIAL_LIST(reader)
 		self.unk19 = ULONG(reader).value
@@ -377,7 +374,7 @@ class KIWI_MSV1_0_LIST_60:
 
 class PKIWI_MSV1_0_LIST_61(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_MSV1_0_LIST_61)
+		super(PKIWI_MSV1_0_LIST_61, self).__init__(reader, KIWI_MSV1_0_LIST_61)
 		
 class KIWI_MSV1_0_LIST_61:
 	def __init__(self, reader):
@@ -410,7 +407,7 @@ class KIWI_MSV1_0_LIST_61:
 		self.LogonType = ULONG(reader).value
 		self.Session = ULONG(reader).value
 		reader.align(8)
-		self.LogonTime = int.from_bytes(reader.read(8), byteorder = 'little', signed = False) #autoalign x86
+		self.LogonTime = struct.unpack("<Q", reader.read(8))[0] #autoalign x86
 		self.LogonServer = LSA_UNICODE_STRING(reader)
 		self.Credentials_list_ptr = PKIWI_MSV1_0_CREDENTIAL_LIST(reader)
 		self.unk19 = PVOID(reader).value
@@ -422,7 +419,7 @@ class KIWI_MSV1_0_LIST_61:
 
 class PKIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ)	
+		super(PKIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ, self).__init__(reader, KIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ)	
 		
 class KIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ:
 	def __init__(self, reader):
@@ -456,7 +453,7 @@ class KIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ:
 		self.LogonType = ULONG(reader).value
 		self.Session = ULONG(reader).value
 		reader.align(8)
-		self.LogonTime = int.from_bytes(reader.read(8), byteorder = 'little', signed = False) #autoalign x86
+		self.LogonTime = struct.unpack("<Q", reader.read(8))[0] #autoalign x86
 		self.LogonServer = LSA_UNICODE_STRING(reader)
 		self.Credentials_list_ptr = PKIWI_MSV1_0_CREDENTIAL_LIST(reader)
 		self.unk19 = PVOID(reader).value
@@ -468,7 +465,7 @@ class KIWI_MSV1_0_LIST_61_ANTI_MIMIKATZ:
 
 class PKIWI_MSV1_0_LIST_62(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_MSV1_0_LIST_62)	
+		super(PKIWI_MSV1_0_LIST_62, self).__init__(reader, KIWI_MSV1_0_LIST_62)	
 		
 class KIWI_MSV1_0_LIST_62:
 	def __init__(self, reader):
@@ -500,7 +497,7 @@ class KIWI_MSV1_0_LIST_62:
 		self.unk18 = PVOID(reader).value
 		self.Session = ULONG(reader).value
 		reader.align()
-		self.LogonTime = int.from_bytes(reader.read(8), byteorder = 'little', signed = False) #autoalign x86
+		self.LogonTime = struct.unpack("<Q", reader.read(8))[0] #autoalign x86
 		self.LogonServer = LSA_UNICODE_STRING(reader)
 		self.Credentials_list_ptr = PKIWI_MSV1_0_CREDENTIAL_LIST(reader)
 		self.unk19 = PVOID(reader).value
@@ -519,7 +516,7 @@ class KIWI_MSV1_0_LIST_62:
 		
 class PKIWI_MSV1_0_LIST_63(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_MSV1_0_LIST_63)
+		super(PKIWI_MSV1_0_LIST_63, self).__init__(reader, KIWI_MSV1_0_LIST_63)
 		
 class KIWI_MSV1_0_LIST_63:
 	def __init__(self, reader):
@@ -557,7 +554,7 @@ class KIWI_MSV1_0_LIST_63:
 		self.unk18 = PVOID(reader).value
 		self.Session = ULONG(reader).value
 		reader.align(8)
-		self.LogonTime =  int.from_bytes(reader.read(8), byteorder = 'little', signed = False) #autoalign x86
+		self.LogonTime =  struct.unpack("<Q", reader.read(8))[0] #autoalign x86
 		self.LogonServer = LSA_UNICODE_STRING(reader)
 		self.Credentials_list_ptr = PKIWI_MSV1_0_CREDENTIAL_LIST(reader)
 		self.unk19 = PVOID(reader).value

@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 
@@ -13,7 +10,7 @@ from pypykatz.lsadecryptor.package_commons import *
 
 class TspkgTemplate(PackageTemplate):
 	def __init__(self):
-		super().__init__('Tspkg')
+		super(TspkgTemplate, self).__init__('Tspkg')
 		self.signature = None
 		self.avl_offset = None
 		self.credential_struct = None
@@ -67,7 +64,7 @@ class TspkgTemplate(PackageTemplate):
 
 class PKIWI_TS_PRIMARY_CREDENTIAL(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_TS_PRIMARY_CREDENTIAL)
+		super(PKIWI_TS_PRIMARY_CREDENTIAL, self).__init__(reader, KIWI_TS_PRIMARY_CREDENTIAL)
 	
 class KIWI_TS_PRIMARY_CREDENTIAL:
 	def __init__(self, reader):

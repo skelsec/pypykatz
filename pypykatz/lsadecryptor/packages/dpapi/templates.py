@@ -1,18 +1,15 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
 from pypykatz.lsadecryptor.package_commons import *
 
 class DpapiTemplate(PackageTemplate):
 	def __init__(self):
-		super().__init__('Dpapi')
+		super(DpapiTemplate, self).__init__('Dpapi')
 		self.signature = None
 		self.first_entry_offset = None
 		self.list_entry = None
@@ -79,7 +76,7 @@ class DpapiTemplate(PackageTemplate):
 
 class PKIWI_MASTERKEY_CACHE_ENTRY(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_MASTERKEY_CACHE_ENTRY)
+		super(PKIWI_MASTERKEY_CACHE_ENTRY, self).__init__(reader, KIWI_MASTERKEY_CACHE_ENTRY)
 
 		
 class KIWI_MASTERKEY_CACHE_ENTRY:

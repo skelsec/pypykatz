@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 import logging
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
@@ -21,7 +21,7 @@ class Logger:
 			else:
 				logging.log(loglevel, '[%s] [%s]    %s' % (self.package_name, self.module_name, line))
 
-class PackageTemplate:
+class PackageTemplate(object):
 	def __init__(self, package_name, sysinfo = None):
 		self.logger = Logger('template', package_name, sysinfo)
 		self.package_name = package_name
@@ -43,7 +43,7 @@ class PackageTemplate:
 		pass
 		
 
-class PackageDecryptor:
+class PackageDecryptor(object):
 	def __init__(self, package_name, lsa_decryptor, sysinfo, reader):
 		self.logger = Logger('decryptor', package_name, sysinfo)
 		self.package_name = package_name
