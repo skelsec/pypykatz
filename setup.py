@@ -27,16 +27,16 @@ setup(
 	description="Python implementation of Mimikatz",
 
 	# long_description=open("README.txt").read(),
-	python_requires='>=3.6',
+	python_requires='>=2.7',
 	classifiers=(
 		"Programming Language :: Python :: 3.6",
 		"License :: OSI Approved :: MIT License",
 		"Operating System :: OS Independent",
 	),
-	install_requires=[
-		'minidump>=0.0.6',
-		'minikerberos>=0.0.4',
-	],
+	#install_requires=[
+	#	'minidump>=0.0.6',
+	#	'minikerberos>=0.0.4',
+	#],
 	
 	entry_points={
 		'console_scripts': [
