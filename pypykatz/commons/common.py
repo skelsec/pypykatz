@@ -188,7 +188,7 @@ class GenericReader:
 		
 		
 		
-class WindowsBuild(enum.Enum):
+class WindowsBuild(enum.IntEnum):
 	WIN_XP  = 2600
 	WIN_2K3 = 3790
 	WIN_VISTA = 6000
@@ -200,7 +200,7 @@ class WindowsBuild(enum.Enum):
 	WIN_10_1607 = 14393
 	WIN_10_1707 = 15063
 	
-class WindowsMinBuild(enum.Enum):
+class WindowsMinBuild(enum.IntEnum):
 	WIN_XP = 2500
 	WIN_2K3 = 3000
 	WIN_VISTA = 5000

@@ -10,7 +10,7 @@ from ctypes.wintypes import BYTE, WORD, DWORD, WCHAR
 from .kernel32 import *
 from .psapi import *
 
-class WindowsMinBuild(enum.Enum):
+class WindowsMinBuild(enum.IntEnum):
 	WIN_XP = 2500
 	WIN_2K3 = 3000
 	WIN_VISTA = 5000
