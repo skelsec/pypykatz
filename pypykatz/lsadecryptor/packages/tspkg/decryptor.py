@@ -62,13 +62,13 @@ class TspkgDecryptor(PackageDecryptor):
 			self.reader.move(ptr)
 			credential_struct = self.decryptor_template.credential_struct(self.reader)
 			primary_credential = credential_struct.pTsPrimary.read(self.reader)
-			
-			c = TspkgCredential()
-			c.luid = credential_struct.LocallyUniqueIdentifier
-			c.username = primary_credential.credentials.UserName.read_string(self.reader)
-			c.domainname = primary_credential.credentials.Domaine.read_string(self.reader)
-			if primary_credential.credentials.Password.Length != 0:
-				enc_data = primary_credential.credentials.Password.read_maxdata(self.reader)
-				c.password = self.decrypt_password(enc_data)					
-			
-			self.credentials.append(c)
+			if not primary_credential is None:
+				c = TspkgCredential()
+				c.luid = credential_struct.LocallyUniqueIdentifier
+				c.username = primary_credential.credentials.UserName.read_string(self.reader)
+				c.domainname = primary_credential.credentials.Domaine.read_string(self.reader)
+				if primary_credential.credentials.Password.Length != 0:
+					enc_data = primary_credential.credentials.Password.read_maxdata(self.reader)
+					c.password = self.decrypt_password(enc_data)					
+				
+				self.credentials.append(c)
