@@ -64,7 +64,7 @@ class Page:
 		p.BaseAddress = page_info.BaseAddress
 		p.AllocationBase  = page_info.AllocationBase
 		p.AllocationProtect  = page_info.AllocationProtect
-		p.RegionSize  = page_info.RegionSize
+		p.RegionSize  = min(page_info.RegionSize, 100*1024*1024) # TODO: need this currently to stop infinite search
 		p.EndAddress  = page_info.BaseAddress + page_info.RegionSize
 		return p
 		

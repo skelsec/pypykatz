@@ -271,7 +271,7 @@ class UniversalEncoder(json.JSONEncoder):
 
 class KatzSystemInfo:
 	def __init__(self):
-		self.arhcitecture = None
+		self.architecture = None
 		self.buildnumber = None
 		self.msv_dll_timestamp = None #this is needed :(
 		self.operating_system = None
@@ -308,6 +308,16 @@ class KatzSystemInfo:
 		for module in minidump.modules.modules:
 			if module.name.find('lsasrv.dll') != -1:
 				sysinfo.msv_dll_timestamp = module.timestamp
+	
+		return sysinfo
+
+	@staticmethod
+	def from_rekallreader(rekallreader):
+		sysinfo = KatzSystemInfo()
+		sysinfo.architecture = rekallreader.processor_architecture		
+		sysinfo.operating_system = None
+		sysinfo.buildnumber = rekallreader.BuildNumber
+		sysinfo.msv_dll_timestamp = rekallreader.msv_dll_timestamp
 	
 		return sysinfo
 	

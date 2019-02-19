@@ -32,17 +32,21 @@ def main():
 	subparsers.required = True
 	subparsers.dest = 'command'
 	
-	minidump_group = subparsers.add_parser('minidump', help='List all tickets in the file')
+	minidump_group = subparsers.add_parser('minidump', help='Get secrets from LSASS minidump file')
 	minidump_group.add_argument('minidumpfile', help='path to the minidump file or a folder (if -r is set)')
 	minidump_group.add_argument('-r', '--recursive', action='store_true', help = 'Recursive parsing')
 	minidump_group.add_argument('-d', '--directory', action='store_true', help = 'Parse all dump files in a folder')
 	
 	
-	live_group = subparsers.add_parser('live', help='List all tickets in the file')
+	live_group = subparsers.add_parser('live', help='Get secrets from live machine')
 	live_subparsers = live_group.add_subparsers(help = 'module')
 	live_subparsers.required = True
 	live_subparsers.dest = 'module'
 	live_subparser_lsa_group = live_subparsers.add_parser('lsa', help='List all tickets in the file')
+	
+	rekall_group = subparsers.add_parser('rekall', help='Get secrets from memory dump')
+	rekall_group.add_argument('memoryfile', help='path to the memory dump file')
+	rekall_group.add_argument('-t','--timestamp_override', type=int, help='enforces msv timestamp override (0=normal, 1=anit_mimikatz)')
 	
 	####### PARSING ARGUMENTS
 	
@@ -62,7 +66,6 @@ def main():
 	results = {}
 	files_with_error = []
 	
-	
 	###### Live 
 	if args.command == 'live':
 		if args.module == 'lsa':
@@ -78,9 +81,13 @@ def main():
 					print('Exception while dumping LSA credentials from memory.')
 					traceback.print_exc()
 					pass
-		
+	###### Rekall
+	elif args.command == 'rekall':
+		mimi = pypykatz.parse_memory_dump_rekall(args.memoryfile, args.timestamp_override)
+		results['rekall'] = mimi
+	
 	###### Minidump
-	elif args.command == 'minidump':		
+	elif args.command == 'minidump':
 		if args.directory:
 			dir_fullpath = os.path.abspath(args.minidumpfile)
 			file_pattern = '*.dmp'

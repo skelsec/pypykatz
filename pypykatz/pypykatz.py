@@ -1,9 +1,18 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
+
+import platform
 from .commons.common import *
 from .lsadecryptor import *
 
 from minidump.minidumpfile import MinidumpFile
 from minikerberos.ccache import CCACHE
-from .commons.readers.local.live_reader import LiveReader
+
+if platform.system() == 'Windows':
+	from .commons.readers.local.live_reader import LiveReader
 
 class pypykatz:
 	"""mimikatz offline"""
@@ -42,6 +51,24 @@ class pypykatz:
 		minidump = MinidumpFile.parse(filename)
 		reader = minidump.get_reader().get_buffered_reader()
 		sysinfo = KatzSystemInfo.from_minidump(minidump)
+		mimi = pypykatz(reader, sysinfo)
+		mimi.start()
+		return mimi
+
+	@staticmethod
+	def parse_memory_dump_rekall(filename, override_timestamp = None):
+		from pypykatz.commons.readers.rekall.rekallreader import RekallReader
+		reader = RekallReader.from_memory_file(filename, override_timestamp)
+		sysinfo = KatzSystemInfo.from_rekallreader(reader)
+		mimi = pypykatz(reader, sysinfo)
+		mimi.start()
+		return mimi
+
+	@staticmethod
+	def go_rekall(session, override_timestamp = None):
+		from pypykatz.commons.readers.rekall.rekallreader import RekallReader
+		reader = RekallReader.from_session(session, override_timestamp)
+		sysinfo = KatzSystemInfo.from_rekallreader(reader)
 		mimi = pypykatz(reader, sysinfo)
 		mimi.start()
 		return mimi

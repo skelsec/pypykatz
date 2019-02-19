@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
 from asn1crypto import core
 from pypykatz.commons.filetime import *
 from pypykatz.commons.common import *

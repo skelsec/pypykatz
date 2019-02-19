@@ -24,7 +24,7 @@ class MsvTemplate(PackageTemplate):
 		self.decrypted_credential_struct = None
 	
 	@staticmethod
-	def get_template(sysinfo):		
+	def get_template(sysinfo):
 		template = MsvTemplate()
 		template.encrypted_credentials_list_struct = KIWI_MSV1_0_CREDENTIAL_LIST
 		template.log_template('encrypted_credentials_list_struct', template.encrypted_credentials_list_struct)

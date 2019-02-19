@@ -5,7 +5,7 @@ setup(
 	name="pypykatz",
 
 	# Version number (initial):
-	version="0.0.3",
+	version="0.0.4",
 
 	# Application author details:
 	author="Tamas Jos",
@@ -34,8 +34,8 @@ setup(
 		"Operating System :: OS Independent",
 	),
 	install_requires=[
-		'minidump==0.0.6',
-		'minikerberos==0.0.4',
+		'minidump>=0.0.6',
+		'minikerberos>=0.0.4',
 	],
 	
 	entry_points={

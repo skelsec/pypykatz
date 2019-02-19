@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
+
 from abc import ABC, abstractmethod
 import logging
 from pypykatz.commons.common import *
@@ -158,8 +164,13 @@ class PackageDecryptor:
 				entry = entry_ptr.read(self.reader, override_ptr)
 			else:
 				entry = entry_ptr.read(self.reader)
+
+			if not entry:
+				break
 				
 			callback(entry)
+
+
 			
 			max_walk -= 1
 			self.log('%s next ptr: %x' % (entry.Flink.finaltype.__name__ if not override_ptr else override_ptr.__name__ , entry.Flink.value))
