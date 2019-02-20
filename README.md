@@ -99,6 +99,32 @@ Example:
 ```
 pypykatz.py minidump <folder_with_folder_of_dumpfiles> -d -r
 ```  
+### Rekall command options 
+#### Timestamp override
+Reason for this parameter to exist: In order to choose the correct structure for parsing we need the tiomestamp info of the msv dll file. Rekall sadly doesnt always have this info for some reason, therefore the parsing may be failing.  
+If the parsing is failing this could solve the issue.  
+  
+Parameter: ```-t```  
+Values: ```0``` or ```1```  
+Example:  
+```
+pypykatz.py rekall <momeory_dump_file> -t 0
+```  
+
+## Rekall usage
+There are two ways to use rekall-based memory parsing.  
+### Via the ```pypykatz rekall``` command
+You will need to specify the memory file to parse.  
+  
+### Via rekall command line
+IMPORTANT NOTICES: 
+1. If you are just now deciding to install ```rekall``` please note: it MUST be run in a virtualenv, and you will need to install pypykatz in the same virtualenv!  
+2. rekall command line is not suitable to show all information acquired from the memory, you should use the ```out_file``` and ```kerberos_dir``` command switches!     
+   
+You can find a rekall plugin file named ```pypykatz_rekall.py``` in the ```plugins``` folder of pypykatz.  
+You will need to copy it in rekall's ```plugins/windows``` folder, and rename it to ```pypykatz.py```.  
+After this modify the ```__init__.py``` file located the same folder and add the following line at the end: ```from rekall.plugins.windows import pypykatz```  
+If everything is okay you can use the ```pypykatz``` command from the ```rekall``` command line directly.
 
 # HELP WANTED
 If you want to help me getting this project into a stable release you can send mindiumps of the lsass.exe process to the following link: https://pypykatz.ocloud.de/index.php/s/NTErmGJxA42irfj  
