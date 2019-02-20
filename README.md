@@ -1,5 +1,5 @@
 # pypykatz
-Mimikatz implementation in pure Python. -offline minidump parsing currently-  
+Mimikatz implementation in pure Python. -optimized for offline persing, but has options for live credential dumping as well-  
 Runs on all OS's which support python>=3.6
 
 ## Installing
