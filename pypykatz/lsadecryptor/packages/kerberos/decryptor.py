@@ -4,7 +4,6 @@
 #  Tamas Jos (@skelsec)
 #
 import io
-import logging
 
 from pypykatz.commons.common import *
 from pypykatz.commons.filetime import *

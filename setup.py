@@ -5,7 +5,7 @@ setup(
 	name="pypykatz",
 
 	# Version number (initial):
-	version="0.0.5",
+	version="0.0.6",
 
 	# Application author details:
 	author="Tamas Jos",

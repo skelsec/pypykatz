@@ -4,7 +4,6 @@
 #  Tamas Jos (@skelsec)
 #
 import io
-import logging
 from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *
@@ -56,6 +55,10 @@ class WdigestTemplate(PackageTemplate):
 			
 			elif sysinfo.buildnumber >= WindowsMinBuild.WIN_10.value:
 				template.signature = b'\x74\x15\x8b\x0a\x39\x4e\x10'
+				template.first_entry_offset = -6
+				
+			else:
+				template.signature = b'\x74\x15\x8b\x17\x39\x56\x10'
 				template.first_entry_offset = -6
 		
 		else:

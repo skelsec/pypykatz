@@ -5,7 +5,6 @@
 #
 import io
 import json
-import logging
 from pypykatz.commons.common import *
 from pypykatz.commons.filetime import *
 from pypykatz.commons.win_datatypes import *
@@ -296,24 +295,25 @@ class MsvDecryptor(PackageDecryptor):
 		dec_data = self.decrypt_password(encrypted_credential_data, bytes_expected = True)
 		self.log('%s: \n%s' % (self.decryptor_template.decrypted_credential_struct.__name__, hexdump(dec_data)))
 			
+		struct_reader = GenericReader(dec_data, self.sysinfo.architecture)
 		if len(dec_data) == MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC.size and dec_data[4:8] == b'\xcc\xcc\xcc\xcc':
-			creds_struct = MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC(GenericReader(dec_data, self.sysinfo.architecture))
+			creds_struct = MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC(struct_reader)
 		else:
-			creds_struct = self.decryptor_template.decrypted_credential_struct(GenericReader(dec_data, self.sysinfo.architecture))
+			creds_struct = self.decryptor_template.decrypted_credential_struct(struct_reader)
 		
 		
 		cred = MsvCredential()
 		
 		if creds_struct.UserName:
 			try:
-				cred.username = creds_struct.UserName.read_string(reader)
+				cred.username = creds_struct.UserName.read_string(struct_reader)
 			except Exception as e:
-				self.log('Failed to get username')
+				self.log('Failed to get username, reason : %s' % str(e))
 		if creds_struct.LogonDomainName:
 			try:
-				cred.domainname = creds_struct.LogonDomainName.read_string(reader)
+				cred.domainname = creds_struct.LogonDomainName.read_string(struct_reader)
 			except Exception as e:
-				self.log('Failed to get username')
+				self.log('Failed to get domainname, reason : %s' % str(e))
 				
 		cred.NThash = creds_struct.NtOwfPassword
 		

@@ -4,7 +4,7 @@
 #  Tamas Jos (@skelsec)
 #
 import io
-import logging
+import json
 import hashlib
 from pypykatz.lsadecryptor.package_commons import *
 

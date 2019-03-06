@@ -4,7 +4,6 @@
 #  Tamas Jos (@skelsec)
 #
 import io
-import logging
 from minidump.win_datatypes import *
 from pypykatz.commons.common import *
 from pypykatz.commons.win_datatypes import *

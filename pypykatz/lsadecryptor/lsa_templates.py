@@ -20,8 +20,6 @@ class LsaTemplate(PackageTemplate):
 	@staticmethod
 	def get_template(sysinfo):
 		template = LsaTemplate()
-		#identify the OS
-		logging.debug('Buildnumber: %s' % sysinfo.buildnumber)
 		
 		if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:
 			raise Exception("Maybe implemented later")
@@ -31,7 +29,6 @@ class LsaTemplate(PackageTemplate):
 			
 		elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_7.value:
 			if sysinfo.architecture == KatzSystemArchitecture.X64:
-				logging.debug('Using template for Windows Vista x64')
 				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x83\x64\x24\x30\x00\x44\x8b\x4c\x24\x48\x48\x8b\x0d'
@@ -44,10 +41,7 @@ class LsaTemplate(PackageTemplate):
 				template.key_struct = KIWI_BCRYPT_KEY
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 				
-				
-				
 			elif sysinfo.architecture == KatzSystemArchitecture.X86:
-				logging.debug('Using template for Windows Vista x86')
 				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x6a\x02\x6a\x10\x68'
@@ -65,7 +59,6 @@ class LsaTemplate(PackageTemplate):
 		elif WindowsMinBuild.WIN_7.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
 			#windows 7
 			if sysinfo.architecture == KatzSystemArchitecture.X64:
-				logging.debug('Using template for Windows 7 x64')
 				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x83\x64\x24\x30\x00\x44\x8b\x4c\x24\x48\x48\x8b\x0d'
@@ -79,8 +72,6 @@ class LsaTemplate(PackageTemplate):
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 			
 			elif sysinfo.architecture == KatzSystemArchitecture.X86:
-				logging.debug('Using template for Windows 7 x86')
-				logging.warning('This needs testing!!')
 				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x6a\x02\x6a\x10\x68'
@@ -97,7 +88,6 @@ class LsaTemplate(PackageTemplate):
 			
 		elif WindowsMinBuild.WIN_8.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_BLUE.value:
 			if sysinfo.architecture == KatzSystemArchitecture.X64:
-				logging.debug('Using template for Windows 8 x64')
 				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x83\x64\x24\x30\x00\x44\x8b\x4d\xd8\x48\x8b\x0d'
@@ -111,8 +101,6 @@ class LsaTemplate(PackageTemplate):
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 				
 			elif sysinfo.architecture == KatzSystemArchitecture.X86:
-				logging.debug('Using template for Windows 8 x86')
-				logging.warning('This needs testing!!')
 				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x6a\x02\x6a\x10\x68'
@@ -130,7 +118,6 @@ class LsaTemplate(PackageTemplate):
 		elif WindowsMinBuild.WIN_BLUE.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_10.value:
 			#Windows 8.1
 			if sysinfo.architecture == KatzSystemArchitecture.X64:
-				logging.debug('Using template for Windows 8.1 x64')
 				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x83\x64\x24\x30\x00\x44\x8b\x4d\xd8\x48\x8b\x0d'
@@ -144,7 +131,6 @@ class LsaTemplate(PackageTemplate):
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 			
 			elif sysinfo.architecture == KatzSystemArchitecture.X86:
-				logging.debug('Using template for Windows 8.1 x86')
 				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x6a\x02\x6a\x10\x68'
@@ -163,7 +149,6 @@ class LsaTemplate(PackageTemplate):
 		#elif WindowsMinBuild.WIN_10.value <= sysinfo.buildnumber <= WindowsBuild.WIN_10_1507.value:
 		elif WindowsMinBuild.WIN_10.value <= sysinfo.buildnumber:
 			if sysinfo.architecture == KatzSystemArchitecture.X64:
-				logging.debug('Using template for Windows 10 x64')
 				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x83\x64\x24\x30\x00\x48\x8d\x45\xe0\x44\x8b\x4d\xd8\x48\x8d\x15'
@@ -177,7 +162,6 @@ class LsaTemplate(PackageTemplate):
 				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 				
 			elif sysinfo.architecture == KatzSystemArchitecture.X86:
-				logging.debug('Using template for Windows 10 x86')
 				
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x6a\x02\x6a\x10\x68'

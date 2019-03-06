@@ -14,18 +14,19 @@ class Logger:
 		self.package_name = package_name
 		self.module_name = module_name
 		self.sysinfo = sysinfo
+		self.logger = logging.getLogger('pypykatz')
 		
 	def get_level(self):
-		return logging.getLogger().getEffectiveLevel()
+		return self.logger.getEffectiveLevel()
 		
 	def log(self, msg, loglevel = 1):
 		first = True
 		for line in msg.split('\n'):
 			if first == True:
-				logging.log(loglevel, '[%s] [%s] %s' % (self.package_name, self.module_name, line))
+				self.logger.log(loglevel, '[%s] [%s] %s' % (self.package_name, self.module_name, line))
 				first = False
 			else:
-				logging.log(loglevel, '[%s] [%s]    %s' % (self.package_name, self.module_name, line))
+				self.logger.log(loglevel, '[%s] [%s]    %s' % (self.package_name, self.module_name, line))
 
 class PackageTemplate:
 	def __init__(self, package_name, sysinfo = None):
@@ -36,7 +37,7 @@ class PackageTemplate:
 	def log(self, msg, loglevel = 6):
 		self.logger.log(loglevel, '%s' % msg)
 	
-	def log_template(self, struct_var_name, struct_template_obj, loglevel = 1):
+	def log_template(self, struct_var_name, struct_template_obj, loglevel = 6):
 		""""
 		Generic logging function to show which template was selected for which structure
 		"""
