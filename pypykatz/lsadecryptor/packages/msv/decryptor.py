@@ -233,7 +233,7 @@ class MsvDecryptor(PackageDecryptor):
 		position = self.find_signature('lsasrv.dll',self.decryptor_template.signature)
 
 		#getting logon session count
-		if self.sysinfo.architecture == KatzSystemArchitecture.X64:
+		if self.sysinfo.architecture == KatzSystemArchitecture.X64 and self.sysinfo.buildnumber > WindowsMinBuild.WIN_BLUE.value:
 			ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.offset2)
 			self.reader.move(ptr_entry_loc)
 			self.logon_session_count = int.from_bytes(self.reader.read(1), byteorder = 'big', signed = False)

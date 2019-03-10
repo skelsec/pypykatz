@@ -156,6 +156,10 @@ class PackageDecryptor:
 		override_ptr = if this parameter is set the pointer will be resolved as if it would be pointing to this structure
 		"""
 		
+		#if entry_ptr.value == 0:
+		#	self.log('walk_list called with a NULL pointer! This could mean that parsing is failing, double check this!')
+		#	return
+		
 		entries_seen = {}
 		entries_seen[entry_ptr.location] = 1
 		max_walk = max_walk

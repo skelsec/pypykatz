@@ -137,7 +137,7 @@ class MsvTemplate(PackageTemplate):
 				template.offset2 = -4
 				
 			elif WindowsMinBuild.WIN_BLUE.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value:
-				template.signature = b'\x8b\x4d\xe4\x8b\x45\xf4\x89\x75\xe8\x89\x01\x85\xff\x74'
+				template.signature = b'\x8b\x4d\xe4\x8b\x45\xf4\x89\x75\xe8\x89\x01\x85\xff\x74'				
 				template.first_entry_offset = 16
 				template.offset2 = -4
 			
