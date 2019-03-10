@@ -15,7 +15,6 @@ if platform.system() == 'Windows':
 	from .commons.readers.local.live_reader import LiveReader
 
 class pypykatz:
-	"""mimikatz offline"""
 	def __init__(self, reader, sysinfo):
 		self.reader = reader
 		self.sysinfo = sysinfo
@@ -67,9 +66,9 @@ class pypykatz:
 		return mimi
 
 	@staticmethod
-	def go_rekall(session, override_timestamp = None):
+	def go_rekall(session, override_timestamp = None, buildnumber = None):
 		from pypykatz.commons.readers.rekall.rekallreader import RekallReader
-		reader = RekallReader.from_session(session, override_timestamp)
+		reader = RekallReader.from_session(session, override_timestamp, buildnumber)
 		sysinfo = KatzSystemInfo.from_rekallreader(reader)
 		mimi = pypykatz(reader, sysinfo)
 		mimi.start()
@@ -79,8 +78,8 @@ class pypykatz:
 		"""
 		In case of error, please attach this to the issues page
 		"""
-		self.logger.debug('===== BASIC INFO =====')
-		self.logger.debug('CPU arch: %s' % self.sysinfo.architecture)
+		self.logger.debug('===== BASIC INFO. SUBMIT THIS IF THERE IS AN ISSUE =====')
+		self.logger.debug('CPU arch: %s' % self.sysinfo.architecture.name)
 		self.logger.debug('OS: %s' % self.sysinfo.operating_system)
 		self.logger.debug('BuildNumber: %s' % self.sysinfo.buildnumber)
 		self.logger.debug('MajorVersion: %s ' % self.sysinfo.major_version)

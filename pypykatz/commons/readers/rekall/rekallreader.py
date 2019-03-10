@@ -3,18 +3,16 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
+# Kudos:
+#  Buherator (@buherator) for helping me navigate the Peb
+#
 
 import logging
 
 from pypykatz.pypykatz import pypykatz
 from pypykatz.commons.common import *
 
-from rekall import session
-from rekall import plugins
-from rekall import scan
-from rekall_lib import utils
-from rekall.plugins.windows.registry import registry
-
+from . import *
 
 class RekallModule:
 	def __init__(self):
@@ -33,12 +31,12 @@ class RekallModule:
 		return rm
 
 class RekallReader:
-	def __init__(self, timestamp_override = None):
+	def __init__(self, timestamp_override = None, buildnumber = None):
 		"""
 		Timestamp override will change the msv_dll_timestamp value.
 		If None > no change
-		If 0 > it disables the ANIT_MIMIKATZ structs
-		If 1 > it enforces to use the ANTI_MIMIKATZ structs
+		If 0 > it disables the ANIT_MIMIKATZ structs on certain builds
+		If 1 > it enforces to use the ANTI_MIMIKATZ structs on certain builds
 		"""
 		
 		self.session = None
@@ -48,10 +46,10 @@ class RekallReader:
 		self.cur_pos = None
 		self.modules = {}
 		
-
+		self.timestamp_override = timestamp_override
 		#needed for pypykatz
 		self.processor_architecture = None
-		self.BuildNumber = None
+		self.BuildNumber = buildnumber
 		self.msv_dll_timestamp = None #a special place in our hearts....
 
 		
@@ -60,45 +58,41 @@ class RekallReader:
 		self.search_lsass()
 		self.task_as = self.lsass_task.get_process_address_space()
 		self.processor_architecture = self.get_arch()
-		self.BuildNumber = self.get_buildnumber()
+		if not self.BuildNumber:
+			self.BuildNumber = self.get_buildnumber()
+		
+		if self.timestamp_override:
+			if self.timestamp_override == 0:
+				sysinfo.msv_dll_timestamp = 0x53480000 - 1
+			elif self.timestamp_override == 1:
+				sysinfo.msv_dll_timestamp = 0x53480000 + 1
+		
 		self.load_modules()
 
 	@staticmethod
-	def from_memory_file(memory_file, timestamp_override = None):
+	def from_memory_file(memory_file, timestamp_override = None, buildnumber = None):
 		logging.info('Invoking recall on file %s' % memory_file)
 		rsession = session.Session(
 			filename = memory_file,
-			autodetect=['rsds'],
-			logger = logging.getLogger(),
-			autodetect_scan_length=18446744073709551616,
+			autodetect=['rsds', 'pe', 'windows_kernel_file'],
+			logger = logging.getLogger('pypykatz'),
+			autodetect_build_local = 'full',
+			autodetect_scan_length=10*1024*1024*1024,
 			profile_path=["https://github.com/google/rekall-profiles/raw/master", "http://profiles.rekall-forensic.com"]
 			)
 
-		return RekallReader.from_session(rsession)
+		return RekallReader.from_session(rsession, timestamp_override, buildnumber)
 
 
 	@staticmethod
-	def from_session(session, timestamp_override = None):
-		rr = RekallReader()
+	def from_session(session, timestamp_override = None, buildnumber = None):
+		rr = RekallReader(timestamp_override, buildnumber)
 		rr.session = session
 		rr.setup()
 		return rr
 
 	def get_buildnumber(self):
-		hive_list = self.session.profile.get_constant_object("CmpHiveListHead", "_LIST_ENTRY")
-		hives = list(hive_list.list_of_type("_CMHIVE", "HiveList"))
-		reg = None
-		for hive in hives:
-			reg = registry.RegistryHive(profile=self.session.profile, session=self.session,hive_offset=hive)
-			if reg.Name.find('System32\\Config\\SOFTWARE') != -1:
-				break
-
-		if not reg:
-			raise Exception('Could not find registry key!')
-		
-		key = reg.open_key("Microsoft\\Windows NT\\CurrentVersion\\") #
-		v = key.open_value("CurrentBuildNumber")
-		return int(str(v.DecodedData).replace('\x00',''))
+		return int(self.lsass_task.Peb.OSBuildNumber)
 
 	def get_arch(self):
 		if self.session.profile.metadata("arch")[-2:] == '64':
@@ -221,6 +215,7 @@ class RekallReader:
 			needles=[pattern],
 			address_space=self.lsass_task.get_process_address_space()
 			)
+		self.session.logging.info('module.start_addr %s' % module.start_addr)
 		for hit, _ in scanner.scan(offset=int(module.start_addr), maxlen=int(module.size)):
 			res.append(int(hit))
 		return res
