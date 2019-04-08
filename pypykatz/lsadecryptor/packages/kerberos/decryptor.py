@@ -152,15 +152,24 @@ class KerberosDecryptor(PackageDecryptor):
 				
 				
 				# getting ticket granting service tickets
-				if kerberos_logon_session.Tickets_1.Flink.value != 0 and kerberos_logon_session.Tickets_1.Flink.value != kerberos_logon_session.Tickets_1.Flink.location:
+				print(kerberos_logon_session.Tickets_1.Flink.value)
+				print(kerberos_logon_session.Tickets_1.Flink.location)
+				#input('Check!')
+				if kerberos_logon_session.Tickets_1.Flink.value != 0 and \
+						kerberos_logon_session.Tickets_1.Flink.value != kerberos_logon_session.Tickets_1.Flink.location and \
+							kerberos_logon_session.Tickets_1.Flink.value != kerberos_logon_session.Tickets_1.Flink.location - 4 :
 					self.current_ticket_type = KerberosTicketType.TGS
 					self.walk_list(kerberos_logon_session.Tickets_1.Flink, self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 				
-				if kerberos_logon_session.Tickets_2.Flink.value != 0 and kerberos_logon_session.Tickets_2.Flink.value != kerberos_logon_session.Tickets_2.Flink.location:
+				if kerberos_logon_session.Tickets_2.Flink.value != 0 and \
+						kerberos_logon_session.Tickets_2.Flink.value != kerberos_logon_session.Tickets_2.Flink.location and \
+							kerberos_logon_session.Tickets_2.Flink.value != kerberos_logon_session.Tickets_2.Flink.location - 4 :
 					self.current_ticket_type = KerberosTicketType.CLIENT
 					self.walk_list(kerberos_logon_session.Tickets_2.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 				
-				if kerberos_logon_session.Tickets_3.Flink.value != 0 and kerberos_logon_session.Tickets_3.Flink.value != kerberos_logon_session.Tickets_3.Flink.location:
+				if kerberos_logon_session.Tickets_3.Flink.value != 0 and \
+						kerberos_logon_session.Tickets_3.Flink.value != kerberos_logon_session.Tickets_3.Flink.location and \
+							kerberos_logon_session.Tickets_3.Flink.value != kerberos_logon_session.Tickets_3.Flink.location - 4 :
 					self.current_ticket_type = KerberosTicketType.TGT
 					self.walk_list(kerberos_logon_session.Tickets_3.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 				self.current_ticket_type = None

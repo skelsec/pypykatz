@@ -432,7 +432,7 @@ class KIWI_KERBEROS_LOGON_SESSION_10_X86:
 		self.pKeyList = PVOID(reader)
 		self.unk26 = PVOID(reader).value
 		#input('pKeyList\n' + hexdump(reader.peek(0x100)))
-		reader.align(8)
+		reader.align()
 		#input('Tickets_1\n' + hexdump(reader.peek(0x100)))
 		self.Tickets_1 = LIST_ENTRY(reader)
 		self.unk27 = FILETIME(reader).value
@@ -748,6 +748,8 @@ class KIWI_KERBEROS_INTERNAL_TICKET_6:
 		self.Flink = PKIWI_KERBEROS_INTERNAL_TICKET_6(reader)
 		self.Blink = PKIWI_KERBEROS_INTERNAL_TICKET_6(reader)
 		
+		#reader.read(8)
+		#input('servicename\n' + hexdump(reader.peek(0x100)))
 		self.unk0 = PVOID(reader).value
 		self.unk1 = PVOID(reader).value
 		self.ServiceName = PKERB_EXTERNAL_NAME(reader)
