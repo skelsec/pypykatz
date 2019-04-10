@@ -211,7 +211,7 @@ class RekallReader:
 			raise Exception('Module is not in lsass emmory space! %s' % module_name)
 		module = self.modules[module_name.lower()]
 		res = []
-		scanner = scan.MultiStringScanner(
+		scanner = rekall.scan.MultiStringScanner(
 			needles=[pattern],
 			address_space=self.lsass_task.get_process_address_space()
 			)
