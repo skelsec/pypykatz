@@ -289,6 +289,10 @@ class MsvDecryptor(PackageDecryptor):
 	def add_primary_credentials(self, primary_credentials_entry):
 		
 		encrypted_credential_data = primary_credentials_entry.encrypted_credentials.read_data(self.reader)
+
+		#this is super-strange but sometimes the encrypted data can be empty (seen in forensics images)
+		if not encrypted_credential_data:
+			return
 		
 		self.log('Encrypted credential data \n%s' % hexdump(encrypted_credential_data))
 		self.log('Decrypting credential structure')
