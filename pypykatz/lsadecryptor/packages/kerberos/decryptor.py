@@ -152,8 +152,8 @@ class KerberosDecryptor(PackageDecryptor):
 				
 				
 				# getting ticket granting service tickets
-				print(kerberos_logon_session.Tickets_1.Flink.value)
-				print(kerberos_logon_session.Tickets_1.Flink.location)
+				#print(kerberos_logon_session.Tickets_1.Flink.value)
+				#print(kerberos_logon_session.Tickets_1.Flink.location)
 				#input('Check!')
 				if kerberos_logon_session.Tickets_1.Flink.value != 0 and \
 						kerberos_logon_session.Tickets_1.Flink.value != kerberos_logon_session.Tickets_1.Flink.location and \
