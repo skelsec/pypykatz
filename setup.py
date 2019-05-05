@@ -5,7 +5,7 @@ setup(
 	name="pypykatz",
 
 	# Version number (initial):
-	version="0.0.6",
+	version="0.0.7",
 
 	# Application author details:
 	author="Tamas Jos",
@@ -35,7 +35,7 @@ setup(
 	),
 	install_requires=[
 		'minidump>=0.0.6',
-		'minikerberos>=0.0.4',
+		'minikerberos>=0.0.8',
 	],
 	
 	entry_points={
