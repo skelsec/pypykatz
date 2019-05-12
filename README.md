@@ -1,9 +1,9 @@
 # pypykatz
-Mimikatz implementation in pure Python. -optimized for offline persing, but has options for live credential dumping as well-  
-Runs on all OS's which support python>=3.6
+Mimikatz implementation in pure Python. Optimized for offline parsing, but has options for live credential dumping as well.
+Runs on all OS's which support python>=3.6.
 
 ## Installing
-Install it via pip or by cloning it from github.  
+Install it via pip or by cloning it from Github.
 The installer will create a pypykatz executable in the python's Script directory. You can run it from there, should be in your PATH.  
 
 ### Via PIP
