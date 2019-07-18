@@ -101,7 +101,7 @@ pypykatz.py minidump <folder_with_folder_of_dumpfiles> -d -r
 ```  
 ### Rekall command options 
 #### Timestamp override
-Reason for this parameter to exist: In order to choose the correct structure for parsing we need the tiomestamp info of the msv dll file. Rekall sadly doesnt always have this info for some reason, therefore the parsing may be failing.  
+Reason for this parameter to exist: In order to choose the correct structure for parsing we need the timestamp info of the msv dll file. Rekall sadly doesnt always have this info for some reason, therefore the parsing may be failing.  
 If the parsing is failing this could solve the issue.  
   
 Parameter: ```-t```  
