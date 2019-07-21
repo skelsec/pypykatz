@@ -75,7 +75,7 @@ class KerberosDecryptor(PackageDecryptor):
 			return
 			
 		if self.sysinfo.major_version < 6:
-			raise Exception("Not yet implemented")
+			raise NotImplementedError("Maybe implemented later")
 		else:
 			result_ptr_list = []
 			self.reader.move(entry_ptr_value)

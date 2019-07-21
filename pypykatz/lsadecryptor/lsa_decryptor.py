@@ -21,7 +21,7 @@ class LsaDecryptor(PackageDecryptor):
 		self.acquire_crypto_material()
 		
 	def acquire_crypto_material(self):
-		self.log('Acquireing crypto stuff...')
+		self.log('Acquiring crypto stuff...')
 		sigpos = self.find_signature()
 		self.reader.move(sigpos)
 		data = self.reader.peek(0x50)
@@ -31,11 +31,11 @@ class LsaDecryptor(PackageDecryptor):
 		self.aes_key = self.get_aes_key(sigpos)
 		
 	def get_des_key(self, pos):
-		self.log('Acquireing DES key...')
+		self.log('Acquiring DES key...')
 		return self.get_key(pos, self.decryptor_template.key_pattern.offset_to_DES_key_ptr)
 		
 	def get_aes_key(self, pos):
-		self.log('Acquireing AES key...')
+		self.log('Acquiring AES key...')
 		return self.get_key(pos, self.decryptor_template.key_pattern.offset_to_AES_key_ptr)
 		
 	def find_signature(self):

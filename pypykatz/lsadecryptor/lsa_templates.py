@@ -22,10 +22,10 @@ class LsaTemplate(PackageTemplate):
 		template = LsaTemplate()
 		
 		if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:
-			raise Exception("Maybe implemented later")
+			raise NotImplementedError("Maybe implemented later")
 		
 		elif WindowsMinBuild.WIN_2K3.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_VISTA.value:
-			raise Exception("Maybe implemented later")
+			raise NotImplementedError("Maybe implemented later")
 			
 		elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_7.value:
 			if sysinfo.architecture == KatzSystemArchitecture.X64:
