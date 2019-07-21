@@ -101,7 +101,7 @@ pypykatz.py minidump <folder_with_folder_of_dumpfiles> -d -r
 ```  
 ### Rekall command options 
 #### Timestamp override
-Reason for this parameter to exist: In order to choose the correct structure for parsing we need the tiomestamp info of the msv dll file. Rekall sadly doesnt always have this info for some reason, therefore the parsing may be failing.  
+Reason for this parameter to exist: In order to choose the correct structure for parsing we need the timestamp info of the msv dll file. Rekall sadly doesnt always have this info for some reason, therefore the parsing may be failing.  
 If the parsing is failing this could solve the issue.  
   
 Parameter: ```-t```  
@@ -127,11 +127,11 @@ After this modify the ```__init__.py``` file located the same folder and add the
 If everything is okay you can use the ```pypykatz``` command from the ```rekall``` command line directly.
 
 # HELP WANTED
-If you want to help me getting this project into a stable release you can send mindiumps of the lsass.exe process to the following link: https://pypykatz.ocloud.de/index.php/s/NTErmGJxA42irfj  
+If you want to help me getting this project into a stable release you can send mindiumps of the lsass.exe process to the following link: https://nx5494.your-next.cloud/s/SJteWj3PPbg8jBA  
 IMPORTANT: please *DO NOT* send dumps of your own machine's lsass process!!! I will be able to see your secrets including hashes/passwords! Send dump files from machines like virtual test systems on which you don't mind that someone will see the credentials. (if you have a test domain system where kerberos is set up that would be the best)  
 Also I'd apprechiate if you wouldn't spam me...  
 ### Why do I need these dumps files?
-In order to create mimikatz in Python one would have to create structure difinitions of a gazillion different structures (check the original code) without the help of the build-in parser that you'd naturally get from using a native compiler. Now, the problem is that even a single byte misalignemt will render the parsing of these structures run to an error. Problem is mostly revolving around 32 - 64 aligments, so 32 bit Windows version lsass dumps are apprechiated as well!  
+In order to create mimikatz in Python one would have to create structure definitions of a gazillion different structures (check the original code) without the help of the build-in parser that you'd naturally get from using a native compiler. Now, the problem is that even a single byte misalignemt will render the parsing of these structures run to an error. Problem is mostly revolving around 32 - 64 aligments, so 32 bit Windows version lsass dumps are apprechiated as well!  
 ### Summary
 I need data I can verify the code on and administer necessary changes on the parsers until everything works fine.  
 Submitting issues on this github page wouldn't help at all without the actual file and github wouldn't like 40-300Mb file attachments.
