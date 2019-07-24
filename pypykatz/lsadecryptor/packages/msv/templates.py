@@ -95,7 +95,7 @@ class MsvTemplate(PackageTemplate):
 				template.first_entry_offset = 36
 				template.offset2 = -6	
 				
-			elif WindowsBuild.WIN_10_1507.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1707.value:
+			elif WindowsBuild.WIN_10_1507.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1703.value:
 				template.signature = b'\x33\xff\x41\x89\x37\x4c\x8b\xf3\x45\x85\xc0\x74'
 				template.first_entry_offset = 16
 				template.offset2 = -4
@@ -103,7 +103,7 @@ class MsvTemplate(PackageTemplate):
 				#template.first_entry_offset = 36
 				#template.offset2 = -6
 
-			elif WindowsBuild.WIN_10_1707.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1803.value:
+			elif WindowsBuild.WIN_10_1703.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1803.value:
 				template.signature = b'\x33\xff\x45\x89\x37\x48\x8b\xf3\x45\x85\xc9\x74'
 				template.first_entry_offset = 23
 				template.offset2 = -4
@@ -132,7 +132,7 @@ class MsvTemplate(PackageTemplate):
 				template.offset2 = -11
 
 			
-			elif WindowsBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
+			elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
 				template.signature = b'\x89\x71\x04\x89\x30\x8d\x04\xbd'
 				template.first_entry_offset = -11
 				template.offset2 = -11
@@ -143,7 +143,7 @@ class MsvTemplate(PackageTemplate):
 				template.offset2 = -4
 				
 			elif WindowsMinBuild.WIN_BLUE.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value:
-				template.signature = b'\x8b\x4d\xe4\x8b\x45\xf4\x89\x75\xe8\x89\x01\x85\xff\x74'				
+				template.signature = b'\x8b\x4d\xe4\x8b\x45\xf4\x89\x75\xe8\x89\x01\x85\xff\x74'	
 				template.first_entry_offset = 16
 				template.offset2 = -4
 			
@@ -486,10 +486,12 @@ class KIWI_MSV1_0_LIST_62:
 		self.Blink = PKIWI_MSV1_0_LIST_62(reader)
 		self.unk0 = PVOID(reader).value
 		self.unk1 = ULONG(reader).value
+		reader.align()
 		self.unk2 = PVOID(reader).value
 		self.unk3 = ULONG(reader).value
 		self.unk4 = ULONG(reader).value
 		self.unk5 = ULONG(reader).value
+		reader.align()
 		self.hSemaphore6 = HANDLE(reader).value
 		self.unk7 = PVOID(reader).value
 		self.hSemaphore8 = HANDLE(reader).value
@@ -507,6 +509,7 @@ class KIWI_MSV1_0_LIST_62:
 		self.Type = LSA_UNICODE_STRING(reader)
 		self.pSid = PSID(reader)
 		self.LogonType = ULONG(reader).value
+		reader.align()
 		self.unk18 = PVOID(reader).value
 		self.Session = ULONG(reader).value
 		reader.align()
