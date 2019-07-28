@@ -850,3 +850,18 @@ class triple_des(_baseDes):
 			data = self.__key2.crypt(data, ENCRYPT)
 			data = self.__key1.crypt(data, DECRYPT)
 		return self._unpadData(data, pad, padmode)
+
+# from impacket
+def expand_DES_key(key):
+	# Expand the key from a 7-byte password key into a 8-byte DES key
+	key  = key[:7]
+	key += b'\x00'*(7-len(key))
+	s  = (((key[0] >> 1) & 0x7f) << 1).to_bytes(1, byteorder = 'big')
+	s += (((key[0] & 0x01) << 6 | ((key[1] >> 2) & 0x3f)) << 1).to_bytes(1, byteorder = 'big')
+	s += (((key[1] & 0x03) << 5 | ((key[2] >> 3) & 0x1f)) << 1).to_bytes(1, byteorder = 'big')
+	s += (((key[2] & 0x07) << 4 | ((key[3] >> 4) & 0x0f)) << 1).to_bytes(1, byteorder = 'big')
+	s += (((key[3] & 0x0f) << 3 | ((key[4] >> 5) & 0x07)) << 1).to_bytes(1, byteorder = 'big')
+	s += (((key[4] & 0x1f) << 2 | ((key[5] >> 6) & 0x03)) << 1).to_bytes(1, byteorder = 'big')
+	s += (((key[5] & 0x3f) << 1 | ((key[6] >> 7) & 0x01)) << 1).to_bytes(1, byteorder = 'big')
+	s += ( (key[6] & 0x7f) << 1).to_bytes(1, byteorder = 'big')
+	return s
