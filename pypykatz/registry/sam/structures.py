@@ -282,16 +282,17 @@ class USER_ACCOUNT_V:
 		if uac.NTHashLength > 0:
 			buff.seek(data_offset + uac.NTHashOffset + 2)
 			if buff.read(1) == b'\x01':
-				#if uac.NTHashLength == 20:
-				buff.seek(data_offset +uac.NTHashOffset)
-				uac.NT_hash = SAM_HASH.from_bytes(buff.read(uac.NTHashLength))
-				#if uac.LMHashLength == 20:
-				buff.seek(data_offset +uac.LMHashOffset)
-				uac.LM_hash = SAM_HASH.from_bytes(buff.read(uac.LMHashLength))
+				print('OLD STYLE!')
+				if uac.NTHashLength == 20:
+					buff.seek(data_offset + uac.NTHashOffset)
+					uac.NT_hash = SAM_HASH.from_bytes(buff.read(uac.NTHashLength))
+				
+				if uac.LMHashLength == 20:
+					buff.seek(data_offset + uac.LMHashOffset)
+					uac.LM_hash = SAM_HASH.from_bytes(buff.read(uac.LMHashLength))
 		
 			else:
-				#if uac.LMHashLength == 24:
-				if uac.NTHashLength > 0:
+				if uac.LMHashLength == 24:
 					buff.seek(data_offset + uac.LMHashOffset)
 					uac.LM_hash = SAM_HASH_AES.from_bytes(buff.read(uac.LMHashLength))
 				

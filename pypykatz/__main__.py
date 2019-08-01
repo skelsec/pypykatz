@@ -15,6 +15,7 @@ import ntpath
 
 
 from pypykatz.pypykatz import pypykatz
+from pypykatz.registry.offline_parser import PypyKatzOffineRegistry
 from pypykatz.commons.common import UniversalEncoder
 
 def main():
@@ -47,6 +48,11 @@ def main():
 	rekall_group = subparsers.add_parser('rekall', help='Get secrets from memory dump')
 	rekall_group.add_argument('memoryfile', help='path to the memory dump file')
 	rekall_group.add_argument('-t','--timestamp_override', type=int, help='enforces msv timestamp override (0=normal, 1=anit_mimikatz)')
+	
+	registry_group = subparsers.add_parser('registry', help='Get secrets from registry files')
+	registry_group.add_argument('system', help='path to the SYSTEM registry hive')
+	registry_group.add_argument('--sam', help='path to the SAM registry hive')
+	registry_group.add_argument('--security', help='path to the SECURITY registry hive')
 	
 	####### PARSING ARGUMENTS
 	
@@ -121,6 +127,15 @@ def main():
 					raise e
 				else:
 					traceback.print_exc()
+					
+	###### Registry
+	elif args.command == 'registry':
+		po = PypyKatzOffineRegistry.from_files(args.system, args.sam, args.security)
+		
+		if args.outfile:
+			po.to_file(args.outfile, args.json)
+		else:
+			print(str(po))
 			
 
 	if args.outfile and args.json:
