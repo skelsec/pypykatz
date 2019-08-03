@@ -43,7 +43,8 @@ def main():
 	live_subparsers = live_group.add_subparsers(help = 'module')
 	live_subparsers.required = True
 	live_subparsers.dest = 'module'
-	live_subparser_lsa_group = live_subparsers.add_parser('lsa', help='List all tickets in the file')
+	live_subparser_lsa_group = live_subparsers.add_parser('lsa', help='Get all secrets from LSASS')
+	live_subparser_registry_group = live_subparsers.add_parser('registry', help='Get all secrets from registry')
 	
 	rekall_group = subparsers.add_parser('rekall', help='Get secrets from memory dump')
 	rekall_group.add_argument('memoryfile', help='path to the memory dump file')
@@ -87,6 +88,12 @@ def main():
 					print('Exception while dumping LSA credentials from memory.')
 					traceback.print_exc()
 					pass
+					
+		if args.module == 'registry':
+			from pypykatz.registry.live_parser import LiveRegistry
+			lr = LiveRegistry.go_live()
+			print(str(lr))
+			
 	###### Rekall
 	elif args.command == 'rekall':
 		mimi = pypykatz.parse_memory_dump_rekall(args.memoryfile, args.timestamp_override)

@@ -3,7 +3,7 @@ import hashlib
 import hmac
 from pypykatz.registry.sam.structures import *
 from pypykatz.crypto.RC4 import RC4
-from pypykatz.crypto.aes import AESModeOfOperationCBC,AESModeOfOperationECB, Decrypter
+from pypykatz.crypto.aes import AESModeOfOperationCBC
 from pypykatz.crypto.des import *
 
 #####
@@ -12,6 +12,13 @@ from pypykatz.registry.sam.common import *
 from pypykatz.registry import logger
 from pypykatz.dpapi.structures import DPAPI_SYSTEM
 
+#
+# The SAM hive holds the hashed passwords of the LOCAL machine users
+# There are alwas some local users present on your machine, regardless if it's domain-enrolled
+# 
+# Depending on the Windows version, the strucutres and the way to decrypt the hashes differs.
+# The class needs to have the bootkey (see SYSTEM hive) to be able to decrypt the hashes
+#
 
 class SAM:
 	def __init__(self, sam_hive, bootkey):
@@ -94,13 +101,9 @@ class SAM:
 				continue
 			
 			key_path = 'SAM\\Domains\\Account\\Users\\%s\\V' % rid
-			print(key_path)
 			logger.debug('[SAM] Parsing secrets for RID: %s' % rid)
 			uac_data = self.hive.get_value(key_path)[1]
-			print(uac_data)
 			uac = USER_ACCOUNT_V.from_bytes(uac_data)
-			
-			print(uac.name)
 			
 			nthash = bytes.fromhex(NTDEFAULT)
 			lmhash = bytes.fromhex(LMDEFAULT)

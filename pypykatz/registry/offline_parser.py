@@ -136,7 +136,7 @@ class PypyKatzOffineRegistry:
 		for reg_name, location in locations:
 			logger.debug('Dumping %s...' % reg_name)
 			try:
-				key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, reg_name)
+				key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, reg_name, access=0x00020000)
 				winreg.SaveKey(key, location)
 				key.Close()
 			except Exception as e:

@@ -65,6 +65,52 @@ MEM_IMAGE		 = SEC_IMAGE
 WRITE_WATCH_FLAG_RESET = 0x01
 FILE_MAP_ALL_ACCESS = 0xF001F
 
+class UserModeHandle (HANDLE):
+	"""
+	Base class for non-kernel handles. Generally this means they are closed
+	by special Win32 API functions instead of CloseHandle() and some standard
+	operations (synchronizing, duplicating, inheritance) are not supported.
+	@type _TYPE: C type
+	@cvar _TYPE: C type to translate this handle to.
+		Subclasses should override this.
+		Defaults to L{HANDLE}.
+	"""
+
+	# Subclasses should override this.
+	_TYPE = HANDLE
+
+	# This method must be implemented by subclasses.
+	def _close(self):
+		raise NotImplementedError()
+
+	# Translation to C type.
+	@property
+	def _as_parameter_(self):
+		return self._TYPE(self.value)
+
+	# Translation to C type.
+	@staticmethod
+	def from_param(value):
+		return self._TYPE(self.value)
+
+	# Operation not supported.
+	@property
+	def inherit(self):
+		return False
+
+	# Operation not supported.
+	@property
+	def protectFromClose(self):
+		return False
+
+	# Operation not supported.
+	def dup(self):
+		raise NotImplementedError()
+
+	# Operation not supported.
+	def wait(self, dwMilliseconds = None):
+		raise NotImplementedError()
+
 # Don't psyco-optimize this class because it needs to be serialized.
 class MemoryBasicInformation(object):
 	"""
@@ -272,7 +318,7 @@ PMEMORY_BASIC_INFORMATION = POINTER(MEMORY_BASIC_INFORMATION)
 #   __in  HANDLE hObject
 # );
 def CloseHandle(hHandle):
-	if isinstance(hHandle, Handle):
+	if hasattr(hHandle, 'close'):
 		# Prevents the handle from being closed without notifying the Handle object.
 		hHandle.close()
 	else:

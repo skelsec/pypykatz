@@ -2,6 +2,16 @@
 from pypykatz.registry import logger
 from pypykatz.commons.common import hexdump
 
+#
+# The SYSTEM hive holds the BootKey, which is used as an initial key to decrypt everything in the registry.
+# Without having the BootKey no decryption can be performed on any of the secrets, 
+# therefore it is mandatory to supply this hive.
+#
+# The way to obtain the BootKey is quite straightforward.
+# First, we need to determine the current controlset (when the machine is running you find that available directly, but not when the hive was taken from a powered down machine)
+# Second, the BootKey is obfuscated and scattered in the Class attribute of 4 different registry keys.
+#         we read the Class attribute of these keys and de-obfuscate the key
+#
 
 class SYSTEM:
 	def __init__(self, system_hive):

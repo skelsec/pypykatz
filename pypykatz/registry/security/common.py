@@ -3,6 +3,13 @@ import hashlib
 from pypykatz.dpapi.structures import DPAPI_SYSTEM
 from pypykatz.commons.common import hexdump
 
+#
+# These classes used to "standardise" the different secrets that can be obtained from the SECURITY hive
+# The so-called LSA secrets can be of any format, therefore if the parser doesnt find an appropriate class for the secret
+# it will store the decrypted secret in raw bytes
+#
+#
+
 class LSASecret:
 	def __init__(self,key_name, raw_secret, history = False):
 		self.raw_secret = raw_secret

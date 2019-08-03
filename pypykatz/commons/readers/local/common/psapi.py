@@ -107,12 +107,12 @@ def EnumProcesses():
         if returned < size:
             break
         size = size + 0x1000
-    ProcessIdList = list()
+    ProcessIdList = {}
     for ProcessId in ProcessIds:
         if ProcessId is None:
             break
-        ProcessIdList.append(ProcessId)
-    return ProcessIdList
+        ProcessIdList[ProcessId] = 1
+    return list(ProcessIdList.keys())
 
 # BOOL WINAPI EnumProcessModules(
 #   __in   HANDLE hProcess,

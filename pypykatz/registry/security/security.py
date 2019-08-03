@@ -14,6 +14,12 @@ from pypykatz.registry import logger
 from pypykatz.dpapi.structures import DPAPI_SYSTEM
 from pypykatz.commons.common import hexdump
 
+#
+# The SECURITY hive holds all the domain-cached-credentials for the domain users who logged in to the machine
+# It also holds the machine account's password in an encrypted form
+#
+# The LSA secrets also stored here, but their format is not always documented, 
+# as this functionality can be used by any service that wants to stroe some secret information
 
 class SECURITY:
 	def __init__(self, security_hive, bootkey):
@@ -116,6 +122,8 @@ class SECURITY:
 			cipher = AESModeOfOperationECB(key)
 			n = 16
 			for block in [record.data[32:][i:i+n] for i in range(0, len(record.data[32:]), n)]:  #terrible, terrible workaround
+				if len(block) < n:
+					block += b'\x00' * (16 - len(block))
 				self.NKLM_key += cipher.decrypt(block)
 			
 		else:
