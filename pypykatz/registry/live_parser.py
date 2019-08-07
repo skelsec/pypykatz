@@ -11,6 +11,7 @@ from pypykatz.registry.system.system import *
 
 from pypykatz.commons.readers.local.common.privileges import RtlAdjustPrivilege
 from pypykatz.commons.readers.local.common.privileges_types import PrivilegeValues
+from pypykatz.commons.elevate import getsystem_token
 
 
 class LiveRegistry:
@@ -24,6 +25,7 @@ class LiveRegistry:
 		self.security = None
 		
 	def get_secrets(self):
+		#getsystem_token()
 		try:
 			RtlAdjustPrivilege(PrivilegeValues.SE_BACKUP.value)
 			RtlAdjustPrivilege(PrivilegeValues.SE_TAKE_OWNERSHIP.value)

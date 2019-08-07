@@ -292,6 +292,13 @@ class MemoryBasicInformation(object):
 		return self.has_content() and bool(self.Protect & self.EXECUTABLE_AND_WRITEABLE)
 
 
+# DWORD WINAPI GetLastError(void);
+def GetLastError():
+    _GetLastError = windll.kernel32.GetLastError
+    _GetLastError.argtypes = []
+    _GetLastError.restype  = DWORD
+    return _GetLastError()
+
 # typedef struct _MEMORY_BASIC_INFORMATION {
 #	 PVOID BaseAddress;
 #	 PVOID AllocationBase;
@@ -438,3 +445,167 @@ def VirtualQueryEx(hProcess, lpAddress):
 		raise ctypes.WinError()
 	return MemoryBasicInformation(lpBuffer)
 	
+# HLOCAL WINAPI LocalFree(
+#   __in  HLOCAL hMem
+# );
+def LocalFree(hMem):
+    _LocalFree = windll.kernel32.LocalFree
+    _LocalFree.argtypes = [HLOCAL]
+    _LocalFree.restype  = HLOCAL
+
+    result = _LocalFree(hMem)
+    if result != NULL:
+        ctypes.WinError()
+	
+	
+#--- SECURITY_ATTRIBUTES structure --------------------------------------------
+
+# typedef struct _SECURITY_ATTRIBUTES {
+#     DWORD nLength;
+#     LPVOID lpSecurityDescriptor;
+#     BOOL bInheritHandle;
+# } SECURITY_ATTRIBUTES, *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;
+class SECURITY_ATTRIBUTES(Structure):
+    _fields_ = [
+        ('nLength',                 DWORD),
+        ('lpSecurityDescriptor',    LPVOID),
+        ('bInheritHandle',          BOOL),
+    ]
+LPSECURITY_ATTRIBUTES = POINTER(SECURITY_ATTRIBUTES)
+
+# --- Extended process and thread attribute support ---------------------------
+
+PPROC_THREAD_ATTRIBUTE_LIST  = LPVOID
+LPPROC_THREAD_ATTRIBUTE_LIST = PPROC_THREAD_ATTRIBUTE_LIST
+
+PROC_THREAD_ATTRIBUTE_NUMBER   = 0x0000FFFF
+PROC_THREAD_ATTRIBUTE_THREAD   = 0x00010000  # Attribute may be used with thread creation
+PROC_THREAD_ATTRIBUTE_INPUT    = 0x00020000  # Attribute is input only
+PROC_THREAD_ATTRIBUTE_ADDITIVE = 0x00040000  # Attribute may be "accumulated," e.g. bitmasks, counters, etc.
+
+# PROC_THREAD_ATTRIBUTE_NUM
+ProcThreadAttributeParentProcess    = 0
+ProcThreadAttributeExtendedFlags    = 1
+ProcThreadAttributeHandleList       = 2
+ProcThreadAttributeGroupAffinity    = 3
+ProcThreadAttributePreferredNode    = 4
+ProcThreadAttributeIdealProcessor   = 5
+ProcThreadAttributeUmsThread        = 6
+ProcThreadAttributeMitigationPolicy = 7
+ProcThreadAttributeMax              = 8
+
+PROC_THREAD_ATTRIBUTE_PARENT_PROCESS    = ProcThreadAttributeParentProcess      |                                PROC_THREAD_ATTRIBUTE_INPUT
+PROC_THREAD_ATTRIBUTE_EXTENDED_FLAGS    = ProcThreadAttributeExtendedFlags      |                                PROC_THREAD_ATTRIBUTE_INPUT | PROC_THREAD_ATTRIBUTE_ADDITIVE
+PROC_THREAD_ATTRIBUTE_HANDLE_LIST       = ProcThreadAttributeHandleList         |                                PROC_THREAD_ATTRIBUTE_INPUT
+PROC_THREAD_ATTRIBUTE_GROUP_AFFINITY    = ProcThreadAttributeGroupAffinity      | PROC_THREAD_ATTRIBUTE_THREAD | PROC_THREAD_ATTRIBUTE_INPUT
+PROC_THREAD_ATTRIBUTE_PREFERRED_NODE    = ProcThreadAttributePreferredNode      |                                PROC_THREAD_ATTRIBUTE_INPUT
+PROC_THREAD_ATTRIBUTE_IDEAL_PROCESSOR   = ProcThreadAttributeIdealProcessor     | PROC_THREAD_ATTRIBUTE_THREAD | PROC_THREAD_ATTRIBUTE_INPUT
+PROC_THREAD_ATTRIBUTE_UMS_THREAD        = ProcThreadAttributeUmsThread          | PROC_THREAD_ATTRIBUTE_THREAD | PROC_THREAD_ATTRIBUTE_INPUT
+PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY = ProcThreadAttributeMitigationPolicy   |                                PROC_THREAD_ATTRIBUTE_INPUT
+
+PROCESS_CREATION_MITIGATION_POLICY_DEP_ENABLE           = 0x01
+PROCESS_CREATION_MITIGATION_POLICY_DEP_ATL_THUNK_ENABLE = 0x02
+PROCESS_CREATION_MITIGATION_POLICY_SEHOP_ENABLE         = 0x04
+
+#--- PROCESS_INFORMATION structure --------------------------------------------
+
+# typedef struct _PROCESS_INFORMATION {
+#     HANDLE hProcess;
+#     HANDLE hThread;
+#     DWORD dwProcessId;
+#     DWORD dwThreadId;
+# } PROCESS_INFORMATION, *PPROCESS_INFORMATION, *LPPROCESS_INFORMATION;
+class PROCESS_INFORMATION(Structure):
+    _fields_ = [
+        ('hProcess',    HANDLE),
+        ('hThread',     HANDLE),
+        ('dwProcessId', DWORD),
+        ('dwThreadId',  DWORD),
+    ]
+LPPROCESS_INFORMATION = POINTER(PROCESS_INFORMATION)
+
+#--- STARTUPINFO and STARTUPINFOEX structures ---------------------------------
+
+# typedef struct _STARTUPINFO {
+#   DWORD  cb;
+#   LPTSTR lpReserved;
+#   LPTSTR lpDesktop;
+#   LPTSTR lpTitle;
+#   DWORD  dwX;
+#   DWORD  dwY;
+#   DWORD  dwXSize;
+#   DWORD  dwYSize;
+#   DWORD  dwXCountChars;
+#   DWORD  dwYCountChars;
+#   DWORD  dwFillAttribute;
+#   DWORD  dwFlags;
+#   WORD   wShowWindow;
+#   WORD   cbReserved2;
+#   LPBYTE lpReserved2;
+#   HANDLE hStdInput;
+#   HANDLE hStdOutput;
+#   HANDLE hStdError;
+# }STARTUPINFO, *LPSTARTUPINFO;
+class STARTUPINFO(Structure):
+    _fields_ = [
+        ('cb',              DWORD),
+        ('lpReserved',      LPSTR),
+        ('lpDesktop',       LPSTR),
+        ('lpTitle',         LPSTR),
+        ('dwX',             DWORD),
+        ('dwY',             DWORD),
+        ('dwXSize',         DWORD),
+        ('dwYSize',         DWORD),
+        ('dwXCountChars',   DWORD),
+        ('dwYCountChars',   DWORD),
+        ('dwFillAttribute', DWORD),
+        ('dwFlags',         DWORD),
+        ('wShowWindow',     WORD),
+        ('cbReserved2',     WORD),
+        ('lpReserved2',     LPVOID),    # LPBYTE
+        ('hStdInput',       HANDLE),
+        ('hStdOutput',      HANDLE),
+        ('hStdError',       HANDLE),
+    ]
+LPSTARTUPINFO = POINTER(STARTUPINFO)
+
+# typedef struct _STARTUPINFOEX {
+#   STARTUPINFO StartupInfo;
+#   PPROC_THREAD_ATTRIBUTE_LIST lpAttributeList;
+# } STARTUPINFOEX,  *LPSTARTUPINFOEX;
+class STARTUPINFOEX(Structure):
+    _fields_ = [
+        ('StartupInfo',     STARTUPINFO),
+        ('lpAttributeList', PPROC_THREAD_ATTRIBUTE_LIST),
+    ]
+LPSTARTUPINFOEX = POINTER(STARTUPINFOEX)
+
+class STARTUPINFOW(Structure):
+    _fields_ = [
+        ('cb',              DWORD),
+        ('lpReserved',      LPWSTR),
+        ('lpDesktop',       LPWSTR),
+        ('lpTitle',         LPWSTR),
+        ('dwX',             DWORD),
+        ('dwY',             DWORD),
+        ('dwXSize',         DWORD),
+        ('dwYSize',         DWORD),
+        ('dwXCountChars',   DWORD),
+        ('dwYCountChars',   DWORD),
+        ('dwFillAttribute', DWORD),
+        ('dwFlags',         DWORD),
+        ('wShowWindow',     WORD),
+        ('cbReserved2',     WORD),
+        ('lpReserved2',     LPVOID),    # LPBYTE
+        ('hStdInput',       HANDLE),
+        ('hStdOutput',      HANDLE),
+        ('hStdError',       HANDLE),
+    ]
+LPSTARTUPINFOW = POINTER(STARTUPINFOW)
+
+class STARTUPINFOEXW(Structure):
+    _fields_ = [
+        ('StartupInfo',     STARTUPINFOW),
+        ('lpAttributeList', PPROC_THREAD_ATTRIBUTE_LIST),
+    ]
+LPSTARTUPINFOEXW = POINTER(STARTUPINFOEXW)

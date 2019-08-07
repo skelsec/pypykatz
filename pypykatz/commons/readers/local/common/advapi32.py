@@ -1249,8 +1249,8 @@ def LookupAccountSidW(lpSystemName, lpSid):
 	error = GetLastError()
 	if error != ERROR_INSUFFICIENT_BUFFER:
 		raise ctypes.WinError(error)
-	lpName = ctypes.create_unicode_buffer(u'', cchName + 1)
-	lpReferencedDomainName = ctypes.create_unicode_buffer(u'', cchReferencedDomainName + 1)
+	lpName = ctypes.create_unicode_buffer(u'', cchName.value + 1)
+	lpReferencedDomainName = ctypes.create_unicode_buffer(u'', cchReferencedDomainName.value + 1)
 	success = _LookupAccountSidW(lpSystemName, lpSid, lpName, byref(cchName), lpReferencedDomainName, byref(cchReferencedDomainName), byref(peUse))
 	if not success:
 		raise ctypes.WinError()
@@ -1274,7 +1274,7 @@ def ConvertSidToStringSidA(Sid):
 		StringSid = pStringSid.value
 	finally:
 		LocalFree(pStringSid)
-	return StringSid
+	return StringSid.decode()
 
 def ConvertSidToStringSidW(Sid):
 	_ConvertSidToStringSidW = windll.advapi32.ConvertSidToStringSidW
@@ -1657,15 +1657,38 @@ def _internal_GetTokenInformation(hTokenHandle, TokenInformationClass, TokenInfo
 	_GetTokenInformation.errcheck = RaiseIfZero
 	
 	ReturnLength = DWORD(0)
-	#if isinstance(TokenInformation, TOKEN_USER):
-	#	TokenInformationLength = (c_byte * 4096)()
-	#else:
 	TokenInformationLength = sizeof(TokenInformation)
 	_GetTokenInformation(hTokenHandle, TokenInformationClass, byref(TokenInformation), TokenInformationLength, byref(ReturnLength))
-	#if ReturnLength.value != TokenInformationLength:
-	#	raise ctypes.WinError(ERROR_INSUFFICIENT_BUFFER)
+	if ReturnLength.value != TokenInformationLength:
+		raise ctypes.WinError(ERROR_INSUFFICIENT_BUFFER)
 	 
 	return TokenInformation
+	
+def GetTokenInformation_sid(hTokenHandle):
+	"""
+	The original function wasn't working. this one returns the SID for the token
+	"""
+	_GetTokenInformation = windll.advapi32.GetTokenInformation
+	_GetTokenInformation.argtypes = [HANDLE, TOKEN_INFORMATION_CLASS, LPVOID, DWORD, PDWORD]
+	_GetTokenInformation.restype  = bool
+	_GetTokenInformation.errcheck = RaiseIfZero
+	
+	ReturnLength = DWORD(0)
+	try:
+		#getting the correct memory size
+		_GetTokenInformation(hTokenHandle, 1, None, ReturnLength, byref(ReturnLength))
+	except Exception as e:
+		pass
+		
+	TokenInformationLength = ReturnLength.value
+	ReturnLength = DWORD(0)
+	ti = (BYTE * TokenInformationLength)()
+	_GetTokenInformation(hTokenHandle, 1, byref(ti), TokenInformationLength, byref(ReturnLength))
+	if ReturnLength.value != TokenInformationLength:
+		raise ctypes.WinError(ERROR_INSUFFICIENT_BUFFER)
+	
+	t = ctypes.cast(ti, POINTER(TOKEN_USER)).contents
+	return t.User.Sid
 
 # BOOL WINAPI SetTokenInformation(
 #   __in  HANDLE TokenHandle,
@@ -1728,7 +1751,7 @@ def CreateProcessWithLogonW(lpUsername = None, lpDomain = None, lpPassword = Non
 	lpProcessInformation.dwProcessId  = 0
 	lpProcessInformation.dwThreadId   = 0
 	_CreateProcessWithLogonW(lpUsername, lpDomain, lpPassword, dwLogonFlags, lpApplicationName, lpCommandLine, dwCreationFlags, lpEnvironment, lpCurrentDirectory, byref(lpStartupInfo), byref(lpProcessInformation))
-	return ProcessInformation(lpProcessInformation)
+	return lpProcessInformation
 
 CreateProcessWithLogonA = MakeANSIVersion(CreateProcessWithLogonW)
 CreateProcessWithLogon = DefaultStringType(CreateProcessWithLogonA, CreateProcessWithLogonW)
@@ -1779,7 +1802,7 @@ def CreateProcessWithTokenW(hToken = None, dwLogonFlags = 0, lpApplicationName =
 	lpProcessInformation.dwProcessId  = 0
 	lpProcessInformation.dwThreadId   = 0
 	_CreateProcessWithTokenW(hToken, dwLogonFlags, lpApplicationName, lpCommandLine, dwCreationFlags, lpEnvironment, lpCurrentDirectory, byref(lpStartupInfo), byref(lpProcessInformation))
-	return ProcessInformation(lpProcessInformation)
+	return lpProcessInformation
 
 CreateProcessWithTokenA = MakeANSIVersion(CreateProcessWithTokenW)
 CreateProcessWithToken = DefaultStringType(CreateProcessWithTokenA, CreateProcessWithTokenW)
@@ -1808,11 +1831,11 @@ def CreateProcessAsUserA(hToken = None, lpApplicationName = None, lpCommandLine=
 	if not lpCommandLine:
 		lpCommandLine	   = None
 	else:
-		lpCommandLine	   = ctypes.create_string_buffer(lpCommandLine, max(MAX_PATH, len(lpCommandLine) + 1))
+		lpCommandLine	   = ctypes.create_string_buffer(lpCommandLine.encode('ascii'), max(MAX_PATH, len(lpCommandLine) + 1))
 	if not lpEnvironment:
 		lpEnvironment	   = None
 	else:
-		lpEnvironment	   = ctypes.create_string_buffer(lpEnvironment)
+		lpEnvironment	   = ctypes.create_string_buffer(lpEnvironment.encode('ascii'))
 	if not lpCurrentDirectory:
 		lpCurrentDirectory  = None
 	if not lpProcessAttributes:
@@ -1838,7 +1861,7 @@ def CreateProcessAsUserA(hToken = None, lpApplicationName = None, lpCommandLine=
 	lpProcessInformation.dwProcessId  = 0
 	lpProcessInformation.dwThreadId   = 0
 	_CreateProcessAsUserA(hToken, lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes, bool(bInheritHANDLEs), dwCreationFlags, lpEnvironment, lpCurrentDirectory, byref(lpStartupInfo), byref(lpProcessInformation))
-	return ProcessInformation(lpProcessInformation)
+	return lpProcessInformation
 
 def CreateProcessAsUserW(hToken = None, lpApplicationName = None, lpCommandLine=None, lpProcessAttributes=None, lpThreadAttributes=None, bInheritHANDLEs=False, dwCreationFlags=0, lpEnvironment=None, lpCurrentDirectory=None, lpStartupInfo=None):
 	_CreateProcessAsUserW = windll.advapi32.CreateProcessAsUserW
@@ -1881,7 +1904,7 @@ def CreateProcessAsUserW(hToken = None, lpApplicationName = None, lpCommandLine=
 	lpProcessInformation.dwProcessId  = 0
 	lpProcessInformation.dwThreadId   = 0
 	_CreateProcessAsUserW(hToken, lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes, bool(bInheritHANDLEs), dwCreationFlags, lpEnvironment, lpCurrentDirectory, byref(lpStartupInfo), byref(lpProcessInformation))
-	return ProcessInformation(lpProcessInformation)
+	return lpProcessInformation
 
 CreateProcessAsUser = GuessStringType(CreateProcessAsUserA, CreateProcessAsUserW)
 
@@ -3246,6 +3269,20 @@ EnumServicesStatusEx = DefaultStringType(EnumServicesStatusExA, EnumServicesStat
 # );
 
 # TO DO
+
+
+# BOOL SetThreadToken(
+#   PHANDLE Thread,
+#   HANDLE  Token
+# );
+
+def SetThreadToken(token_handle, thread_handle = None):
+	_SetThreadToken = windll.advapi32.SetThreadToken
+	_SetThreadToken.argtypes = [PHANDLE , HANDLE]
+	_SetThreadToken.restype  = bool
+	_SetThreadToken.errcheck = RaiseIfZero
+
+	_SetThreadToken(thread_handle, token_handle)
 
 #==============================================================================
 # This calculates the list of exported symbols.

