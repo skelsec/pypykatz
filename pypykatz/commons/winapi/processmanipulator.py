@@ -20,6 +20,7 @@ class ProcessManipulator:
 	"""
 	High level class to adjust privileges and manipulate tokens
 	TODO: Currently only working with the current process, doesn't do remote processes!
+	TODO: ther ways to get system, eg. creating a service that will launch the new app? like p s e x e c
 	"""
 	def __init__(self, pid = None, api = None):
 		self.pid = pid

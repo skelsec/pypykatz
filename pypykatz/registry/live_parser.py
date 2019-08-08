@@ -13,6 +13,10 @@ from pypykatz.commons.winapi.processmanipulator import ProcessManipulator
 
 
 class LiveRegistry:
+	"""
+	This class represents the Registry hives that are currently on the live system.
+	Use this in case you have at least Administrative privileges on a comp where pypykatz is running
+	"""
 	def __init__(self):
 		self.sam_hive = None
 		self.security_hive = None

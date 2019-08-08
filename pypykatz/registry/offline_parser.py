@@ -7,7 +7,12 @@ from pypykatz.registry.security.security import *
 from pypykatz.registry.system.system import *
 
 
-class PypyKatzOffineRegistry:
+class OffineRegistry:
+	"""
+	This class represents an offline registry
+	You will need to set at least the SYSTEM hive (to get bootkey)
+	In case you have the SAM and/or SECURITY hives, it will parse them for the stored credentials/secrets as well.
+	"""
 	def __init__(self):		
 		self.sam_hive = None
 		self.security_hive = None
@@ -51,7 +56,7 @@ class PypyKatzOffineRegistry:
 		
 	@staticmethod
 	def from_files(system_path, sam_path = None, security_path = None):
-		po = PypyKatzOffineRegistry()
+		po = OffineRegistry()
 		
 		try:
 			sys_hive = open(system_path, 'rb')
@@ -150,7 +155,7 @@ class PypyKatzOffineRegistry:
 		po = None
 		if 'SYSTEM' in dumped_names:
 			try:
-				po = PypyKatzOffineRegistry.from_files(system_name, sam_name if 'SAM' in dumped_names else None, security_name if 'SECURITY' in dumped_names else None)
+				po = OffineRegistry.from_files(system_name, sam_name if 'SAM' in dumped_names else None, security_name if 'SECURITY' in dumped_names else None)
 			except Exception as e:
 				import traceback
 				traceback.print_exc()
@@ -169,5 +174,5 @@ class PypyKatzOffineRegistry:
 		return po
 	
 if __name__ == '__main__':
-	po = PypyKatzOffineRegistry.from_live_system()
+	po = OffineRegistry.from_live_system()
 	print(str(po))

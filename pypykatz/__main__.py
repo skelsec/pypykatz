@@ -15,7 +15,7 @@ import ntpath
 
 
 from pypykatz.pypykatz import pypykatz
-from pypykatz.registry.offline_parser import PypyKatzOffineRegistry
+from pypykatz.registry.offline_parser import OffineRegistry
 from pypykatz.commons.common import UniversalEncoder
 
 def main():
@@ -97,7 +97,7 @@ def main():
 			except Exception as e:
 				logging.debug('Failed to obtain registry secrets via direct registry reading method')
 				try:
-					lr = PypyKatzOffineRegistry.from_live_system()
+					lr = OffineRegistry.from_live_system()
 				except Exception as e:
 					logging.debug('Failed to obtain registry secrets via filedump method')
 			
@@ -153,7 +153,7 @@ def main():
 					
 	###### Registry
 	elif args.command == 'registry':
-		po = PypyKatzOffineRegistry.from_files(args.system, args.sam, args.security)
+		po = OffineRegistry.from_files(args.system, args.sam, args.security)
 		
 		if args.outfile:
 			po.to_file(args.outfile, args.json)
