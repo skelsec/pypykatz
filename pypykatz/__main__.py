@@ -91,8 +91,23 @@ def main():
 					
 		if args.module == 'registry':
 			from pypykatz.registry.live_parser import LiveRegistry
-			lr = LiveRegistry.go_live()
-			print(str(lr))
+			try:
+				lr = LiveRegistry.go_live()
+			except Exception as e:
+				logging.debug('Failed to obtain registry secrets via direct registry reading method')
+				try:
+					lr = PypyKatzOffineRegistry.from_live_system()
+				except Exception as e:
+					logging.debug('Failed to obtain registry secrets via filedump method')
+			
+			if lr is not None:
+				if args.outfile:
+					lr.to_file(args.outfile, args.json)
+				else:
+					print(str(lr))
+			else:
+				print('Registry parsing failed!')
+			
 			
 	###### Rekall
 	elif args.command == 'rekall':

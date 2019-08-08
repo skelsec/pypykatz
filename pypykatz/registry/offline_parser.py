@@ -103,8 +103,8 @@ class PypyKatzOffineRegistry:
 	def from_live_system():
 		logger.debug('Obtaining registry from local system')
 		try:
-			from pypykatz.commons.readers.local.common.privileges import RtlAdjustPrivilege
-			from pypykatz.commons.readers.local.common.privileges_types import PrivilegeValues
+			from pypykatz.commons.winapi.processmanipulator import ProcessManipulator
+			from pypykatz.commons.winapi.constants import SE_BACKUP
 			import winreg
 			import tempfile
 			import os
@@ -125,8 +125,8 @@ class PypyKatzOffineRegistry:
 		
 		logger.debug('Obtaining SE_BACKUP privilege...')
 		try:
-			RtlAdjustPrivilege(PrivilegeValues.SE_BACKUP.value)
-			RtlAdjustPrivilege(PrivilegeValues.SE_TAKE_OWNERSHIP.value)
+			po = ProcessManipulator()
+			po.set_privilege(SE_BACKUP)
 		except Exception as e:
 			logger.error('Failed to obtain SE_BACKUP privilege! Registry dump will not work! Reason: %s' % str(e))
 			raise e

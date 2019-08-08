@@ -12,8 +12,7 @@ class LiveRegistryHive:
 		return
 
 	def setup(self):
-		self.header = NTRegistryHeadr.read(self.reader)
-		self.root = self.search_root_key()
+		return
 		
 	def find_key(self, key_path, throw = True):
 		if self.root is None:
@@ -21,21 +20,13 @@ class LiveRegistryHive:
 		if key_path == '' or key_path is None:
 			return self.root
 			
-		key_path = self.hive_name + '\\' + key_path
-		
-		print(self.root)
-		print(key_path)
-		access = winreg.KEY_READ
-		#if key_path.find('\\SAM\\') != -1:
-		#	access = 0x00080000
-		
+		key_path = self.hive_name + '\\' + key_path		
 		try:
-			key = winreg.OpenKeyEx(self.root, key_path, access= access) #access mask needs to be WRITE_OWNER
+			key = winreg.OpenKeyEx(self.root, key_path, access= winreg.KEY_READ)
 		except Exception as e:
 			if throw is True:
 				raise e
 			else:
-				print('ret none!')
 				return None
 		return key
 		

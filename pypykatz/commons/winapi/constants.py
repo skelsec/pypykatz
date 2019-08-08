@@ -1,0 +1,213 @@
+
+
+PROCESS_QUERY_INFORMATION = 0x0400
+PROCESS_VM_READ = 0x0010
+
+# Standard access rights
+DELETE                           = 0x00010000
+READ_CONTROL                     = 0x00020000
+WRITE_DAC                        = 0x00040000
+WRITE_OWNER                      = 0x00080000
+SYNCHRONIZE                      = 0x00100000
+STANDARD_RIGHTS_REQUIRED         = 0x000F0000
+STANDARD_RIGHTS_READ             = READ_CONTROL
+STANDARD_RIGHTS_WRITE            = READ_CONTROL
+STANDARD_RIGHTS_EXECUTE          = READ_CONTROL
+STANDARD_RIGHTS_ALL              = 0x001F0000
+SPECIFIC_RIGHTS_ALL              = 0x0000FFFF
+
+
+#--- Constants ----------------------------------------------------------------
+
+privnames = {
+	"SE_ASSIGNPRIMARYTOKEN_NAME" : "SeAssignPrimaryTokenPrivilege",
+	"SE_AUDIT_NAME" : "SeAuditPrivilege",
+	"SE_BACKUP_NAME" : "SeBackupPrivilege",
+	"SE_CHANGE_NOTIFY_NAME" : "SeChangeNotifyPrivilege",
+	"SE_CREATE_GLOBAL_NAME" : "SeCreateGlobalPrivilege",
+	"SE_CREATE_PAGEFILE_NAME" : "SeCreatePagefilePrivilege",
+	"SE_CREATE_PERMANENT_NAME" : "SeCreatePermanentPrivilege",
+	"SE_CREATE_SYMBOLIC_LINK_NAME" : "SeCreateSymbolicLinkPrivilege",
+	"SE_CREATE_TOKEN_NAME" : "SeCreateTokenPrivilege",
+	"SE_DEBUG_NAME" : "SeDebugPrivilege",
+	"SE_ENABLE_DELEGATION_NAME" : "SeEnableDelegationPrivilege",
+	"SE_IMPERSONATE_NAME" : "SeImpersonatePrivilege",
+	"SE_INC_BASE_PRIORITY_NAME" : "SeIncreaseBasePriorityPrivilege",
+	"SE_INCREASE_QUOTA_NAME" : "SeIncreaseQuotaPrivilege",
+	"SE_INC_WORKING_SET_NAME" : "SeIncreaseWorkingSetPrivilege",
+	"SE_LOAD_DRIVER_NAME" : "SeLoadDriverPrivilege",
+	"SE_LOCK_MEMORY_NAME" : "SeLockMemoryPrivilege",
+	"SE_MACHINE_ACCOUNT_NAME" : "SeMachineAccountPrivilege",
+	"SE_MANAGE_VOLUME_NAME" : "SeManageVolumePrivilege",
+	"SE_PROF_SINGLE_PROCESS_NAME" : "SeProfileSingleProcessPrivilege",
+	"SE_RELABEL_NAME" : "SeRelabelPrivilege",
+	"SE_REMOTE_SHUTDOWN_NAME" : "SeRemoteShutdownPrivilege",
+	"SE_RESTORE_NAME" : "SeRestorePrivilege",
+	"SE_SECURITY_NAME" : "SeSecurityPrivilege",
+	"SE_SHUTDOWN_NAME" : "SeShutdownPrivilege",
+	"SE_SYNC_AGENT_NAME" : "SeSyncAgentPrivilege",
+	"SE_SYSTEM_ENVIRONMENT_NAME" : "SeSystemEnvironmentPrivilege",
+	"SE_SYSTEM_PROFILE_NAME" : "SeSystemProfilePrivilege",
+	"SE_SYSTEMTIME_NAME" : "SeSystemtimePrivilege",
+	"SE_TAKE_OWNERSHIP_NAME" : "SeTakeOwnershipPrivilege",
+	"SE_TCB_NAME" : "SeTcbPrivilege",
+	"SE_TIME_ZONE_NAME" : "SeTimeZonePrivilege",
+	"SE_TRUSTED_CREDMAN_ACCESS_NAME" : "SeTrustedCredManAccessPrivilege",
+	"SE_UNDOCK_NAME" : "SeUndockPrivilege",
+	"SE_UNSOLICITED_INPUT_NAME" : "SeUnsolicitedInputPrivilege"
+}
+
+# Privilege constants
+SE_ASSIGNPRIMARYTOKEN_NAME	  = "SeAssignPrimaryTokenPrivilege"
+SE_AUDIT_NAME				   = "SeAuditPrivilege"
+SE_BACKUP_NAME				  = "SeBackupPrivilege"
+SE_CHANGE_NOTIFY_NAME		   = "SeChangeNotifyPrivilege"
+SE_CREATE_GLOBAL_NAME		   = "SeCreateGlobalPrivilege"
+SE_CREATE_PAGEFILE_NAME		 = "SeCreatePagefilePrivilege"
+SE_CREATE_PERMANENT_NAME		= "SeCreatePermanentPrivilege"
+SE_CREATE_SYMBOLIC_LINK_NAME	= "SeCreateSymbolicLinkPrivilege"
+SE_CREATE_TOKEN_NAME			= "SeCreateTokenPrivilege"
+SE_DEBUG_NAME				   = "SeDebugPrivilege"
+SE_ENABLE_DELEGATION_NAME	   = "SeEnableDelegationPrivilege"
+SE_IMPERSONATE_NAME			 = "SeImpersonatePrivilege"
+SE_INC_BASE_PRIORITY_NAME	   = "SeIncreaseBasePriorityPrivilege"
+SE_INCREASE_QUOTA_NAME		  = "SeIncreaseQuotaPrivilege"
+SE_INC_WORKING_SET_NAME		 = "SeIncreaseWorkingSetPrivilege"
+SE_LOAD_DRIVER_NAME			 = "SeLoadDriverPrivilege"
+SE_LOCK_MEMORY_NAME			 = "SeLockMemoryPrivilege"
+SE_MACHINE_ACCOUNT_NAME		 = "SeMachineAccountPrivilege"
+SE_MANAGE_VOLUME_NAME		   = "SeManageVolumePrivilege"
+SE_PROF_SINGLE_PROCESS_NAME	 = "SeProfileSingleProcessPrivilege"
+SE_RELABEL_NAME				 = "SeRelabelPrivilege"
+SE_REMOTE_SHUTDOWN_NAME		 = "SeRemoteShutdownPrivilege"
+SE_RESTORE_NAME				 = "SeRestorePrivilege"
+SE_SECURITY_NAME				= "SeSecurityPrivilege"
+SE_SHUTDOWN_NAME				= "SeShutdownPrivilege"
+SE_SYNC_AGENT_NAME			  = "SeSyncAgentPrivilege"
+SE_SYSTEM_ENVIRONMENT_NAME	  = "SeSystemEnvironmentPrivilege"
+SE_SYSTEM_PROFILE_NAME		  = "SeSystemProfilePrivilege"
+SE_SYSTEMTIME_NAME			  = "SeSystemtimePrivilege"
+SE_TAKE_OWNERSHIP_NAME		  = "SeTakeOwnershipPrivilege"
+SE_TCB_NAME					 = "SeTcbPrivilege"
+SE_TIME_ZONE_NAME			   = "SeTimeZonePrivilege"
+SE_TRUSTED_CREDMAN_ACCESS_NAME  = "SeTrustedCredManAccessPrivilege"
+SE_UNDOCK_NAME				  = "SeUndockPrivilege"
+SE_UNSOLICITED_INPUT_NAME	   = "SeUnsolicitedInputPrivilege"
+
+SE_CREATE_TOKEN = 2
+SE_ASSIGNPRIMARYTOKEN = 3
+SE_LOCK_MEMORY=4
+SE_INCREASE_QUOTA=5
+SE_UNSOLICITED_INPUT=6
+SE_TCB=7
+SE_SECURITY=8
+SE_TAKE_OWNERSHIP=9
+SE_LOAD_DRIVER=10
+SE_SYSTEM_PROFILE=11
+SE_SYSTEMTIME=12
+SE_PROF_SINGLE_PROCESS=13
+SE_INC_BASE_PRIORITY=14
+SE_CREATE_PAGEFILE=15
+SE_CREATE_PERMANENT=16
+SE_BACKUP=17
+SE_RESTORE=18
+SE_SHUTDOWN=19
+SE_DEBUG=20
+SE_AUDIT=21
+SE_SYSTEM_ENVIRONMENT=22
+SE_CHANGE_NOTIFY=23
+SE_REMOTE_SHUTDOWN=24
+SE_UNDOCK=25
+SE_SYNC_AGENT=26
+SE_ENABLE_DELEGATION=27
+SE_MANAGE_VOLUME=28
+SE_IMPERSONATE=29
+SE_CREATE_GLOBAL=30
+SE_TRUSTED_CREDMAN_ACCESS=31
+SE_RELABEL=32
+SE_INC_WORKING_SET=33
+SE_TIME_ZONE=34
+SE_CREATE_SYMBOLIC_LINK=35
+
+SE_PRIVILEGE_ENABLED_BY_DEFAULT = 0x00000001
+SE_PRIVILEGE_ENABLED			= 0x00000002
+SE_PRIVILEGE_REMOVED			= 0x00000004
+SE_PRIVILEGE_USED_FOR_ACCESS	= 0x80000000
+
+TOKEN_ADJUST_PRIVILEGES		 = 0x00000020
+
+LOGON_WITH_PROFILE			  = 0x00000001
+LOGON_NETCREDENTIALS_ONLY	   = 0x00000002
+
+# Token access rights
+TOKEN_ASSIGN_PRIMARY	= 0x0001
+TOKEN_DUPLICATE		 = 0x0002
+TOKEN_IMPERSONATE	   = 0x0004
+TOKEN_QUERY			 = 0x0008
+TOKEN_QUERY_SOURCE	  = 0x0010
+TOKEN_ADJUST_PRIVILEGES = 0x0020
+TOKEN_ADJUST_GROUPS	 = 0x0040
+TOKEN_ADJUST_DEFAULT	= 0x0080
+TOKEN_ADJUST_SESSIONID  = 0x0100
+TOKEN_READ = (STANDARD_RIGHTS_READ | TOKEN_QUERY)
+TOKEN_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED | TOKEN_ASSIGN_PRIMARY |
+		TOKEN_DUPLICATE | TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_QUERY_SOURCE |
+		TOKEN_ADJUST_PRIVILEGES | TOKEN_ADJUST_GROUPS | TOKEN_ADJUST_DEFAULT |
+		TOKEN_ADJUST_SESSIONID)
+
+#dont ask me...
+TOKEN_MANIP_ACCESS = (TOKEN_QUERY | TOKEN_READ | TOKEN_IMPERSONATE | TOKEN_QUERY_SOURCE | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY | (131072 | 4))
+
+
+# typedef enum _SECURITY_IMPERSONATION_LEVEL {
+#   SecurityAnonymous,
+#   SecurityIdentification,
+#   SecurityImpersonation,
+#   SecurityDelegation
+# } SECURITY_IMPERSONATION_LEVEL, *PSECURITY_IMPERSONATION_LEVEL;
+
+SecurityAnonymous	   = 0
+SecurityIdentification  = 1
+SecurityImpersonation   = 2
+SecurityDelegation	  = 3
+
+TokenPrimary		= 1
+TokenImpersonation  = 2
+
+# Predefined HKEY values
+HKEY_CLASSES_ROOT	   = 0x80000000
+HKEY_CURRENT_USER	   = 0x80000001
+HKEY_LOCAL_MACHINE	  = 0x80000002
+HKEY_USERS			  = 0x80000003
+HKEY_PERFORMANCE_DATA   = 0x80000004
+HKEY_CURRENT_CONFIG	 = 0x80000005
+
+# Registry access rights
+KEY_ALL_ACCESS		  = 0xF003F
+KEY_CREATE_LINK		 = 0x0020
+KEY_CREATE_SUB_KEY	  = 0x0004
+KEY_ENUMERATE_SUB_KEYS  = 0x0008
+KEY_EXECUTE			 = 0x20019
+KEY_NOTIFY			  = 0x0010
+KEY_QUERY_VALUE		 = 0x0001
+KEY_READ				= 0x20019
+KEY_SET_VALUE		   = 0x0002
+KEY_WOW64_32KEY		 = 0x0200
+KEY_WOW64_64KEY		 = 0x0100
+KEY_WRITE			   = 0x20006
+
+# Registry value types
+REG_NONE						= 0
+REG_SZ						  = 1
+REG_EXPAND_SZ				   = 2
+REG_BINARY					  = 3
+REG_DWORD					   = 4
+REG_DWORD_LITTLE_ENDIAN		 = REG_DWORD
+REG_DWORD_BIG_ENDIAN			= 5
+REG_LINK						= 6
+REG_MULTI_SZ					= 7
+REG_RESOURCE_LIST			   = 8
+REG_FULL_RESOURCE_DESCRIPTOR	= 9
+REG_RESOURCE_REQUIREMENTS_LIST  = 10
+REG_QWORD					   = 11
+REG_QWORD_LITTLE_ENDIAN		 = REG_QWORD

