@@ -36,6 +36,7 @@ setup(
 	install_requires=[
 		'minidump>=0.0.6',
 		'minikerberos>=0.0.8',
+		'aiowinreg>=0.0.1',
 	],
 	
 	entry_points={
@@ -43,6 +44,4 @@ setup(
 			'pypykatz = pypykatz.__main__:main',
 		],
 	}
-	
-	
 )
