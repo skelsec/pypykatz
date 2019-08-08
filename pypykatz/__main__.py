@@ -91,6 +91,7 @@ def main():
 					
 		if args.module == 'registry':
 			from pypykatz.registry.live_parser import LiveRegistry
+			lr = None
 			try:
 				lr = LiveRegistry.go_live()
 			except Exception as e:

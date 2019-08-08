@@ -43,12 +43,13 @@ class LiveRegistryHive:
 				name = winreg.EnumKey(key, i)
 				names.append(name)
 				i+= 1
-			except Exception as e:
-				print(e)
-				break
+			except OSError as e:
+				if isinstance(e, WindowsError) and e.winerror == 259:
+					break
+				else:
+					raise e
 				
 		return names
-		
 		
 	def list_values(self, key):
 		if self.root is None:
@@ -61,9 +62,11 @@ class LiveRegistryHive:
 				value = winreg.EnumValue(key, i)
 				values.append(value[0].encode())
 				i+= 1
-			except Exception as e:
-				print(e)
-				break
+			except OSError as e:
+				if isinstance(e, WindowsError) and e.winerror == 259:
+					break
+				else:
+					raise e
 				
 		return values
 		
@@ -76,8 +79,6 @@ class LiveRegistryHive:
 			value_name = ''
 		
 		key = self.find_key(key_path, throw)
-		print('vk %s' % key)
-		print(value_name)
 		if key is None:
 			return None
 			

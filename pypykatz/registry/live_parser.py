@@ -26,6 +26,9 @@ class LiveRegistry:
 		"""
 		For obtaining all secrets from the registry on-the-fly, SYSTEM user MUST be used!
 		In case this is not achievable, Administrator can be used to first dump the registry hives to disk, then parse them offline
+		There is a 3rd way: As administrator you can obtain SE_TAKE_OWNERSHIP privileges, then you can open any hive with the WRITE_OWNER permission. 
+			After doing that you'd need to change the SID of each target hive to include the administrator user with full access.
+			This is so intrusive I'm not implementing that, if you mess that up your computer will turn to potato. Like literally... (also it's a lot of work)
 		"""
 		pm = ProcessManipulator()
 		try:

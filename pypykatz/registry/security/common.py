@@ -19,7 +19,6 @@ class LSASecret:
 	@staticmethod
 	def process(key_name, raw_secret, history = False):
 		kn = key_name.upper()
-		print(key_name)
 		if len(raw_secret) == 0:
 			return
 		if raw_secret.startswith(b'\x00\x00'):

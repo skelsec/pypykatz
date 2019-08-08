@@ -44,8 +44,6 @@ class SECURITY:
 		
 	def decrypt_lsa_key(self, data):
 		logger.debug('[SECURITY] Decrypting LSA key...')
-		print(data)
-		print(self.lsa_secret_key_vista_type)
 		if self.lsa_secret_key_vista_type is True:
 			record = LSA_SECRET.from_bytes(data)
 			key = SECURITY.sha256_multi(self.bootkey, record.data[:32])

@@ -49,23 +49,21 @@ class ProcessManipulator:
 		"""
 		iterates trough all available processes, fetches all process tokens, gets user information for all tokens
 		"""
-		#LookupAccountSidA
+		logger.debug('[ProcessManipulator] Listing all tokens...')
 		try:
 			res = self.set_privilege(SE_DEBUG)
-			print( res)
 		except Exception as e:
 			logger.error('Failed to obtain SE_DEBUG privilege!')
 			raise e
 		
 		token_infos = []
 		for pid in self.api.psapi.EnumProcesses():
-			print(pid)
 			proc_handle = None
 			try:
 				proc_handle = self.api.kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
-				print('Proc handle for PID %s is: %s' % (proc_handle, pid))
+				logger.log(1, '[ProcessManipulator] Proc handle for PID %s is: %s' % (proc_handle, pid))
 			except Exception as e:
-				print('Failed to open process pid %s Reason: %s' % (pid, str(e)))
+				logger.log(1, '[ProcessManipulator] Failed to open process pid %s Reason: %s' % (pid, str(e)))
 				continue
 			
 			else:
@@ -73,7 +71,7 @@ class ProcessManipulator:
 				try:
 					token_handle = self.api.advapi32.OpenProcessToken(proc_handle, TOKEN_MANIP_ACCESS)
 				except Exception as e:
-					print('Failed get token from process pid %s Reason: %s' % (pid, str(e)))
+					logger.log(1, '[ProcessManipulator] Failed get token from process pid %s Reason: %s' % (pid, str(e)))
 					continue
 				else:
 					ti = self.get_token_info(token_handle, pid)
@@ -99,7 +97,6 @@ class ProcessManipulator:
 		else:
 			try:
 				token_handle = self.api.advapi32.OpenProcessToken(proc_handle, TOKEN_MANIP_ACCESS)
-				
 				return self.get_token_info(token_handle, pid)
 			except Exception as e:
 				raise e
@@ -108,7 +105,7 @@ class ProcessManipulator:
 					self.api.kernel32.CloseHandle(token_handle)
 		finally:
 			if proc_handle is not None:
-					self.api.kernel32.CloseHandle(proc_handle)
+				self.api.kernel32.CloseHandle(proc_handle)
 					
 	def get_token_info(self, token_handle, pid):
 		ptr_sid = self.api.advapi32.GetTokenInformation_sid(token_handle)
@@ -134,13 +131,12 @@ class ProcessManipulator:
 		
 		token_infos = []
 		for pid in self.api.psapi.EnumProcesses():
-			print(pid)
 			proc_handle = None
 			try:
 				proc_handle = self.api.kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
-				print('Proc handle for PID %s is: %s' % (proc_handle, pid))
+				logger.log(1, '[ProcessManipulator] Proc handle for PID %s is: %s' % (proc_handle, pid))
 			except Exception as e:
-				print('Failed to open process pid %s Reason: %s' % (pid, str(e)))
+				logger.log(1, '[ProcessManipulator] Failed to open process pid %s Reason: %s' % (pid, str(e)))
 				continue
 			
 			else:
@@ -148,13 +144,13 @@ class ProcessManipulator:
 				try:
 					token_handle = self.api.advapi32.OpenProcessToken(proc_handle, TOKEN_MANIP_ACCESS)
 				except Exception as e:
-					print('Failed get token from process pid %s Reason: %s' % (pid, str(e)))
+					logger.log(1, '[ProcessManipulator] Failed get token from process pid %s Reason: %s' % (pid, str(e)))
 					continue
 				else:
 					ptr_sid = self.api.advapi32.GetTokenInformation_sid(token_handle)
 					sid_str = self.api.advapi32.ConvertSidToStringSid(ptr_sid)
 					if sid_str == target_sid:
-						print('Found sid!')
+						logger.debug('[ProcessManipulator] Found token with target sid!')
 						cloned_token = self.api.advapi32.DuplicateTokenEx(
 							token_handle, 
 							dwDesiredAccess = dwDesiredAccess, 
@@ -178,14 +174,14 @@ class ProcessManipulator:
 		assigns the token to the thread specified by threadid, if threadid is none then it will use the current thread
 		"""
 		for token in self.get_token_for_sid(target_sid = target_sid, dwDesiredAccess = TOKEN_QUERY | TOKEN_IMPERSONATE, ImpersonationLevel = SecurityDelegation, TokenType = TokenImpersonation):
-			print('Setting token to current thread...')
+			logger.debug('[ProcessManipulator] Setting token to current thread...')
 			try:
 				self.api.advapi32.SetThreadToken(token)
 			except Exception as e:
-				print('Failed changing the thread token. Reason: %s' % e)
+				logger.log(1, 'Failed changing the thread token. Reason: %s' % e)
 				continue
 			else:
-				print('Success! Now we should be SYSTEM!')
+				logger.debug('[ProcessManipulator] Sucsessfully set token to current thread!')
 				break
 		
 	def create_process_for_sid(self, target_sid = 'S-1-5-18', cmdline = 'C:\\Windows\\system32\\cmd.exe', interactive = True):
@@ -193,14 +189,13 @@ class ProcessManipulator:
 		Creates a new process with the token of the target SID 
 		"""
 		for token in self.get_token_for_sid(target_sid = target_sid, dwDesiredAccess = TOKEN_ALL_ACCESS, ImpersonationLevel = SecurityImpersonation, TokenType = TokenImpersonation):
-			print('Setting token to current thread...')
 			try:
 				self.api.advapi32.CreateProcessWithToken_manip(token, cmdline)
 			except Exception as e:
-				print('Failed changing the thread token. Reason: %s' % e)
+				logger.log(1, 'Failed creating process with the token obtained. Reason: %s' % e)
 				continue
 			else:
-				print('Success! Now we should be SYSTEM!')
+				logger.debug('[ProcessManipulator] Sucsessfully created process!')
 				break
 		
 if __name__ == '__main__':

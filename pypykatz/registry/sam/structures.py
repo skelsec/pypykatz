@@ -282,7 +282,6 @@ class USER_ACCOUNT_V:
 		if uac.NTHashLength > 0:
 			buff.seek(data_offset + uac.NTHashOffset + 2)
 			if buff.read(1) == b'\x01':
-				print('OLD STYLE!')
 				if uac.NTHashLength == 20:
 					buff.seek(data_offset + uac.NTHashOffset)
 					uac.NT_hash = SAM_HASH.from_bytes(buff.read(uac.NTHashLength))
