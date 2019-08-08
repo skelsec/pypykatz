@@ -115,12 +115,8 @@ class ProcessManipulator:
 		
 	def get_token_for_sid(self, target_sid = 'S-1-5-18', dwDesiredAccess = TOKEN_ALL_ACCESS, ImpersonationLevel = SecurityImpersonation, TokenType = SecurityImpersonation):
 		"""
-		iterates trough all available processes, fetches all process tokens, checks if sid matches for token, duplicates it and returns it
-		
-		dwDesiredAccess = TOKEN_ALL_ACCESS, 
-						lpTokenAttributes = None, 
-						ImpersonationLevel = SecurityImpersonation, 
-						TokenType = SecurityImpersonation
+		iterates trough all available processes, fetches all process tokens, checks if sid matches for token, duplicates it and yields them
+		also leaks a lot of handles, probably should be cleaned up TODO
 		"""
 		#LookupAccountSidA
 		try:
@@ -208,13 +204,5 @@ if __name__ == '__main__':
 	#pm.assign_token_thread_sid()
 	ti = pm.get_current_token_info()
 	print(str(ti))
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
