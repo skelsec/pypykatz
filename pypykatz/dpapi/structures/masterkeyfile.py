@@ -1,7 +1,11 @@
 import io
 import enum
+import sys
 
 from pypykatz.dpapi.constants import *
+from hashlib import sha1
+import hmac
+
 
 class CredHist:
 	"""
@@ -94,8 +98,44 @@ class MasterKey:
 		sk.data = buff.read()
 		return sk
 		
-	def decrypt(self, enc_key):
-		raise NotImplementedError('e')
+	def decrypt(self, key):
+		if self.hash_algorithm == ALGORITHMS.CALG_HMAC:
+			hash_type = sha1
+		else:
+			hash_type = ALGORITHMS_DATA[self.hash_algorithm][1]
+		
+		keylen = ALGORITHMS_DATA[self.crypto_algorithm][0] + ALGORITHMS_DATA[self.crypto_algorithm][3]
+		
+		temp_key_blob = b""
+		i = 1
+		while len(temp_key_blob) < keylen:
+			U = self.salt + i.to_bytes(4, 'big', signed = False)
+			i += 1
+			derived = hmac.new(key, U, hash_type).digest()
+			for _ in range(self.iteration_count - 1):
+				actual = hmac.new(key,derived, hash_type).digest()
+				derived = (int.from_bytes(derived, sys.byteorder) ^ int.from_bytes(actual, sys.byteorder)).to_bytes(len(actual), sys.byteorder)
+			temp_key_blob += derived
+
+		temp_key = temp_key_blob[:keylen]
+		print('temp_key : %s' % temp_key)
+		crypt_key = temp_key[:ALGORITHMS_DATA[self.crypto_algorithm][0]]
+		iv = temp_key[ALGORITHMS_DATA[self.crypto_algorithm][0]:][:ALGORITHMS_DATA[self.crypto_algorithm][3]]
+		cipher = ALGORITHMS_DATA[self.crypto_algorithm][1](crypt_key, mode = ALGORITHMS_DATA[self.crypto_algorithm][2], iv = iv)
+		
+		cleartext = cipher.decrypt(self.data)
+		key_dec = cleartext[-64:]
+		hmac_salt = cleartext[:16]
+		hmac_res = cleartext[16:][:ALGORITHMS_DATA[self.hash_algorithm][0]]
+		
+		hmac_key = hmac.new(key, hmac_salt, hash_type).digest()
+		hmac_calc = hmac.new(hmac_key, key_dec, hash_type).digest()
+		print(hmac_calc)
+		print(hmac_res)
+		if hmac_calc[:ALGORITHMS_DATA[self.hash_algorithm][0]] == hmac_res:
+			return key_dec
+		else:
+			return None
 		
 	def __str__(self):
 		t = '== MasterKey ==\r\n'

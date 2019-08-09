@@ -55,6 +55,16 @@ class DPAPI_BLOB:
 		sk.signature_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.signature = buff.read(sk.signature_length)
 		return sk
+	
+	def decrypt(self, key, entropy = None):
+		raise NotImplementedError('continue from here tomorrow when sober')
+		key_hash = sha1(key).digest()
+		session_key_ctx = hmac.new(key_hash, self.salt, ALGORITHMS_DATA[self.hash_algorithm][1])
+		if entropy is not None:
+			session_key_ctx.update(entropy)
+		
+		session_key = session_key_ctx.digest()
+		
 		
 	
 		

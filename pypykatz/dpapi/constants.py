@@ -4,6 +4,13 @@ import enum
 # https://doxygen.reactos.org/d7/d4a/wincrypt_8h.html
 # impacket dpapi.py
 
+from hashlib import sha1 as SHA1
+from hashlib import sha512 as SHA512
+from pypykatz.crypto.unified.aes import AES
+from pypykatz.crypto.unified.des3 import DES3
+from pypykatz.crypto.unified.common import SYMMETRIC_MODE
+
+
 # Algorithm classes
 ALG_CLASS_ANY                   = (0)
 ALG_CLASS_SIGNATURE             = (1 << 13)
@@ -140,6 +147,15 @@ class ALGORITHMS(enum.IntFlag):
     CALG_ECDH               = (ALG_CLASS_KEY_EXCHANGE | ALG_TYPE_DH | ALG_SID_ECDH)
     CALG_ECMQV              = (ALG_CLASS_KEY_EXCHANGE | ALG_TYPE_ANY | ALG_SID_ECMQV)
     CALG_ECDSA              = (ALG_CLASS_SIGNATURE | ALG_TYPE_DSS | ALG_SID_ECDSA)
+	
+ALGORITHMS_DATA = {
+    # Algorithm: key/SaltLen, CryptHashModule, Mode, IVLen, BlockSize
+    ALGORITHMS.CALG_SHA: (160//8, SHA1, None, None, 512//8),
+    ALGORITHMS.CALG_HMAC: (160//8, SHA512, None, None, 512//8),
+    ALGORITHMS.CALG_3DES: (192//8, DES3, SYMMETRIC_MODE.CBC, 64//8),
+    ALGORITHMS.CALG_SHA_512: (128//8, SHA512, None, None, 1024//8),
+    ALGORITHMS.CALG_AES_256: (256//8, AES, SYMMETRIC_MODE.CBC,128//8), #CBC is already in the object...
+}
 	
 	
 class FLAGS(enum.IntFlag):
