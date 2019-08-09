@@ -1,7 +1,7 @@
 
 import ctypes
 from pypykatz.commons.winapi.constants import *
-from pypykatz.commons.winapi.local.function_defs.advapi32 import LookupPrivilegeValueW, OpenProcessToken, GetTokenInformation_sid, LookupAccountSidW, ConvertSidToStringSidA, DuplicateTokenEx, CreateProcessWithTokenW, SetThreadToken, LOGON_NETCREDENTIALS_ONLY
+from pypykatz.commons.winapi.local.function_defs.advapi32 import LookupPrivilegeValueW, OpenProcessToken, GetTokenInformation_sid, LookupAccountSidW, ConvertSidToStringSidA, DuplicateTokenEx, CreateProcessWithTokenW, SetThreadToken, ConvertStringSidToSidA, LOGON_NETCREDENTIALS_ONLY
 from pypykatz.commons.winapi.local.function_defs.kernel32 import STARTUPINFOW
 
 
@@ -31,6 +31,10 @@ class ADVAPI32:
 	@staticmethod
 	def ConvertSidToStringSid(lpSid):
 		return ConvertSidToStringSidA(lpSid)
+		
+	@staticmethod
+	def ConvertStringSidToSid(StringSid):
+		return ConvertStringSidToSidA(StringSid)
 
 	@staticmethod
 	def DuplicateTokenEx(hExistingToken, dwDesiredAccess = TOKEN_ALL_ACCESS, lpTokenAttributes = None, ImpersonationLevel = SecurityImpersonation, TokenType = TokenPrimary):

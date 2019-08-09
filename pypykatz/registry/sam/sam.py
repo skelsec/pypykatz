@@ -10,7 +10,6 @@ from pypykatz.crypto.des import *
 from pypykatz.registry.sam.structures import *
 from pypykatz.registry.sam.common import *
 from pypykatz.registry import logger
-from pypykatz.dpapi.structures import DPAPI_SYSTEM
 
 #
 # The SAM hive holds the hashed passwords of the LOCAL machine users

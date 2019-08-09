@@ -94,10 +94,13 @@ class PackageDecryptor:
 				datasize = 0x200			
 			
 		pos = self.reader.tell()
-		self.reader.move(ptr)
-		data = self.reader.peek(datasize)
-		self.reader.move(pos)
-		self.log('%s: %s\n%s' % (name, hex(ptr), hexdump(data, start = ptr)))
+		try:
+			self.reader.move(ptr)
+			data = self.reader.peek(datasize)
+			self.reader.move(pos)
+			self.log('%s: %s\n%s' % (name, hex(ptr), hexdump(data, start = ptr)))
+		except Exception as e:
+			self.log('%s: Logging failed for position %s' % (name, hex(ptr)))
 		
 	def decrypt_password(self, enc_password, bytes_expected = False, trim_zeroes = True):
 		"""

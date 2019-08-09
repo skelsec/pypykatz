@@ -3,7 +3,7 @@ import platform
 if platform.system() != 'Windows':
 	raise Exception('This will ONLY work on Windows systems!')
 
-from pypykatz.registry.live_reader.reader import LiveRegistryHive
+from pypykatz.commons.readers.registry.live.reader import LiveRegistryHive
 from pypykatz.registry import logger
 from pypykatz.registry.sam.sam import *
 from pypykatz.registry.security.security import *

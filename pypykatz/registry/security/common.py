@@ -1,6 +1,6 @@
 
 import hashlib
-from pypykatz.dpapi.structures import DPAPI_SYSTEM
+from pypykatz.dpapi.structures.system import DPAPI_SYSTEM
 from pypykatz.commons.common import hexdump
 
 #

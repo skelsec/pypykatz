@@ -11,7 +11,6 @@ from pypykatz.crypto.des import *
 from pypykatz.registry.security.structures import *
 from pypykatz.registry.security.common import *
 from pypykatz.registry import logger
-from pypykatz.dpapi.structures import DPAPI_SYSTEM
 from pypykatz.commons.common import hexdump
 
 #

@@ -45,6 +45,18 @@ def main():
 	live_subparsers.dest = 'module'
 	live_subparser_lsa_group = live_subparsers.add_parser('lsa', help='Get all secrets from LSASS')
 	live_subparser_registry_group = live_subparsers.add_parser('registry', help='Get all secrets from registry')
+	live_subparser_process_group = live_subparsers.add_parser('process', help='Process creating/manipulation commands')
+	live_subparser_process_group.add_argument('cmd', choices=['create'])
+	live_subparser_process_group.add_argument('-i','--interactive', action = 'store_true', help = 'Spawns a new interactive process')
+	live_subparser_process_group.add_argument('--sid', help = 'Impersonate given SID in new process')
+	live_subparser_process_group.add_argument('-c', '--cmdline', help = 'The process to execute. Default: cmd.exe')
+	
+	
+	live_subparser_process_group = live_subparsers.add_parser('token', help='Token creating/manipulation commands')
+	live_subparser_process_group.add_argument('cmd', choices=['list', 'current'])
+	live_subparser_process_group.add_argument('-f','--force', action='store_true', help= 'Tries to list as many tokens as possible without SE_DEBUG privilege')
+	live_subparser_users_group = live_subparsers.add_parser('users', help='User creating/manipulation commands')
+	live_subparser_users_group.add_argument('cmd', choices=['list','whoami'])
 	
 	rekall_group = subparsers.add_parser('rekall', help='Get secrets from memory dump')
 	rekall_group.add_argument('memoryfile', help='path to the memory dump file')
@@ -89,7 +101,7 @@ def main():
 					traceback.print_exc()
 					pass
 					
-		if args.module == 'registry':
+		elif args.module == 'registry':
 			from pypykatz.registry.live_parser import LiveRegistry
 			lr = None
 			try:
@@ -108,6 +120,51 @@ def main():
 					print(str(lr))
 			else:
 				print('Registry parsing failed!')
+				
+		elif args.module == 'process':
+			if args.cmd == 'create':
+				from pypykatz.commons.winapi.processmanipulator import ProcessManipulator
+				pm = ProcessManipulator()
+				sid = 'S-1-5-18'
+				if args.sid is not None:
+					sid = args.sid
+				
+				if args.cmdline is not None:
+					cmdline = args.cmdline
+				else:
+					#looking for the correct path...
+					cmdline = os.environ['ComSpec']
+				
+				pm.create_process_for_sid(target_sid = sid, cmdline = cmdline, interactive = args.interactive)
+				return
+				
+		elif args.module == 'token':
+			from pypykatz.commons.winapi.processmanipulator import ProcessManipulator
+			if args.cmd == 'list':
+				pm = ProcessManipulator()
+				for ti in pm.list_all_tokens(args.force):
+					print(str(ti))
+				return
+				
+			if args.cmd == 'current':
+				pm = ProcessManipulator()
+				token_info = pm.get_current_token_info()
+				print(str(token_info))
+				return
+				
+		elif args.module == 'users':
+			from pypykatz.commons.winapi.machine import LiveMachine
+			
+			if args.cmd == 'list':
+				lm = LiveMachine()
+				users = lm.list_users()
+				for sid in users:
+					print(str(users[sid]))
+					
+			elif args.cmd == 'whoami':
+				lm = LiveMachine()
+				user = lm.get_current_user()
+				print(str(user))
 			
 			
 	###### Rekall

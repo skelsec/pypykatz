@@ -45,8 +45,9 @@ class ProcessManipulator:
 		Lists all available privileges for the current user
 		"""
 		pass
+
 		
-	def list_all_tokens(self):
+	def list_all_tokens(self, force = False):
 		"""
 		iterates trough all available processes, fetches all process tokens, gets user information for all tokens
 		"""
@@ -54,9 +55,12 @@ class ProcessManipulator:
 		try:
 			res = self.set_privilege(SE_DEBUG)
 		except Exception as e:
-			logger.error('Failed to obtain SE_DEBUG privilege!')
-			raise e
-		
+			if force is False:
+				logger.error('Failed to obtain SE_DEBUG privilege!')
+				raise e
+			else:
+				pass
+				
 		token_infos = []
 		for pid in self.api.psapi.EnumProcesses():
 			proc_handle = None
@@ -111,7 +115,7 @@ class ProcessManipulator:
 	def get_token_info(self, token_handle, pid):
 		ptr_sid = self.api.advapi32.GetTokenInformation_sid(token_handle)
 		sid_str = self.api.advapi32.ConvertSidToStringSid(ptr_sid)
-		name, domain, token_type = self.api.advapi32.LookupAccountSid(None, ptr_sid)					
+		name, domain, token_type = self.api.advapi32.LookupAccountSid(None, ptr_sid)
 		return TokenInfo(pid, domain, name, sid_str, token_type)
 		
 	def get_token_for_sid(self, target_sid = 'S-1-5-18', dwDesiredAccess = TOKEN_ALL_ACCESS, ImpersonationLevel = SecurityImpersonation, TokenType = SecurityImpersonation):
@@ -184,6 +188,7 @@ class ProcessManipulator:
 	def create_process_for_sid(self, target_sid = 'S-1-5-18', cmdline = 'C:\\Windows\\system32\\cmd.exe', interactive = True):
 		"""
 		Creates a new process with the token of the target SID 
+		TODO: implement non-interactive functionality :(
 		"""
 		for token in self.get_token_for_sid(target_sid = target_sid, dwDesiredAccess = TOKEN_ALL_ACCESS, ImpersonationLevel = SecurityImpersonation, TokenType = TokenImpersonation):
 			try:
