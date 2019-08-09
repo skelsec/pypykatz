@@ -280,7 +280,7 @@ def main():
 			for cred in results[filename].orphaned_creds:
 				if cred.credtype == 'kerberos':
 					for ticket in cred.tickets:
-						ticket.to_kirbi(dir)			
+						ticket.to_kirbi(dir)
 	
 	
 
