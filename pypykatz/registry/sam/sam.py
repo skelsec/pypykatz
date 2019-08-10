@@ -1,6 +1,7 @@
 
 import hashlib
 import hmac
+import io
 from pypykatz.registry.sam.structures import *
 from pypykatz.crypto.RC4 import RC4
 from pypykatz.crypto.aes import AESModeOfOperationCBC
@@ -10,6 +11,7 @@ from pypykatz.crypto.des import *
 from pypykatz.registry.sam.structures import *
 from pypykatz.registry.sam.common import *
 from pypykatz.registry import logger
+from pypykatz.commons.win_datatypes import SID
 
 #
 # The SAM hive holds the hashed passwords of the LOCAL machine users
@@ -24,6 +26,7 @@ class SAM:
 		self.hive = sam_hive
 		self.bootkey = bootkey
 		self.hashed_bootkey = None
+		self.machine_sid = None
 		self.secrets = []
 		
 	@staticmethod
@@ -84,6 +87,25 @@ class SAM:
 		logger.debug('[SAM] HBootkey: %s' % self.hashed_bootkey.hex())
 		return self.hashed_bootkey
 		
+	def get_machine_sid(self):
+		# https://social.technet.microsoft.com/Forums/en-US/de8ff30b-6986-4aad-bcde-12bb5e66fe86/the-computer-sid-with-windows-7?forum=winserverDS
+		# TODO: implement this
+		#try:
+		#	uac_data = self.hive.get_value('SAM\\Domains\\Account\\V')[1]
+		#	print(uac_data)
+		#	print(uac_data[-12:].hex())
+		#	uac_data = uac_data[-12:]
+		#	p1 = int.from_bytes(  uac_data[:4], 'big', signed = False)
+		#	p2 = int.from_bytes( uac_data[4:8], 'big', signed = False)
+		#	p3 = int.from_bytes(uac_data[8:12], 'big', signed = False)
+		#	self.machine_sid = '%s-%s-%s-%s' % ('S-1-5-21', p1, p2, p3)
+		#except Exception as e:
+		#	import traceback
+		#	traceback.print_exc()
+		#print(self.machine_sid)
+		#return self.machine_sid
+		return
+		
 	def get_secrets(self):
 		logger.debug('SAM get_secrets invoked')
 		NTPASSWORD = b"NTPASSWORD\0"
@@ -93,6 +115,7 @@ class SAM:
 		LMDEFAULT = 'aad3b435b51404eeaad3b435b51404ee'
 		
 		self.get_HBoot_key()
+		self.get_machine_sid()
 		
 		for rid in self.hive.enum_key('SAM\\Domains\\Account\\Users'):
 			uac = None
