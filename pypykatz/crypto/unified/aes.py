@@ -7,6 +7,7 @@ class AES:
 		self.key = key
 		self.mode = mode
 		self.iv = iv
+		self.block_size = len(key)
 		self.ctx = None
 		self.setup()
 		

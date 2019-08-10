@@ -1,7 +1,12 @@
 import io
 import enum
 
+from hashlib import sha1
+import hmac
+
 from pypykatz.dpapi.constants import *
+from pypykatz.commons.win_datatypes import GUID
+from pypykatz.crypto.unified.pkcs7 import unpad
 
 
 class DPAPI_BLOB:
@@ -35,8 +40,9 @@ class DPAPI_BLOB:
 		sk = DPAPI_BLOB()
 		sk.version = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.credential_guid = buff.read(16)
+		signature_start_pos = buff.tell()
 		sk.masterkey_version = int.from_bytes(buff.read(4), 'little', signed = False)
-		sk.masterkey_guid = buff.read(16)
+		sk.masterkey_guid = GUID(buff).value
 		sk.flags = FLAGS(int.from_bytes(buff.read(4), 'little', signed = False))
 		sk.description_length = int.from_bytes(buff.read(4), 'little', signed = False) 
 		sk.description = buff.read(sk.description_length)
@@ -52,12 +58,24 @@ class DPAPI_BLOB:
 		sk.HMAC = buff.read(sk.HMAC_length)
 		sk.data_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.data  = buff.read(sk.data_length)
+		signature_end_pos = buff.tell()
+		buff.seek(signature_start_pos, 0)
+		sk.to_sign = buff.read(signature_end_pos - signature_start_pos)
 		sk.signature_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.signature = buff.read(sk.signature_length)
 		return sk
 	
 	def decrypt(self, key, entropy = None):
-		raise NotImplementedError('continue from here tomorrow when sober')
+		def fixparity(deskey):
+			temp = b''
+			for i in range(len(deskey)):
+				t = (bin(deskey[i])[2:]).rjust(8,'0')
+				if t[:7].count('1') %2 == 0:
+					temp+= int(t[:7]+'1',2).to_bytes(1, 'big')
+				else:
+					temp+= int(t[:7]+'0',2).to_bytes(1, 'big')
+			return temp
+		
 		key_hash = sha1(key).digest()
 		session_key_ctx = hmac.new(key_hash, self.salt, ALGORITHMS_DATA[self.hash_algorithm][1])
 		if entropy is not None:
@@ -65,8 +83,58 @@ class DPAPI_BLOB:
 		
 		session_key = session_key_ctx.digest()
 		
+		if len(session_key) > ALGORITHMS_DATA[self.hash_algorithm][4]:
+			derived_key = hmac.new(session_key,  digestmod = ALGORITHMS_DATA[self.hash_algorithm][1]).digest()
+		else:
+			derived_key = session_key
 		
-	
+		if len(derived_key) < ALGORITHMS_DATA[self.crypto_algorithm][0]:
+			# Extend the key
+			derived_key += b'\x00'*ALGORITHMS_DATA[self.hash_algorithm][4]
+			ipad = bytearray([ i ^ 0x36 for i in bytearray(derived_key)][:ALGORITHMS_DATA[self.hash_algorithm][4]])
+			opad = bytearray([ i ^ 0x5c for i in bytearray(derived_key)][:ALGORITHMS_DATA[self.hash_algorithm][4]])
+			derived_key = ALGORITHMS_DATA[self.hash_algorithm][1](ipad).digest() + \
+				ALGORITHMS_DATA[self.hash_algorithm][1](opad).digest()
+			derived_key = fixparity(derived_key)
+		
+		cipher = ALGORITHMS_DATA[self.crypto_algorithm][1](derived_key[:ALGORITHMS_DATA[self.crypto_algorithm][0]],
+					mode=ALGORITHMS_DATA[self.crypto_algorithm][2], iv=b'\x00'*ALGORITHMS_DATA[self.crypto_algorithm][3])
+		cleartext = unpad(cipher.decrypt(self.data), cipher.block_size)
+		
+		# Calculate the different HMACKeys
+		hash_block_size = ALGORITHMS_DATA[self.hash_algorithm][1]().block_size
+		key_hash_2 = key_hash + b"\x00"*hash_block_size
+		ipad = bytearray([i ^ 0x36 for i in bytearray(key_hash_2)][:hash_block_size])
+		opad = bytearray([i ^ 0x5c for i in bytearray(key_hash_2)][:hash_block_size])
+		a = ALGORITHMS_DATA[self.hash_algorithm][1](ipad)
+		a.update(self.HMAC)
+		
+		#print('key_hash_2 : %s' % key_hash_2)
+		#print('ipad : %s' % ipad)
+		#print('opad : %s' % opad)
+		
+		hmac_calculated_1 = ALGORITHMS_DATA[self.hash_algorithm][1](opad)
+		hmac_calculated_1.update(a.digest())
+		
+		if entropy is not None:
+			hmac_calculated_1.update(entropy)
+		
+		hmac_calculated_1.update(self.to_sign)
+		
+		#print('hmac_calculated_1 : %s' % hmac_calculated_1.hexdigest())
+			
+		hmac_calculated_3 = hmac.new(key_hash, self.HMAC, ALGORITHMS_DATA[self.hash_algorithm][1])
+		if entropy is not None:
+			hmac_calculated_3.update(entropy)
+			
+		hmac_calculated_3.update(self.to_sign)
+		
+		#print('hmac_calculated_3 : %s' % hmac_calculated_3.hexdigest())
+			
+		if hmac_calculated_1.digest() == self.signature or hmac_calculated_3.digest() == self.signature:
+			return cleartext
+		else:
+			return None
 		
 	def __str__(self):
 		t = '== DPAPI_BLOB ==\r\n'

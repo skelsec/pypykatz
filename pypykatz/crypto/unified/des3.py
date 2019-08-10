@@ -7,6 +7,7 @@ class DES3:
 		self.key = key
 		self.mode = mode
 		self.iv = iv
+		self.block_size = 8
 		self.ctx = None
 		self.setup()
 		

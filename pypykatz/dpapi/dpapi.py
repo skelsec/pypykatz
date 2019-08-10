@@ -5,6 +5,10 @@ from pypykatz.dpapi.structures.masterkeyfile import MasterKeyFile
 from pypykatz.dpapi.structures.credentialfile import CredentialFile
 from pypykatz.dpapi.structures.blob import DPAPI_BLOB
 
+import hmac
+import hashlib
+from hashlib import sha1, pbkdf2_hmac
+
 class DPAPIUserKey:
 	def __init__(self):
 		self.dunno = None
@@ -38,6 +42,8 @@ class DPAPI:
 	def __init__(self):
 		self.user_keys = []
 		self.machine_keys = []
+		
+		self.masterkeys = {} #guid -> binary value
 	
 	@staticmethod
 	def list_masterkeys():
@@ -48,6 +54,23 @@ class DPAPI:
 		# TODO: implement this
 		pass
 		
+	def get_keys_from_password(self, sid, password):
+		"""
+		Resulting keys used to decrypt the masterkey
+		"""
+		md4 = hashlib.new('md4')
+		md4.update(password.encode('utf-16le'))
+		nt_hash = md4.digest()
+		# Will generate two keys, one with SHA1 and another with MD4
+		key1 = hmac.new(sha1(password.encode('utf-16le')).digest(), (sid + '\0').encode('utf-16le'), sha1).digest()
+		key2 = hmac.new(nt_hash, (sid + '\0').encode('utf-16le'), sha1).digest()
+		# For Protected users
+		tmp_key = pbkdf2_hmac('sha256', nt_hash, sid.encode('utf-16le'), 10000)
+		tmp_key_2 = pbkdf2_hmac('sha256', tmp_key, sid.encode('utf-16le'), 1)[:16]
+		key3 = hmac.new(tmp_key_2, (sid + '\0').encode('utf-16le'), sha1).digest()[:20]
+		
+		return key1, key2, key3
+		
 	def get_masterkeys_from_lsass(self):
 		"""
 		Returns the plaintext final masterkeys! No need to decrpyt and stuff!
@@ -56,8 +79,7 @@ class DPAPI:
 		katz = pypykatz.go_live()
 		for x in katz.logon_sessions:
 			for dc in katz.logon_sessions[x].dpapi_creds:
-				print(dc.masterkey)
-				self.user_keys.append(bytes.fromhex(dc.masterkey))
+				self.masterkeys[dc.key_guid] = bytes.fromhex(dc.masterkey)
 	
 	def get_keys_form_registry_live(self):
 		from pypykatz.registry.live_parser import LiveRegistry
@@ -76,6 +98,8 @@ class DPAPI:
 			for secret in lr.security.cached_secrets:
 				if isinstance(secret, LSASecretDPAPI):
 					print('Found DPAPI key in registry!')
+					print(secret.user_key)
+					print(secret.machine_key)
 					self.user_keys.append(secret.user_key)
 					self.machine_keys.append(secret.machine_key)
 						
@@ -99,6 +123,9 @@ class DPAPI:
 		
 	def decrypt_blob(self, data):
 		blob = DPAPI_BLOB.from_bytes(data)
+		if blob.masterkey_guid not in self.masterkeys:
+			raise Exception('No matching masterkey was found for the blob!')
+		key = self.masterkeys[blob.masterkey_guid]
 		print(str(blob))
 		return blob.decrypt(key)
 	
@@ -107,7 +134,8 @@ class DPAPI:
 if __name__ == '__main__':
 	filename = 'C:\\Users\\victim\\AppData\\Roaming\\Microsoft\\Protect\\S-1-5-21-3448413973-1765323015-1500960949-1105\\4c9764dc-aa99-436c-bb30-ff39b3dd407c'
 	dpapi = DPAPI()
-	dpapi.get_masterkeys_from_lsass()
+	dpapi.get_keys_form_registry_live()
+	dpapi.get_keys_from_password('S-1-5-21-3448413973-1765323015-1500960949-1105', 'Passw0rd!1')
 	#with open(filename, 'rb') as f:
 	#	dpapi.decrypt_masterkey(f.read())
 	
