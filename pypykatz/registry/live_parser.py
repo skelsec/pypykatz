@@ -1,4 +1,8 @@
-
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
 import platform
 if platform.system() != 'Windows':
 	raise Exception('This will ONLY work on Windows systems!')

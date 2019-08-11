@@ -1,4 +1,8 @@
-
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
 import hashlib
 from pypykatz.dpapi.structures.system import DPAPI_SYSTEM
 from pypykatz.commons.common import hexdump

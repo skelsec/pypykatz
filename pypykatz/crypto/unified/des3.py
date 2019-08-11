@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
+
 from pypykatz.crypto.des import triple_des, ECB, CBC
 from pypykatz.crypto.unified.common import SYMMETRIC_MODE
 	

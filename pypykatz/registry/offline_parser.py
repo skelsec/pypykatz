@@ -1,4 +1,8 @@
-
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
 from aiowinreg.hive import AIOWinRegHive
 
 from pypykatz.registry import logger

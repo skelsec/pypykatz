@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
+
 class SAMSecret:
 	def __init__(self, username, rid, nt_hash, lm_hash):
 		self.username = username

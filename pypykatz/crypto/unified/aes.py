@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
+
 from pypykatz.crypto.aes import AESModeOfOperationCBC, AESModeOfOperationECB
 from pypykatz.crypto.unified.common import SYMMETRIC_MODE
 	

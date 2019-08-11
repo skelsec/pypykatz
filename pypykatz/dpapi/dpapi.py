@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
+
 import os
 
 from pypykatz import logger
@@ -433,69 +439,4 @@ class DPAPI:
 		"""
 		with open(file_path, 'rb') as f:
 			return self.decrypt_vpol_bytes(f.read(), key = key)
-	
-	
-	
-	
-if __name__ == '__main__':
-	
-	filename = r'C:\Users\victim\AppData\Local\Microsoft\Vault\4BF4C442-9B8A-41A0-B380-DD4A704DDB28\Policy.vpol'
-	dpapi = DPAPI()
-	dpapi.get_keys_form_registry_live()
-	
-	dpapi.get_masterkeys_from_lsass()
-	with open(filename, 'rb') as f:
-		dpapi.decrypt_vpol_bytes(f.read())
 
-	#import glob
-	#import ntpath
-	#folder = 'C:\\Users\\victim\\AppData\\Roaming\\Microsoft\\Protect\\S-1-5-21-3448413973-1765323015-1500960949-1105\\*'
-	#for filename in glob.glob(folder):
-	#	print(filename)
-	#	if ntpath.basename(filename).count('-') < 2:
-	#		continue
-	#	dpapi = DPAPI()
-	#	dpapi.get_keys_from_password('S-1-5-21-3448413973-1765323015-1500960949-1105', 'Passw0rd!1')
-	#	with open(filename, 'rb') as f:
-	#		dpapi.decrypt_masterkey_bytes(f.read())
-	#		
-	#	print(dpapi.masterkeys)
-
-
-	
-	filename = r'C:\Users\victim\AppData\Local\Microsoft\Vault\4BF4C442-9B8A-41A0-B380-DD4A704DDB28\E919C8BCDFAE99F280899FD6A477ECD8E371ED6A.vcrd'
-	#dpapi = DPAPI()
-	#dpapi.get_masterkeys_from_lsass()
-	with open(filename, 'rb') as f:
-		dpapi.decrypt_vcrd_bytes(f.read())
-
-
-	#filename = r'C:\Users\victim\AppData\Local\Microsoft\Vault\4BF4C442-9B8A-41A0-B380-DD4A704DDB28\E919C8BCDFAE99F280899FD6A477ECD8E371ED6A.vcrd'
-	#dpapi = DPAPI()
-	#dpapi.get_masterkeys_from_lsass()
-	#with open(filename, 'rb') as f:
-	#	dpapi.decrypt_vcrd_bytes(f.read())
-	
-	
-	#filename = r'C:\Users\victim\AppData\Local\Microsoft\Credentials\00B4013637D69DEC24A341168A71D531'
-	#dpapi = DPAPI()
-	#dpapi.get_masterkeys_from_lsass()
-	#with open(filename, 'rb') as f:
-	#	dpapi.decrypt_credential(f.read())
-	
-	
-	########################
-	#filename = 'C:\\Users\\victim\\AppData\\Roaming\\Microsoft\\Protect\\S-1-5-21-3448413973-1765323015-1500960949-1105\\4c9764dc-aa99-436c-bb30-ff39b3dd407c'
-	#dpapi = DPAPI()
-	#dpapi.get_keys_form_registry_live()
-	#dpapi.get_keys_form_registry_files('SYSTEM.reg', 'SECURITY.reg',  '1_SAM.reg')
-	
-	
-	#nt_hash = hashlib.new('md4')
-	#nt_hash.update('Passw0rd!1'.encode('utf-16-le'))
-	#dpapi.get_keys_from_password('S-1-5-21-3448413973-1765323015-1500960949-1105', nt_hash = nt_hash.digest())
-	#with open(filename, 'rb') as f:
-	#	dpapi.decrypt_masterkey(f.read())
-	
-	#data = bytes.fromhex('01000000d08c9ddf0115d1118c7a00c04fc297eb01000000dc64974c99aa6c43bb30ff39b3dd407c0000000002000000000003660000c000000010000000f1af675a51c8283cf81abb6fb600110f0000000004800000a0000000100000009bf4e56d6c32dd59bce655496a94444c1000000088438c8f61d966ac220b4ca50933c8ee14000000314eaa780e358e70c586fb47bee0e27549be480e')
-	#dpapi.decrypt_blob(data)
