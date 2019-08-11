@@ -128,6 +128,7 @@ class DPAPI:
 		self.user_keys.append(key2)
 		self.user_keys.append(key3)
 		
+		#print(key1.hex(), key2.hex(), key3.hex())
 		return key1, key2, key3
 				
 	def __get_registry_secrets(self, lr):
@@ -266,6 +267,12 @@ class DPAPI:
 				if dec_key:
 					self.masterkeys[mkf.guid] = dec_key
 					mks[mkf.guid] = dec_key
+					
+			if key is not None:
+				dec_key = mkf.masterkey.decrypt(key)
+				if dec_key:
+					self.masterkeys[mkf.guid] = dec_key
+					mks[mkf.guid] = dec_key
 		
 		if mkf.backupkey is not None:
 			for user_key in self.user_keys:
@@ -278,6 +285,12 @@ class DPAPI:
 				dec_key = mkf.backupkey.decrypt(machine_key)
 				if dec_key:
 					self.backupkeys[mkf.guid] = dec_key
+					bks[mkf.guid] = dec_key
+					
+			if key is not None:
+				dec_key = mkf.backupkey.decrypt(key)
+				if dec_key:
+					self.masterkeys[mkf.guid] = dec_key
 					bks[mkf.guid] = dec_key
 					
 		return mks, bks
@@ -391,7 +404,7 @@ class DPAPI:
 		
 		return res
 					
-	def decrypt_vpol_bytes(self, data):
+	def decrypt_vpol_bytes(self, data, key = None):
 		"""
 		Decrypts the VPOL file, and returns the two keys' bytes
 		A VPOL file stores two encryption keys.
@@ -400,7 +413,7 @@ class DPAPI:
 		returns touple of bytes, describing two keys
 		"""
 		vpol = VAULT_VPOL.from_bytes(data)
-		res = self.decrypt_blob(vpol.blob)
+		res = self.decrypt_blob(vpol.blob, key = key)
 		
 		keys = VAULT_VPOL_KEYS.from_bytes(res)
 		
@@ -409,16 +422,17 @@ class DPAPI:
 		
 		return keys.key1.get_key(), keys.key2.get_key()
 		
-	def decrypt_vpol_file(self, file_path):
+	def decrypt_vpol_file(self, file_path, key = None):
 		"""
 		Decrypts a VPOL file
 		Location: %APPDATA%\Local\Microsoft\Vault\%GUID%\<>.vpol
 		
 		file_path: path to the vcrd file
+		keys: Optional.
 		returns: touple of bytes, describing two keys
 		"""
 		with open(file_path, 'rb') as f:
-			return self.decrypt_vpol_bytes(f.read())
+			return self.decrypt_vpol_bytes(f.read(), key = key)
 	
 	
 	

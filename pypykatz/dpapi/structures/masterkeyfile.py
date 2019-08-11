@@ -118,7 +118,7 @@ class MasterKey:
 			temp_key_blob += derived
 
 		temp_key = temp_key_blob[:keylen]
-		print('temp_key : %s' % temp_key)
+		#print('temp_key : %s' % temp_key)
 		crypt_key = temp_key[:ALGORITHMS_DATA[self.crypto_algorithm][0]]
 		iv = temp_key[ALGORITHMS_DATA[self.crypto_algorithm][0]:][:ALGORITHMS_DATA[self.crypto_algorithm][3]]
 		cipher = ALGORITHMS_DATA[self.crypto_algorithm][1](crypt_key, mode = ALGORITHMS_DATA[self.crypto_algorithm][2], iv = iv)
@@ -130,8 +130,8 @@ class MasterKey:
 		
 		hmac_key = hmac.new(key, hmac_salt, hash_type).digest()
 		hmac_calc = hmac.new(hmac_key, key_dec, hash_type).digest()
-		print(hmac_calc)
-		print(hmac_res)
+		#print(hmac_calc)
+		#print(hmac_res)
 		if hmac_calc[:ALGORITHMS_DATA[self.hash_algorithm][0]] == hmac_res:
 			return key_dec
 		else:
