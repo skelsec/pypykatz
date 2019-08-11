@@ -90,21 +90,17 @@ class SAM:
 	def get_machine_sid(self):
 		# https://social.technet.microsoft.com/Forums/en-US/de8ff30b-6986-4aad-bcde-12bb5e66fe86/the-computer-sid-with-windows-7?forum=winserverDS
 		# TODO: implement this
-		#try:
-		#	uac_data = self.hive.get_value('SAM\\Domains\\Account\\V')[1]
-		#	print(uac_data)
-		#	print(uac_data[-12:].hex())
-		#	uac_data = uac_data[-12:]
-		#	p1 = int.from_bytes(  uac_data[:4], 'big', signed = False)
-		#	p2 = int.from_bytes( uac_data[4:8], 'big', signed = False)
-		#	p3 = int.from_bytes(uac_data[8:12], 'big', signed = False)
-		#	self.machine_sid = '%s-%s-%s-%s' % ('S-1-5-21', p1, p2, p3)
-		#except Exception as e:
-		#	import traceback
-		#	traceback.print_exc()
-		#print(self.machine_sid)
-		#return self.machine_sid
-		return
+		try:
+			uac_data = self.hive.get_value('SAM\\Domains\\Account\\V')[1]
+			uac_data = uac_data[-12:]
+			p1 = int.from_bytes(  uac_data[:4], 'little', signed = False)
+			p2 = int.from_bytes( uac_data[4:8], 'little', signed = False)
+			p3 = int.from_bytes(uac_data[8:12], 'little', signed = False)
+			self.machine_sid = '%s-%s-%s-%s' % ('S-1-5-21', p1, p2, p3)
+		except Exception as e:
+			import traceback
+			traceback.print_exc()
+		return self.machine_sid
 		
 	def get_secrets(self):
 		logger.debug('SAM get_secrets invoked')

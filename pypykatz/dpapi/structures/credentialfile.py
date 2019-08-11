@@ -59,6 +59,10 @@ class CREDENTIAL_ATTRIBUTE:
 		sk.flags = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.keyword_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.keyword = buff.read(sk.keyword_length)
+		try:
+			sk.keyword = sk.keyword.decode('utf-16-le')
+		except:
+			pass
 		sk.data_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.data = buff.read(sk.data_length)
 		return sk
@@ -124,20 +128,40 @@ class CREDENTIAL_BLOB:
 		sk.unk2 = int.from_bytes(buff.read(8), 'little', signed = False)
 		sk.target_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.target = buff.read(sk.target_length)
+		if sk.target_length > 0:
+			try:
+				sk.target = sk.target.decode('utf-16-le')
+			except:
+				pass
 		sk.target_alias_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.target_alias = buff.read(sk.target_alias_length)
+		if sk.target_alias_length > 0:
+			try:
+				sk.target_alias = sk.target_alias.decode('utf-16-le')
+			except:
+				pass
 		sk.description_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.description = buff.read(sk.description_length)
+		if sk.description_length > 0:
+			try:
+				sk.description = sk.description.decode('utf-16-le')
+			except:
+				pass
 		sk.unknown3_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.unknown3 = buff.read(sk.unknown3_length)
 		sk.username_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.username = buff.read(sk.username_length)
+		if sk.username_length > 0:
+			try:
+				sk.username = sk.username.decode('utf-16-le')
+			except:
+				pass
 		sk.unknown4_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.unknown4 = buff.read(sk.unknown4_length)
 		
 		for _ in range(sk.attributes_count):
 			attr = CREDENTIAL_ATTRIBUTE.from_buffer(buff)
-			self.attributes.append(attr)
+			sk.attributes.append(attr)
 		
 		return sk
 		

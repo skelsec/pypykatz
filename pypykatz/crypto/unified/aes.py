@@ -7,7 +7,7 @@ class AES:
 		self.key = key
 		self.mode = mode
 		self.iv = iv
-		self.block_size = len(key)
+		self.block_size = 16
 		self.ctx = None
 		self.setup()
 		
@@ -20,7 +20,17 @@ class AES:
 			raise Exception('Unknown mode!')
 		
 	def encrypt(self, data):
-		return self.ctx.encrypt(data)
+		if len(data) % self.block_size != 0:
+			raise Exception('Data size not matching blocksize!')
+		res = b''
+		for block in [data[i:i+self.block_size] for i in range(0, len(data), self.block_size)]:  #terrible, terrible workaround
+			res += self.ctx.encrypt(block)
+		return res
 	
 	def decrypt(self, data):
-		return self.ctx.decrypt(data)
+		if len(data) % self.block_size != 0:
+			raise Exception('Data size not matching blocksize!')
+		res = b''
+		for block in [data[i:i+self.block_size] for i in range(0, len(data), self.block_size)]:  #terrible, terrible workaround
+			res += self.ctx.decrypt(block)
+		return res
