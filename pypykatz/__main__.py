@@ -16,7 +16,7 @@ import ntpath
 
 from pypykatz.pypykatz import pypykatz
 from pypykatz.registry.offline_parser import OffineRegistry
-from pypykatz.commons.common import UniversalEncoder
+from pypykatz.commons.common import UniversalEncoder, hexdump
 
 def main():
 	import argparse
@@ -52,15 +52,23 @@ def main():
 	live_subparser_process_group.add_argument('-c', '--cmdline', help = 'The process to execute. Default: cmd.exe')
 	
 	
-	live_subparser_process_group = live_subparsers.add_parser('token', help='Token creating/manipulation commands')
-	live_subparser_process_group.add_argument('cmd', choices=['list', 'current'])
-	live_subparser_process_group.add_argument('-f','--force', action='store_true', help= 'Tries to list as many tokens as possible without SE_DEBUG privilege')
+	live_subparser_token_group = live_subparsers.add_parser('token', help='Token creating/manipulation commands')
+	live_subparser_token_group.add_argument('cmd', choices=['list', 'current'])
+	live_subparser_token_group.add_argument('-f','--force', action='store_true', help= 'Tries to list as many tokens as possible without SE_DEBUG privilege')
 	live_subparser_users_group = live_subparsers.add_parser('users', help='User creating/manipulation commands')
 	live_subparser_users_group.add_argument('cmd', choices=['list','whoami'])
 	
+	live_subparser_dpapi_group = live_subparsers.add_parser('dpapi', help='DPAPI related commands')
+	live_subparser_dpapi_group.add_argument('-r','--method_registry', help= 'Getting prekeys from registry')
+	live_subparser_dpapi_group.add_argument('--vpol', help= 'VPOL file')
+	live_subparser_dpapi_group.add_argument('--vcred', help= 'VCRED file')
+	live_subparser_dpapi_group.add_argument('--cred', help= 'credential file')
+	live_subparser_dpapi_group.add_argument('--masterkey', help= 'masterkey file')
+	live_subparser_dpapi_group.add_argument('-k', '--key', help= 'key in hex format')
+	
 	rekall_group = subparsers.add_parser('rekall', help='Get secrets from memory dump')
 	rekall_group.add_argument('memoryfile', help='path to the memory dump file')
-	rekall_group.add_argument('-t','--timestamp_override', type=int, help='enforces msv timestamp override (0=normal, 1=anit_mimikatz)')
+	rekall_group.add_argument('-t','--timestamp_override', type=int, help='enforces msv timestamp override (0=normal, 1=anti_mimikatz)')
 	
 	registry_group = subparsers.add_parser('registry', help='Get secrets from registry files')
 	registry_group.add_argument('system', help='path to the SYSTEM registry hive')
@@ -165,8 +173,75 @@ def main():
 				lm = LiveMachine()
 				user = lm.get_current_user()
 				print(str(user))
+				
+		elif args.module == 'dpapi':
+			from pypykatz.dpapi.dpapi import DPAPI
 			
+			dpapi = DPAPI()
+			#####pre-key section
+			if args.method_registry == True:
+				dpapi.get_prekeys_form_registry_live()
+				
+				if not masterkey:
+					raise Exception('Live registry method requires masterkeyfile to be set!')
+				
+				dpapi.decrypt_masterkey_file(args.masterkey)
 			
+			else:
+				dpapi.get_masterkeys_from_lsass_live()
+			
+			#decryption stuff
+			if args.vcred:
+				if args.vpol is None:
+					raise Exception('for VCRED decryption you must suppliy VPOL file')
+				dpapi.decrypt_vpol_file(args.vpol)
+				res = dpapi.decrypt_vcrd_file(args.vcred)
+				for attr in res:
+					for i in range(len(res[attr])):
+						if res[attr][i] is not None:
+							print('AttributeID: %s Key %s' % (attr.id, i))
+							print(hexdump(res[attr][i]))
+				
+			elif args.vpol:
+				key1, key2 = dpapi.decrypt_vpol_file(args.vpol)
+				print('VPOL key1: %s' % key1.hex())
+				print('VPOL key2: %s' % key2.hex())
+				
+			elif args.cred:
+				cred_blob = dpapi.decrypt_credential_file(args.cred)
+				print(cred_blob.to_text())
+			
+	###### DPAPI offline		
+	elif args.command == 'dpapi':
+		from pypykatz.dpapi import DPAPI
+		
+		#dpapi = DPAPI()
+		######pre-key section
+		#if args.method_registry == True:
+		#	dpapi.get_prekeys_form_registry_live()
+		#	
+		#	if not masterkey:
+		#		raise Exception('Live registry method requires masterkeyfile to be set!')
+		#	
+		#	dpapi.decrypt_masterkey_file(args.masterkey)
+		#
+		#else:
+		#	dpapi.get_masterkeys_from_lsass_live()
+		#
+		##decryption stuff
+		#if args.vcred:
+		#	if args.vpol is None:
+		#		raise Exception('for VCRED decryption you must suppliy VPOL file')
+		#	dpapi.decrypt_vpol_file(args.vpol)
+		#	dpapi.decrypt_vcrd_file(args.vcred)
+		#	
+		#elif args.vpol:
+		#	dpapi.decrypt_vpol_file(args.vpol)
+		#	
+		#elif args.cred:
+		#	dpapi.decrypt_credential_file(args.cred)
+
+				
 	###### Rekall
 	elif args.command == 'rekall':
 		mimi = pypykatz.parse_memory_dump_rekall(args.memoryfile, args.timestamp_override)

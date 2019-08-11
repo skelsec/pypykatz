@@ -67,6 +67,14 @@ class CREDENTIAL_ATTRIBUTE:
 		sk.data = buff.read(sk.data_length)
 		return sk
 		
+	def to_text(self):
+		t = ''
+		if len(self.keyword) > 0:
+			t += 'keyword: %s\r\n' % str(self.keyword)
+		if len(self.data) > 0:
+			t += 'data: %s\r\n' % str(self.data)
+		return t
+		
 	def __str__(self):
 		t = '== CREDENTIAL_ATTRIBUTE ==\r\n'
 		for k in self.__dict__:
@@ -164,6 +172,26 @@ class CREDENTIAL_BLOB:
 			sk.attributes.append(attr)
 		
 		return sk
+		
+	def to_text(self):	
+		t = ''
+		t += 'last_written : %s\r\n' %  self.last_written
+		if len(self.target) > 0:
+			t += 'target : %s\r\n' %  str(self.target)
+		if len(self.target_alias) > 0:
+			t += 'target_alias : %s\r\n' %  str(self.target_alias)
+		if len(self.description) > 0:
+			t += 'description : %s\r\n' %  str(self.description)
+		if len(self.unknown3) > 0:
+			t += 'unknown3 : %s\r\n' %  str(self.unknown3)
+		if len(self.username) > 0:
+			t += 'username : %s\r\n' %  str(self.username)
+		if len(self.unknown4) > 0:
+			t += 'unknown4 : %s\r\n' %  str(self.unknown4)
+		for attr in self.attributes:
+			t += 'ATTRIBUTE\r\n'
+			t += attr.to_text()
+		return t
 		
 	def __str__(self):
 		t = '== CREDENTIAL_BLOB ==\r\n'

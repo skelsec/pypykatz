@@ -74,12 +74,15 @@ TODO: A LOT! currently fetching backupkeys from the DC is not supported. and pro
 
 class DPAPI:
 	def __init__(self):
+		#pre-keys
 		self.user_keys = []
 		self.machine_keys = []
 		
+		#masterkey, backupkey
 		self.masterkeys = {} #guid -> binary value
 		self.backupkeys = {} #guid -> binary value
 		
+		#since so far I dunno how to match vault-keys to vaults, its a list :(
 		self.vault_keys = []
 	
 	@staticmethod
@@ -91,7 +94,7 @@ class DPAPI:
 		# TODO: implement this
 		pass
 		
-	def get_keys_from_password(self, sid, password = None, nt_hash = None):
+	def get_prekeys_from_password(self, sid, password = None, nt_hash = None):
 		"""
 		Creates pre-masterkeys from user SID and password of nt hash.
 		If NT hash is provided the function can only generate 2 out of the 3 possible keys, 
@@ -126,7 +129,79 @@ class DPAPI:
 		self.user_keys.append(key3)
 		
 		return key1, key2, key3
+				
+	def __get_registry_secrets(self, lr):
+		"""
+		Gets the pre-keys from an already parsed OffineRegistry or LiveRegistry object, populates the userkey/machinekey lists, returns the obtained keys
 		
+		lr: OffineRegistry or LiveRegistry object
+		return: touple of two lists, [0] userkeys [1] machinekeys
+		"""
+		user = []
+		machine = []
+		from pypykatz.registry.security.common import LSASecretDPAPI
+		for secret in lr.security.cached_secrets:
+			if isinstance(secret, LSASecretDPAPI):
+				logger.debug('[DPAPI] Found DPAPI user key in registry! Key: %s' % secret.user_key)
+				logger.debug('[DPAPI] Found DPAPI machine key in registry! Key: %s' % secret.machine_key)
+				self.user_keys.append(secret.user_key)
+				user.append(secret.user_key)
+				self.machine_keys.append(secret.machine_key)
+				machine.append(secret.machine_key)
+		
+		if lr.sam is not None:
+			for secret in lr.sam.secrets:
+				if secret.nt_hash:
+					sid = '%s-%s' % (lr.sam.machine_sid, secret.rid)
+					x, key2, key3 = self.get_prekeys_from_password(sid, nt_hash = secret.nt_hash)
+					logger.debug('[DPAPI] NT hash method. Calculated user key for user %s! Key2: %s Key3: %s' % (sid, key2, key3))
+					user.append(key2)
+					user.append(key3)
+					continue
+					
+		return user, machine
+	
+	def get_prekeys_form_registry_live(self):
+		"""
+		
+		return: touple of two lists, [0] userkeys [1] machinekeys
+		"""
+		from pypykatz.registry.live_parser import LiveRegistry
+		from pypykatz.registry.offline_parser import OffineRegistry
+		lr = None
+		try:
+			lr = LiveRegistry.go_live()
+		except Exception as e:
+			logger.debug('[DPAPI] Failed to obtain registry secrets via direct registry reading method')
+			try:
+				lr = OffineRegistry.from_live_system()
+			except Exception as e:
+				logger.debug('[DPAPI] Failed to obtain registry secrets via filedump method')
+		
+		if lr is not None:
+			return self.__get_registry_secrets(lr)
+
+		else:
+			raise Exception('Registry parsing failed!')
+			
+	def get_prekeys_form_registry_files(self, system_path, security_path, sam_path = None):
+		"""
+		
+		return: touple of two lists, [0] userkeys [1] machinekeys
+		"""
+		from pypykatz.registry.offline_parser import OffineRegistry
+		lr = None
+		try:
+			lr = OffineRegistry.from_files(system_path, sam_path = sam_path, security_path = security_path)
+		except Exception as e:
+			logger.error('[DPAPI] Failed to obtain registry secrets via direct registry reading method. Reason: %s' %e)
+		
+		if lr is not None:
+			return self.__get_registry_secrets(lr)
+
+		else:
+			raise Exception('[DPAPI] Registry parsing failed!')
+			
 	def get_masterkeys_from_lsass_live(self):
 		"""
 		Parses the live LSASS process and extracts the plaintext masterkeys
@@ -137,6 +212,7 @@ class DPAPI:
 		katz = pypykatz.go_live()
 		for x in katz.logon_sessions:
 			for dc in katz.logon_sessions[x].dpapi_creds:
+				logger.debug('[DPAPI] Got masterkey for GUID %s via live LSASS method' % dc.key_guid)
 				self.masterkeys[dc.key_guid] = bytes.fromhex(dc.masterkey)
 		
 		return self.masterkeys
@@ -152,59 +228,10 @@ class DPAPI:
 		katz = pypykatz.parse_minidump_file(file_path)
 		for x in katz.logon_sessions:
 			for dc in katz.logon_sessions[x].dpapi_creds:
+				logger.debug('[DPAPI] Got masterkey for GUID %s via minidump LSASS method' % dc.key_guid)
 				self.masterkeys[dc.key_guid] = bytes.fromhex(dc.masterkey)
 				
 		return self.masterkeys
-				
-	def __get_registry_secrets(self, lr):
-		from pypykatz.registry.security.common import LSASecretDPAPI
-		for secret in lr.security.cached_secrets:
-			if isinstance(secret, LSASecretDPAPI):
-				print('Found DPAPI key in registry!')
-				print(secret.user_key)
-				print(secret.machine_key)
-				self.user_keys.append(secret.user_key)
-				self.machine_keys.append(secret.machine_key)
-		
-		if lr.sam is not None:
-			for secret in lr.sam.secrets:
-				if secret.nt_hash:
-					sid = '%s-%s' % (lr.sam.machine_sid, secret.rid)
-					self.get_keys_from_password(sid, nt_hash = secret.nt_hash)
-					continue
-	
-	def get_keys_form_registry_live(self):
-		from pypykatz.registry.live_parser import LiveRegistry
-		from pypykatz.registry.offline_parser import OffineRegistry
-		lr = None
-		try:
-			lr = LiveRegistry.go_live()
-		except Exception as e:
-			logger.debug('Failed to obtain registry secrets via direct registry reading method')
-			try:
-				lr = OffineRegistry.from_live_system()
-			except Exception as e:
-				logger.debug('Failed to obtain registry secrets via filedump method')
-		
-		if lr is not None:
-			self.__get_registry_secrets(lr)
-
-		else:
-			raise Exception('Registry parsing failed!')
-			
-	def get_keys_form_registry_files(self, system_path, security_path, sam_path = None):
-		from pypykatz.registry.offline_parser import OffineRegistry
-		lr = None
-		try:
-			lr = OffineRegistry.from_files(system_path, sam_path = sam_path, security_path = security_path)
-		except Exception as e:
-			logger.error('Failed to obtain registry secrets via direct registry reading method. Reason: %s' %e)
-		
-		if lr is not None:
-			self.__get_registry_secrets(lr)
-
-		else:
-			raise Exception('Registry parsing failed!')
 			
 	def decrypt_masterkey_file(self, file_path, key = None):
 		"""
@@ -276,10 +303,8 @@ class DPAPI:
 		returns: CREDENTIAL_BLOB object
 		"""
 		cred = CredentialFile.from_bytes(data)
-		print(str(cred))
-		dec_data = self.decrypt_blob(cred.blob, key = key))
+		dec_data = self.decrypt_blob(cred.blob, key = key)
 		cb = CREDENTIAL_BLOB.from_bytes(dec_data)
-		print(str(cb))
 		return cb
 		
 	def decrypt_blob(self, dpapi_blob, key = None):
@@ -326,7 +351,6 @@ class DPAPI:
 		returns: dictionary of attrbitues as key, and a list of possible decrypted data
 		"""
 		vv = VAULT_VCRD.from_bytes(data)
-		print(str(vv))
 		return self.decrypt_vcrd(vv, key = key)
 		
 	def decrypt_vcrd(self, vcrd, key = None):
@@ -353,7 +377,6 @@ class DPAPI:
 		res = {}
 		if key is None:
 			for i, key in enumerate(self.vault_keys):
-				print('key %s' % i)
 				for attr in vcrd.attributes:
 					cleartext = decrypt_attr(attr, key)
 					if attr not in res:
@@ -377,18 +400,16 @@ class DPAPI:
 		returns touple of bytes, describing two keys
 		"""
 		vpol = VAULT_VPOL.from_bytes(data)
-		print(str(vpol))
 		res = self.decrypt_blob(vpol.blob)
 		
 		keys = VAULT_VPOL_KEYS.from_bytes(res)
-		print(str(keys))
 		
 		self.vault_keys.append(keys.key1.get_key())
 		self.vault_keys.append(keys.key2.get_key())
 		
 		return keys.key1.get_key(), keys.key2.get_key()
 		
-	def decrypt_vpol_file(self, vpol_file):
+	def decrypt_vpol_file(self, file_path):
 		"""
 		Decrypts a VPOL file
 		Location: %APPDATA%\Local\Microsoft\Vault\%GUID%\<>.vpol
@@ -407,7 +428,6 @@ if __name__ == '__main__':
 	filename = r'C:\Users\victim\AppData\Local\Microsoft\Vault\4BF4C442-9B8A-41A0-B380-DD4A704DDB28\Policy.vpol'
 	dpapi = DPAPI()
 	dpapi.get_keys_form_registry_live()
-	input()
 	
 	dpapi.get_masterkeys_from_lsass()
 	with open(filename, 'rb') as f:
