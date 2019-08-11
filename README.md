@@ -42,7 +42,7 @@ Currently supported data sources:
 3. rekall (volatility fork) - processes basically ANY windows memory dumps that rekall can parse 
 4. pcileech - can dump secrets DIRECTLY via DMA of a live computer 
 5. remote - this is another project. TBD :)
-6. <your project here> seriously, it's super-simple to integrate.
+6. `your project here` seriously, it's super-simple to integrate.
 
 ### Registry processing
 Parses the registry hives to obtain stroed credentials, like NT and LM hashes, domain cached credentials (DCC/DCC2) and LSA secrets.
@@ -50,7 +50,7 @@ Parses the registry hives to obtain stroed credentials, like NT and LM hashes, d
 Currently supported data sources: 
 1. live - has two techniques to parse live registry. First it's in-memory doesn't touch disk, the second is dumping the hives and parsing them with the offline parser 
 2. offline (hive files)  
-3. <your project here> seriously, it's super-simple to integrate.
+3. `your project here` seriously, it's super-simple to integrate.
 
 ### DPAPI functions - MASTERKEY/BLOB/VAULT/CREDENTIAL
 DPAPI is the protector of local secrets of many kinds. Currently the project supports decrypting masterkeys, dpapi blobs, credential files, vault files.  
@@ -60,11 +60,12 @@ Currently supported data sources:
 1. live - obtains masterkeys directly from LSASS -OR- the user/machine keys from live registry and decrypts the masterkeyfile. 
 2. hive files (offline)- the user/machine keys from live registry and decrypts the masterkeyfile  
 3. valid credentials (offline) - can decrypt masterkey files by letting you type in the correct SID and password.
-4. <pls don't integrate this part to your project, it's beta>
+4. `pls don't integrate this part to your project, it's beta`
 
 ### Impersonating users
-spawns new process as any user  
-assigns any available token of choise to your thread  
+Can spawn a new process as any user who has a process running on the machine.  
+Can assign any available token of choise to your thread  
+This is just a basic stuff really. Reson is there that I hate to constanly use psexec to get a system shell from admin...  
 
 ### other stuff
 yeah... check the code. it has comments and stuff...  
