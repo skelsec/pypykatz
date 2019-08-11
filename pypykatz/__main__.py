@@ -59,15 +59,15 @@ def main():
 	live_subparser_users_group.add_argument('cmd', choices=['list','whoami'])
 	
 	live_subparser_dpapi_group = live_subparsers.add_parser('dpapi', help='DPAPI (live) related commands')
-	live_subparser_dpapi_group.add_argument('-r','--method_registry', help= 'Getting prekeys from LIVE registry')
+	live_subparser_dpapi_group.add_argument('-r','--method_registry', action='store_true', help= 'Getting prekeys from LIVE registry')
 	live_subparser_dpapi_group.add_argument('--vpol', help= 'VPOL file')
 	live_subparser_dpapi_group.add_argument('--vcred', help= 'VCRED file')
 	live_subparser_dpapi_group.add_argument('--cred', help= 'credential file')
-	live_subparser_dpapi_group.add_argument('--masterkey', help= 'masterkey file')
+	live_subparser_dpapi_group.add_argument('--mkf', help= 'masterkey file')
 	
 	dpapi_group = subparsers.add_parser('dpapi', help='DPAPI (offline) related commands')
 	dpapi_group.add_argument('cmd', choices=['masterkey', 'credential', 'vault'])
-	dpapi_group.add_argument('-r', '--method_registry', help= 'Getting prekeys from registry hive files. Using this you will need to also supply system, security and optionally sam switches')
+	dpapi_group.add_argument('-r', '--method_registry', action='store_true', help= 'Getting prekeys from registry hive files. Using this you will need to also supply system, security and optionally sam switches')
 	dpapi_group.add_argument('--system', help= 'Path to SYSTEM hive file')
 	dpapi_group.add_argument('--sam', help= 'Path to SAM hive file')
 	dpapi_group.add_argument('--security', help= 'Path to SECURITY hive file')
@@ -195,7 +195,7 @@ def main():
 			if args.method_registry == True:
 				dpapi.get_prekeys_form_registry_live()
 				
-				if not masterkey:
+				if not args.mkf:
 					raise Exception('Live registry method requires masterkeyfile to be set!')
 				
 				dpapi.decrypt_masterkey_file(args.mkf)
@@ -228,6 +228,9 @@ def main():
 				#just printing masterkeys
 				for guid in dpapi.masterkeys:
 					print('GUID: %s MASTERKEY: %s' % (guid, dpapi.masterkeys[guid].hex()))
+					
+				if len(dpapi.masterkeys) == 0:
+					print('Failed to decrypt masterkey')
 			
 	###### DPAPI offline		
 	elif args.command == 'dpapi':
