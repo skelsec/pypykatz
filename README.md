@@ -221,6 +221,7 @@ Python>=3.6
 ## Kudos
 Benjamin DELPY @gentilkiwi for [Mimikatz](https://github.com/gentilkiwi/mimikatz)  
 Francesco Picasso for the [mimikatz.py plugin for volatility](https://raw.githubusercontent.com/sans-dfir/sift-files/master/volatility/mimikatz.py)  
+Alberto Solino (@agsolino) for [impacket](https://github.com/SecureAuthCorp/impacket)
   
 ### Crypto
 Richard Moore for the [AES module](https://github.com/ricmoo/pyaes/blob/master/pyaes/aes.py)  
