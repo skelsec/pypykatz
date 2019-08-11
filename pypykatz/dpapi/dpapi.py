@@ -42,6 +42,32 @@ Vault files (VCRD and VPOL):
 	4. The VCRD file has a lot of stored secrets, called attributes. Each attribute is encrypted with one of the keys from the VPOL file
 	5. For each attribute: for each key: decrypt attribute.
 	6. Check manually if one of them sucseeded because there are no integrity checks, so no way to tell programatically which key worked.
+	
+Path to decrypt stuff:
+	Sub-sections are options of how to get the keys
+	
+	1. pre_masterkey:
+		a, from user password and SID
+		b, from user NT hash and SID
+		c, from live registry SYSTEM cached DPAPI key or SAM cache NT hash and SID
+		d, from offline registry hives
+		
+	2. masterkey:
+		a, from masterkeyfile + pre_masterkey
+		b, from live LSASS dump
+		c, from offline LSASS dump
+		
+	3. credential file:
+		a, masterkey + credential_file
+		
+	3. VPOL file:
+		a, masterkey + VPOL file
+		
+	3. VCRED file:
+		a, VPOL file + VCRED file
+		
+	3. DPAPI_BLOB:
+		a, masterkey
 
 TODO: A LOT! currently fetching backupkeys from the DC is not supported. and probably missing a lot of things in the strucutre parsing :(
 """
@@ -67,7 +93,13 @@ class DPAPI:
 		
 	def get_keys_from_password(self, sid, password = None, nt_hash = None):
 		"""
-		Resulting keys used to decrypt the masterkey
+		Creates pre-masterkeys from user SID and password of nt hash.
+		If NT hash is provided the function can only generate 2 out of the 3 possible keys, 
+		this is because one of the derived keys relies ion the SHA1 hash of the user password
+		
+		sid: user's SID as a string
+		password: user's password. optional. if not provided, then NT hash must be provided
+		nt_hash: user's NT hash. optional if not provided, the password must be provided
 		"""
 		if password is None and nt_hash is None:
 			raise Exception('Provide either password or NT hash!')
@@ -95,15 +127,34 @@ class DPAPI:
 		
 		return key1, key2, key3
 		
-	def get_masterkeys_from_lsass(self):
+	def get_masterkeys_from_lsass_live(self):
 		"""
-		Returns the plaintext final masterkeys! No need to decrpyt and stuff!
+		Parses the live LSASS process and extracts the plaintext masterkeys
+		
+		return: dictionary of guid->keybytes
 		"""
 		from pypykatz.pypykatz import pypykatz
 		katz = pypykatz.go_live()
 		for x in katz.logon_sessions:
 			for dc in katz.logon_sessions[x].dpapi_creds:
 				self.masterkeys[dc.key_guid] = bytes.fromhex(dc.masterkey)
+		
+		return self.masterkeys
+				
+	def get_masterkeys_from_lsass_dump(self, file_path):
+		"""
+		Parses the mindiump of an LSASS process file and extracts the plaintext masterkeys
+		
+		file_path: path to the mindiump file
+		return: dictionary of guid->keybytes
+		"""
+		from pypykatz.pypykatz import pypykatz
+		katz = pypykatz.parse_minidump_file(file_path)
+		for x in katz.logon_sessions:
+			for dc in katz.logon_sessions[x].dpapi_creds:
+				self.masterkeys[dc.key_guid] = bytes.fromhex(dc.masterkey)
+				
+		return self.masterkeys
 				
 	def __get_registry_secrets(self, lr):
 		from pypykatz.registry.security.common import LSASecretDPAPI
@@ -170,43 +221,39 @@ class DPAPI:
 		Decrypts Masterkeyfile bytes
 		data: bytearray of the masterkeyfile
 		key: bytes describing the key used for decryption
-		returns: CREDENTIAL_BLOB object
+		returns: touple of dictionaries. [0] - > masterkey[guid] = key, [1] - > backupkey[guid] = key
 		"""
 		mkf = MasterKeyFile.from_bytes(data)
 		
+		mks = {}
+		bks = {}
 		if mkf.masterkey is not None:
 			for user_key in self.user_keys:
 				dec_key = mkf.masterkey.decrypt(user_key)
 				if dec_key:
-					print(dec_key)
 					self.masterkeys[mkf.guid] = dec_key
-				else:
-					print('Fail')					
+					mks[mkf.guid] = dec_key				
 				
 			for machine_key in self.machine_keys:
 				dec_key = mkf.masterkey.decrypt(machine_key)
 				if dec_key:
-					print(dec_key)
-					self.backupkeys[mkf.guid] = dec_key
-				else:
-					print('Fail')
+					self.masterkeys[mkf.guid] = dec_key
+					mks[mkf.guid] = dec_key
 		
 		if mkf.backupkey is not None:
 			for user_key in self.user_keys:
 				dec_key = mkf.backupkey.decrypt(user_key)
 				if dec_key:
-					print(dec_key)
 					self.backupkeys[mkf.guid] = dec_key
-				else:
-					print('Fail')					
+					bks[mkf.guid] = dec_key				
 				
 			for machine_key in self.machine_keys:
 				dec_key = mkf.backupkey.decrypt(machine_key)
 				if dec_key:
-					print(dec_key)
 					self.backupkeys[mkf.guid] = dec_key
-				else:
-					print('Fail')
+					bks[mkf.guid] = dec_key
+					
+		return mks, bks
 	
 	def decrypt_credential_file(self, file_path, key = None):
 		"""
