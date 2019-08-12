@@ -1,10 +1,11 @@
 # pypykatz
-Mimikatz implementation in pure Python. -optimized for offline persing, but has options for live credential dumping as well-  
+Mimikatz implementation in pure Python. At least a part of it :)  
 Runs on all OS's which support python>=3.6
 
 ## Installing
 Install it via pip or by cloning it from github.  
 The installer will create a pypykatz executable in the python's Script directory. You can run it from there, should be in your PATH.  
+Take care, that the github master version might fail because I'm layz to do a proper branch for the new versions. I'll try to create a branch of stable version tho.  
 
 ### Via PIP
 ```
@@ -24,6 +25,51 @@ Install it
 ```
 python3 setup.py install
 ```
+
+## Features
+
+### General
+Platform idependent - as far as you dont use the "live" subcommands  
+Can be used as a library for your projects.  
+
+### LSASS processing
+Can parse the secrets hidden in the LSASS process. This is just like mimikatz's `sekurlsa::` but with different commands.  
+The main difference here is that all the parsing logic is separated from the data source, so if you define a new reader object you can basically perform the parsing of LSASS from anywhere.  
+
+Currently supported data sources:  
+1. live - reads the LSASS porcess' memory directly  
+2. minidump - processes a minidump file created by dumping the LSASS process 
+3. rekall (volatility fork) - processes basically ANY windows memory dumps that rekall can parse 
+4. pcileech - can dump secrets DIRECTLY via DMA of a live computer 
+5. remote - this is another project. TBD :)
+6. `your project here` seriously, it's super-simple to integrate.
+
+### Registry processing
+Parses the registry hives to obtain stroed credentials, like NT and LM hashes, domain cached credentials (DCC/DCC2) and LSA secrets.
+
+Currently supported data sources: 
+1. live - has two techniques to parse live registry. First it's in-memory doesn't touch disk, the second is dumping the hives and parsing them with the offline parser 
+2. offline (hive files)  
+3. `your project here` seriously, it's super-simple to integrate.
+
+### DPAPI functions - MASTERKEY/BLOB/VAULT/CREDENTIAL
+DPAPI is the protector of local secrets of many kinds. Currently the project supports decrypting masterkeys, dpapi blobs, credential files, vault files.  
+The results are not 100% correct, as there is not much documentation on most of these things. PR is always welcomed!
+
+Currently supported data sources: 
+1. live - obtains masterkeys directly from LSASS -OR- the user/machine keys from live registry and decrypts the masterkeyfile. 
+2. hive files (offline)- the user/machine keys from live registry and decrypts the masterkeyfile  
+3. valid credentials (offline) - can decrypt masterkey files by letting you type in the correct SID and password.
+4. `pls don't integrate this part to your project, it's beta`
+
+### Impersonating users
+Can spawn a new process as any user who has a process running on the machine.  
+Can assign any available token of choise to your thread  
+This is just a basic stuff really. Reson is there that I hate to constanly use psexec to get a system shell from admin...  
+
+### other stuff
+yeah... check the code. it has comments and stuff...  
+
 ## Quickwin
 Dumping LIVE system LSA secrets  
 ```
@@ -35,6 +81,25 @@ Parsing minidump file of the LSASS process
 pypykatz minidump <minidump file>
 ```  
 
+Want to run something as SYSTEM? - got you covered!
+```
+pypykatz live process create
+``` 
+
+Listing ProcessTokens for all processes with SID and username? - no problem!
+```
+pypykatz live process token list
+```
+
+Listing all users on the local machine? - here u go!
+```
+pypykatz live users list
+```
+
+DPAPI master keys? - never been easier
+```
+pypykatz live dpapi
+```
 
 ## Using pypykatz -detailed-
 **Foreword: there is an awesome help menu as well.**  
@@ -156,6 +221,7 @@ Python>=3.6
 ## Kudos
 Benjamin DELPY @gentilkiwi for [Mimikatz](https://github.com/gentilkiwi/mimikatz)  
 Francesco Picasso for the [mimikatz.py plugin for volatility](https://raw.githubusercontent.com/sans-dfir/sift-files/master/volatility/mimikatz.py)  
+Alberto Solino (@agsolino) for [impacket](https://github.com/SecureAuthCorp/impacket)
   
 ### Crypto
 Richard Moore for the [AES module](https://github.com/ricmoo/pyaes/blob/master/pyaes/aes.py)  
