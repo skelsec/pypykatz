@@ -88,6 +88,9 @@ def main():
 	registry_group.add_argument('--sam', help='path to the SAM registry hive')
 	registry_group.add_argument('--security', help='path to the SECURITY registry hive')
 	
+	gppassword_group = subparsers.add_parser('gppassword', help='Decrypt GP passwords')
+	gppassword_group.add_argument('--enc', help='Encrypted password string')
+	
 	####### PARSING ARGUMENTS
 	
 	args = parser.parse_args()
@@ -348,7 +351,17 @@ def main():
 					
 				if args.vpol is None:
 					raise Exception('VCRED decryption requires a key OR a VPOL file')
-				
+
+
+	###### Rekall
+	elif args.command == 'gppassword':
+		from pypykatz.utils.gppassword.gppassword import GPPassword
+		gp = GPPassword()
+		if args.enc is None:
+			raise Exception('Provide the encrypted password!')
+		pw = gp.decrypt(args.enc)
+		print(pw)
+		
 	###### Rekall
 	elif args.command == 'rekall':
 		mimi = pypykatz.parse_memory_dump_rekall(args.memoryfile, args.timestamp_override)
