@@ -23,5 +23,5 @@ class GPPassword:
 		ctx = AES(AES_KEY, iv = AES_IV)
 		pw_dec  = ctx.decrypt(pw_enc)
 		
-		return pw_dec
+		return pw_dec.decode('utf-16-le')
 	
