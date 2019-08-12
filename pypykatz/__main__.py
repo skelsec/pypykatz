@@ -91,6 +91,8 @@ def main():
 	gppassword_group = subparsers.add_parser('gppassword', help='Decrypt GP passwords')
 	gppassword_group.add_argument('--enc', help='Encrypted password string')
 	
+	sake_group = subparsers.add_parser('sake', help='sake')
+	
 	####### PARSING ARGUMENTS
 	
 	args = parser.parse_args()
@@ -361,7 +363,13 @@ def main():
 			raise Exception('Provide the encrypted password!')
 		pw = gp.decrypt(args.enc)
 		print(pw)
-		
+	
+	###### Rekall
+	elif args.command == 'sake':
+		from pypykatz.utils.sake.sake import Sake
+		s = Sake()
+		print(s.draw())
+	
 	###### Rekall
 	elif args.command == 'rekall':
 		mimi = pypykatz.parse_memory_dump_rekall(args.memoryfile, args.timestamp_override)
