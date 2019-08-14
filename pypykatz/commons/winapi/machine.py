@@ -26,6 +26,20 @@ class LiveMachine:
 	"""
 	def __init__(self, api = None):
 		self.api = api if api is not None else LocalWindowsAPI()
+		self.domain = None
+		self.hostname = None
+		
+	def get_hostname(self):
+		if self.hostname is None:
+			params = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters')
+			self.hostname = winreg.QueryValueEx(params, 'NV Hostname')[0]
+		return self.hostname
+		
+	def get_domain(self):
+		if self.domain is None:
+			params = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters')
+			self.domain = winreg.QueryValueEx(params, 'Domain')[0]
+		return self.domain
 		
 	def get_current_user(self):
 		pid = self.api.kernel32.GetCurrentProcessId()

