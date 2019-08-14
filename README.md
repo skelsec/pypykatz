@@ -29,7 +29,7 @@ python3 setup.py install
 ## Features
 
 ### General
-Platform idependent - as far as you dont use the "live" subcommands  
+Platform idependent - all commands have a "live" and a normal version where applicable. The "live" version will use the current system and only works on Windows. The normal commands are platform independent.  
 Can be used as a library for your projects.  
 
 ### LSASS processing
