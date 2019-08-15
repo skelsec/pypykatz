@@ -9,6 +9,7 @@ from pypykatz.registry import logger
 from pypykatz.registry.sam.sam import *
 from pypykatz.registry.security.security import *
 from pypykatz.registry.system.system import *
+from pypykatz.registry.software.software import *
 
 
 class OffineRegistry:
@@ -21,10 +22,12 @@ class OffineRegistry:
 		self.sam_hive = None
 		self.security_hive = None
 		self.system_hive = None
+		self.software_hive = None
 		
 		self.system = None
 		self.sam = None
 		self.security = None
+		self.software = None
 		
 	def get_secrets(self):
 		self.system = SYSTEM(self.system_hive)
@@ -37,6 +40,10 @@ class OffineRegistry:
 		if self.security_hive:
 			self.security = SECURITY(self.security_hive, bootkey)
 			self.security.get_secrets()
+			
+		if self.software_hive:
+			self.security = SOFTWARE(self.software_hive, bootkey)
+			self.security.get_default_logon()
 			
 		self.cleanup()
 		
@@ -59,7 +66,7 @@ class OffineRegistry:
 		return t
 		
 	@staticmethod
-	def from_files(system_path, sam_path = None, security_path = None):
+	def from_files(system_path, sam_path = None, security_path = None, software_path = None):
 		po = OffineRegistry()
 		
 		try:
@@ -90,6 +97,17 @@ class OffineRegistry:
 				
 		else:
 			logger.warning('SECURITY hive path not supplied! Parsing SECURITY will not work')
+			
+		if software_path:
+			try:
+				sof_hive = open(software_path, 'rb')
+				po.software_hive = AIOWinRegHive(sof_hive)
+			except Exception as e:
+				logger.error('Failed to open SECURITY hive! Reason: %s' % str(e))
+				raise e
+				
+		else:
+			logger.warning('SOFTWARE hive path not supplied! Parsing SOFTWARE will not work')
 		
 		
 		po.get_secrets()
@@ -103,6 +121,10 @@ class OffineRegistry:
 			pass
 		try:
 			sys_hive.close()
+		except:
+			pass
+		try:
+			sof_hive.close()
 		except:
 			pass
 		

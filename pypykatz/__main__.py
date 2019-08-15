@@ -113,6 +113,7 @@ def main():
 	registry_group.add_argument('system', help='path to the SYSTEM registry hive')
 	registry_group.add_argument('--sam', help='path to the SAM registry hive')
 	registry_group.add_argument('--security', help='path to the SECURITY registry hive')
+	registry_group.add_argument('--software', help='path to the SOFTWARE registry hive')
 	
 	gppassword_group = subparsers.add_parser('gppassword', help='Decrypt GP passwords')
 	gppassword_group.add_argument('--enc', help='Encrypted password string')
@@ -751,7 +752,7 @@ def main():
 					
 	###### Registry
 	elif args.command == 'registry':
-		po = OffineRegistry.from_files(args.system, args.sam, args.security)
+		po = OffineRegistry.from_files(args.system, args.sam, args.security, args.software)
 		
 		if args.outfile:
 			po.to_file(args.outfile, args.json)
