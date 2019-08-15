@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
 
 class CryptoCMDHelper:
 	def __init__(self):

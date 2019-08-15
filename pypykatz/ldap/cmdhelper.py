@@ -1,5 +1,15 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
 
 from pypykatz import logging
+
+"""
+LDAP is not part of pypykatz directly. 
+This is a wrapper for msldap, ldap3 and winsspi packages
+"""
 
 class LDAPCMDHelper:
 	def __init__(self):

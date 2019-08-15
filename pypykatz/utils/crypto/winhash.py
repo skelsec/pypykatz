@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
 
 import hashlib
 from pypykatz.crypto.unified.des import DES, expand_DES_key

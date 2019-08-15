@@ -1,5 +1,15 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
 
 from pypykatz import logging
+
+"""
+Kerberos is not part of pypykatz directly. 
+This is a wrapper for minikerberos and winsspi packages
+"""
 
 class KerberosCMDHelper:
 	def __init__(self):
