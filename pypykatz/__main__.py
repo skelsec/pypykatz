@@ -423,10 +423,11 @@ def main():
 			po.to_file(args.outfile, args.json)
 		else:
 			print(str(po))
-			
-	elif args.command in ['minidump', 'rekall', 'live']:
+	
+	
+	if args.command in ['minidump', 'rekall', 'live']:
 		if args.command == 'live':
-			if args.cmd != 'lsa':
+			if args.module != 'lsa':
 				return
 		if args.outfile and args.json:
 			with open(args.outfile, 'w') as f:
