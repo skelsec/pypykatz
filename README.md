@@ -73,100 +73,6 @@ This is just a basic stuff really. Reson is there that I hate to constanly use p
 ### other stuff
 yeah... check the code. it has comments and stuff...  
 
-## Quickwin
-Dumping LIVE system LSA secrets  
-```
-pypykatz live lsa
-```  
-
-Parsing minidump file of the LSASS process  
-```
-pypykatz minidump <minidump file>
-```  
-
-Want to run something as SYSTEM? - got you covered!
-```
-pypykatz live process create
-``` 
-
-Listing ProcessTokens for all processes with SID and username? - no problem!
-```
-pypykatz live process token list
-```
-
-Listing all users on the local machine? - here u go!
-```
-pypykatz live users list
-```
-
-DPAPI master keys? - never been easier
-```
-pypykatz live dpapi
-```
-
-## Using pypykatz -detailed-
-**Foreword: there is an awesome help menu as well.**  
-The command structure is the following  
-```
-pypykatz <ouput options> <command> <subcommand (opt)>
-```
-
-### Output options
-Omitting the ```-o``` filed will result in output being printed to ```stdout```   
-  
-#### Debug info
-Increasing the number of ```v``` increases the size of memory to be shown on the screen.  
-**Warning! Too much data might result in cross-boundary read attempts!**
-Parameter: ```-v```  
-Example:  
-```
-pypykatz.py -vv mindidump <minidumpfile>
-```
-
-#### Write output to file:  
-Parameter: ```-o <output_file>```  
-Example: 
-```
-pypykatz.py -o <output_file> minidump <dumpfile> 
-```
-  
-#### Write output in JSON
-Together with the ```-o``` option it will write the output to a file, otherwise will print the output to ```stdout```   
-
-Parameter: ```--json```  
-Example: 
-```
-pypykatz.py --json -o <output file> minidump <dumpfile> 
-```  
-### Kerberos 
-Stores the kerberos tickets in BOTH ```.kirbi``` and ```.ccache``` formats to the directory given.  
-**WARNING!** An output directory is expected, as the ```.kirbi``` format supports only ONE ticket/file so get prepared to be swimming in those files when dealing with multiple/large dump files.  
-  
-Parameter: ```-k <output_dir>```  
-Example:  
-```
-pypykatz.py -k <output_dir> minidump <dumpfile>
-```
-
-### Minidump command options  
-#### Directory parsing
-This parameter tells pypykatz to look for all ```.dmp``` files in a given directory  
-
-Parameter: ```-d```  
-Example:  
-```
-pypykatz.py minidump <folder_with_dumpfiles> -d 
-```  
-
-#### Recursive parsing
-Supplying this parameter will force pypykatz to recursively look for ```.dmp``` files  
-Only works together with directory parsing.   
-
-Parameter: ```-r```  
-Example:  
-```
-pypykatz.py minidump <folder_with_folder_of_dumpfiles> -d -r
-```  
 ### Rekall command options 
 #### Timestamp override
 Reason for this parameter to exist: In order to choose the correct structure for parsing we need the timestamp info of the msv dll file. Rekall sadly doesnt always have this info for some reason, therefore the parsing may be failing.  
@@ -203,14 +109,6 @@ In order to create mimikatz in Python one would have to create structure definit
 ### Summary
 I need data I can verify the code on and administer necessary changes on the parsers until everything works fine.  
 Submitting issues on this github page wouldn't help at all without the actual file and github wouldn't like 40-300Mb file attachments.
-
-
-## Goals
-First step is to have the minidump file parsing capability done in a platform independent way, so you can enjoy watching secrets in your favourite OS.
-Currently aiming for full sekurlsa::minidump functionality.
-
-**WARNING**  
-This project is still work in progress, there is no guarantee that anything will stay/look/feel the same from one second to another.
 
 ## Prerequisites
 Most of my big python projects are aiming for maximum protability, meaning I only use 3rd party packages where absolutely necessary. 
