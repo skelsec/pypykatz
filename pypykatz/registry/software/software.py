@@ -23,7 +23,10 @@ class SOFTWARE:
 			except:
 				pass
 			else:
-				self.default_logon_user = data.decode('utf-16-le').split('\x00')[0]
+				if isinstance(data, bytes):
+					self.default_logon_user = data.decode('utf-16-le').split('\x00')[0]
+				else:
+					self.default_logon_user = data
 		
 		if self.default_logon_domain is None:
 			try:
@@ -31,7 +34,10 @@ class SOFTWARE:
 			except:
 				pass
 			else:
-				self.default_logon_domain = data.decode('utf-16-le').split('\x00')[0]
+				if isinstance(data, bytes):
+					self.default_logon_domain = data.decode('utf-16-le')
+				else:
+					self.default_logon_domain = data
 		
 		if self.default_logon_password is None:
 			try:
@@ -39,14 +45,19 @@ class SOFTWARE:
 			except:
 				pass
 			else:
-				self.default_logon_password = data.decode('utf-16-le').split('\x00')[0]
-		
-		print(repr(self.default_logon_user))
-		print(repr(self.default_logon_domain))
-		print(repr(self.default_logon_password))
+				if isinstance(data, bytes):
+					self.default_logon_password = data.decode('utf-16-le')
+				else:
+					self.default_logon_password = data
+				
 		return self.default_logon_user
 		
-	
+	def to_dict(self):
+		t = {}
+		t['default_logon_user'] = self.default_logon_user
+		t['default_logon_domain'] = self.default_logon_domain
+		t['default_logon_password'] = self.default_logon_password
+		return t
 		
 	def __str__(self):
 		t  = '============== SOFTWARE hive secrets ==============\r\n'

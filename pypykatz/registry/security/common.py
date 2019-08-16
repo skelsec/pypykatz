@@ -55,7 +55,14 @@ class LSASecret:
 		
 	def __str__(self):
 		return '=== LSASecret %s ===\r\n' % self.key_name + '\r\nHistory: %s' % self.history + '\r\nSecret: \r\n' + hexdump(self.raw_secret)
-		
+	
+	def to_dict(self):
+		t = {}
+		t['type'] = 'LSASecret'
+		t['key_name'] = self.key_name
+		t['history'] = self.history
+		t['raw_secret'] = self.raw_secret
+		return t
 		
 class LSASecretService(LSASecret):
 	def __init__(self, key_name, raw_secret, history):
@@ -77,6 +84,16 @@ class LSASecretService(LSASecret):
 			
 	def __str__(self):
 		return '=== LSA Service User Secret ===\r\nHistory: %s\r\nService name: %s \r\nUsername: %s' % (self.history, self.service, self.username) + '\r\n' + hexdump(self.secret)
+
+	def to_dict(self):
+		t = {}
+		t['type'] = 'LSASecretService'
+		t['key_name'] = self.key_name
+		t['history'] = self.history
+		t['username'] = self.username
+		t['secret'] = self.secret
+		t['service'] = self.service
+		return t
 		
 class LSASecretDefaultPassword(LSASecret):
 	def __init__(self, key_name, raw_secret, history):
@@ -96,6 +113,15 @@ class LSASecretDefaultPassword(LSASecret):
 			
 	def __str__(self):
 		return '=== LSA Default Password ===\r\nHistory: %s\r\nUsername: %s\r\nPassword: %s' % (self.history, self.username,self.secret)
+
+	def to_dict(self):
+		t = {}
+		t['type'] = 'LSASecretDefaultPassword'
+		t['key_name'] = self.key_name
+		t['history'] = self.history
+		t['username'] = self.username
+		t['secret'] = self.secret
+		return t
 		
 class LSASecretASPNET(LSASecret):
 	def __init__(self, key_name, raw_secret, history):
@@ -111,7 +137,15 @@ class LSASecretASPNET(LSASecret):
 	
 	def __str__(self):
 		return '=== LSA ASPNET Password ===\r\nHistory: %s\r\nUsername: %s\r\nPassword: %s' % (self.history, self.username,self.secret)
-		
+
+	def to_dict(self):
+		t = {}
+		t['type'] = 'LSASecretASPNET'
+		t['key_name'] = self.key_name
+		t['history'] = self.history
+		t['username'] = self.username
+		t['secret'] = self.secret
+		return t
 
 class LSASecretMachineAccount(LSASecret):
 	def __init__(self, key_name, raw_secret, history):
@@ -129,6 +163,16 @@ class LSASecretMachineAccount(LSASecret):
 		#thx dirkjan
 		self.kerberos_password = self.raw_secret.decode('utf-16-le', 'replace').encode('utf-8', 'replace')
 		
+	def to_dict(self):
+		t = {}
+		t['type'] = 'LSASecretMachineAccount'
+		t['key_name'] = self.key_name
+		t['history'] = self.history
+		t['username'] = self.username
+		t['secret'] = self.secret
+		t['kerberos_password'] = self.kerberos_password
+		return t
+		
 	def __str__(self):
 		return '=== LSA Machine account password ===\r\nHistory: %s\r\nNT: %s\r\nPassword(hex): %s\r\nKerberos password(hex): %s' % (self.history, self.secret.hex(), self.raw_secret.hex(), self.kerberos_password.hex())
 	
@@ -144,6 +188,15 @@ class LSASecretDPAPI(LSASecret):
 		self.machine_key = ds.machine_key
 		self.user_key = ds.user_key
 		
+	def to_dict(self):
+		t = {}
+		t['type'] = 'LSASecretDPAPI'
+		t['key_name'] = self.key_name
+		t['history'] = self.history
+		t['machine_key'] = self.machine_key
+		t['user_key'] = self.user_key
+		return t
+		
 	def __str__(self):
 		return '=== LSA DPAPI secret ===\r\nHistory: %s\r\nMachine key (hex): %s\r\nUser key(hex): %s' % (self.history, self.machine_key.hex(), self.user_key.hex())
 
@@ -154,6 +207,15 @@ class LSADCCSecret:
 		self.username = username
 		self.iteration = iteration
 		self.hash_value = hash_value
+		
+	def to_dict(self):
+		t = {}
+		t['version'] = self.version
+		t['domain'] = self.domain
+		t['username'] = self.username
+		t['iteration'] = self.iteration
+		t['hash_value'] = self.hash_value
+		return t
 		
 	def __str__(self):
 		return self.to_lopth()

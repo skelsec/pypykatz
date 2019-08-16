@@ -13,7 +13,7 @@ class SAMSecret:
 		
 	def to_dict(self):
 		return {
-			'username' : username,
+			'username' : self.username,
 			'rid' : self.rid,
 			'nt_hash' : self.nt_hash,
 			'lm_hash' : self.lm_hash,

@@ -3,9 +3,12 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
+
+import json
 from aiowinreg.hive import AIOWinRegHive
 
 from pypykatz.registry import logger
+from pypykatz.commons.common import UniversalEncoder
 from pypykatz.registry.sam.sam import *
 from pypykatz.registry.security.security import *
 from pypykatz.registry.system.system import *
@@ -54,8 +57,27 @@ class OffineRegistry:
 			except:
 				pass
 		
-	def to_file(self, json_format = False):
-		pass
+	def to_file(self, file_path, json_format = False):
+		with open(file_path, 'w', newline = '') as f:
+			if json_format == False:
+				f.write(str(self))
+			else:
+				f.write(self.to_json())
+	
+	def to_json(self):
+		return json.dumps(self.to_dict(), cls = UniversalEncoder, indent=4, sort_keys=True)
+			
+	def to_dict(self):
+		t = {}
+		t['SYSTEM'] = self.system.to_dict()
+		if self.sam:
+			t['SAM'] = self.sam.to_dict()
+		if self.security:
+			t['SECURITY'] = self.security.to_dict()
+		if self.software:
+			t['SOFTWARE'] = self.software.to_dict()
+		return t
+		
 		
 	def __str__(self):
 		t = str(self.system)
@@ -63,6 +85,8 @@ class OffineRegistry:
 			t += str(self.sam)
 		if self.security:
 			t += str(self.security)
+		if self.software:
+			t += str(self.software)
 		return t
 		
 	@staticmethod

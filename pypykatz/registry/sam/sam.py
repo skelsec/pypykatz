@@ -149,6 +149,14 @@ class SAM:
 			
 		return self.secrets
 		
+	def to_dict(self):
+		t = {}
+		t['HBoot_key'] = self.hashed_bootkey
+		t['local_users'] = []
+		for secret in self.secrets:
+			t['local_users'].append( secret.to_dict())
+		return t
+		
 	def __str__(self):
 		t  = '============== SAM hive secrets ==============\r\n'
 		t += 'HBoot Key: %s\r\n' % self.hashed_bootkey.hex()

@@ -56,7 +56,12 @@ class SYSTEM:
 	def get_secrets(self):
 		self.get_currentcontrol()
 		self.get_bootkey()
-		
+	
+	def to_dict(self):
+		t = {}
+		t['CurrentControlSet'] = self.currentcontrol
+		t['BootKey'] = self.bootkey
+		return t
 		
 	def __str__(self):
 		t  = '============== SYSTEM hive secrets ==============\r\n'

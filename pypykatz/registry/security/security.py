@@ -252,7 +252,22 @@ class SECURITY:
 					
 				else:
 					logger.debug('[SECURITY] Could not open %s, skipping!' % key_path)
-				
+	
+	def to_dict(self):
+		t = {}
+		t['dcc_iteration_count'] = self.dcc_iteration_count
+		t['secrets_format'] = 'VISTA' if self.lsa_secret_key_vista_type else 'OLD'
+		t['lsa_key'] = self.lsa_key
+		t['NK$LM'] = None
+		if self.NKLM_key is not None:
+			t['NK$LM'] = self.NKLM_key
+		t['dcc'] = []
+		for secret in self.dcc_hashes:
+			t['dcc'].append(secret.to_dict())
+		t['cached_secrets'] = []
+		for secret in self.cached_secrets:
+			t['cached_secrets'].append(secret.to_dict())
+		return t
 	
 	def __str__(self):
 		t  = '============== SECURITY hive secrets ==============\r\n'
