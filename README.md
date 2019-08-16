@@ -3,7 +3,7 @@ Mimikatz implementation in pure Python. At least a part of it :)
 Runs on all OS's which support python>=3.6
 
 ## WIKI
-Check out the awesome [WIKI](https://github.com/skelsec/pypykatz/wiki)
+Since version 0.1.1 the command line changed a little. Worry not, I have an awesome [WIKI](https://github.com/skelsec/pypykatz/wiki) for you.
 
 ## Installing
 Install it via pip or by cloning it from github.  
