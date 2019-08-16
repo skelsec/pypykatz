@@ -2,6 +2,9 @@
 Mimikatz implementation in pure Python. At least a part of it :)  
 Runs on all OS's which support python>=3.6
 
+## WIKI
+Check out the awesome [WIKI](https://github.com/skelsec/pypykatz/wiki)
+
 ## Installing
 Install it via pip or by cloning it from github.  
 The installer will create a pypykatz executable in the python's Script directory. You can run it from there, should be in your PATH.  
