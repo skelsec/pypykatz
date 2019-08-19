@@ -3318,6 +3318,8 @@ def SetThreadToken(token_handle, thread_handle = None):
 	_SetThreadToken.errcheck = RaiseIfZero
 
 	_SetThreadToken(thread_handle, token_handle)
+	
+
 
 #==============================================================================
 # This calculates the list of exported symbols.
