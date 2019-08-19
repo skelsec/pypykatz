@@ -26,8 +26,9 @@ def main():
 	from pypykatz.kerberos.cmdhelper import KerberosCMDHelper
 	from pypykatz.lsadecryptor.cmdhelper import LSACMDHelper
 	from pypykatz.registry.cmdhelper import RegistryCMDHelper
+	from pypykatz.remote.cmdhelper import RemoteCMDHelper
 	
-	cmdhelpers = [CryptoCMDHelper(), LDAPCMDHelper(), KerberosCMDHelper(), LSACMDHelper(), RegistryCMDHelper()]
+	cmdhelpers = [CryptoCMDHelper(), LDAPCMDHelper(), KerberosCMDHelper(), LSACMDHelper(), RegistryCMDHelper(), RemoteCMDHelper()]
 	
 
 	parser = argparse.ArgumentParser(description='Pure Python implementation of Mimikatz --or at least some parts of it--')
