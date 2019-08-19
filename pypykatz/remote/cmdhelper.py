@@ -22,8 +22,8 @@ class RemoteCMDHelper:
 		
 	def add_args(self, parser, live_parser):
 		live_group = live_parser.add_parser('share', help='Remote share relted operations')
-		#live_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
-		#live_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		live_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+		live_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 		live_group.add_argument('cmd', choices=['enum'])
 		live_group.add_argument('-f', '--target-file', help = 'Targets file, one per line')
 		live_group.add_argument('-t', '--target', action='append', help = 'Target to check. Stackable.')
@@ -31,8 +31,8 @@ class RemoteCMDHelper:
 		live_group.add_argument('--disable-pre-check', action='store_true',help = 'Disables pre-check to see if the remote destination is alive. Will make enumeration take years!')
 		
 		live_group = live_parser.add_parser('session', help='Remote user sessions related operations')
-		#live_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
-		#live_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		live_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+		live_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 		live_group.add_argument('cmd', choices=['enum'])
 		live_group.add_argument('-f', '--target-file', help = 'Targets file, one per line')
 		live_group.add_argument('-t', '--target', action='append', help = 'Target to check. Stackable.')
@@ -40,8 +40,8 @@ class RemoteCMDHelper:
 		live_group.add_argument('--disable-pre-check', action='store_true',help = 'Disables pre-check to see if the remote destination is alive. Will make enumeration take years!')
 		
 		live_group = live_parser.add_parser('localgroup', help='Remote localgroup related operations')
-		#live_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
-		#live_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		live_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+		live_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 		live_group.add_argument('cmd', choices=['enum'])
 		live_group.add_argument('-f', '--target-file', help = 'Targets file, one per line')
 		live_group.add_argument('-t', '--target', action='append', help = 'Target to check. Stackable.')
@@ -89,6 +89,11 @@ class RemoteCMDHelper:
 				se.pre_check = True
 				if args.disable_pre_check:
 					se.pre_check = False
+				
+				se.to_json = args.json
+				if args.outfile:
+					se.out_file = args.outfile
+		
 					
 				se.run()
 		
@@ -112,6 +117,10 @@ class RemoteCMDHelper:
 				se.pre_check = True
 				if args.disable_pre_check:
 					se.pre_check = False
+					
+				se.to_json = args.json
+				if args.outfile:
+					se.out_file = args.outfile
 					
 				se.run()
 			
@@ -140,6 +149,10 @@ class RemoteCMDHelper:
 				se.pre_check = True
 				if args.disable_pre_check:
 					se.pre_check = False
+					
+				se.to_json = args.json
+				if args.outfile:
+					se.out_file = args.outfile
 					
 				se.run()
 			

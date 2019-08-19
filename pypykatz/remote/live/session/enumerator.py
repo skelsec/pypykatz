@@ -1,10 +1,12 @@
 
+import json
 from threading import Thread
 from multiprocessing import Process, Queue
 from pypykatz import logger
 
 from pypykatz.commons.winapi.local.function_defs.netapi32 import NetSessionEnum
 from pypykatz.remote.live.common.common import is_port_up
+from pypykatz.commons.common import UniversalEncoder
 
 
 class SessMonThread(Thread):
@@ -51,9 +53,12 @@ class SessMonProc(Process):
 			t.join()
 		
 class SMResProc(Process):
-	def __init__(self, outQ):
+	def __init__(self, outQ, out_file = None, to_json = False):
 		Process.__init__(self)
 		self.outQ = outQ
+		self.results = {}
+		self.out_file = out_file
+		self.to_json = to_json
 		
 	def setup(self):
 		return
@@ -66,10 +71,35 @@ class SMResProc(Process):
 				break
 			
 			target, session = result
-			ip = session.computername.replace('\\\\','')
-			result = '%s %s %s' % (target, ip, session.username)
+			if self.to_json is True:
+				if target not in self.results:
+					self.results[target] = []
+				self.results[target].append(session.to_dict())
 			
-			print(result)
+			else:
+				ip = session.computername.replace('\\\\','')
+				result = '%s %s %s' % (target, ip, session.username)
+				if self.out_file is not None:
+					if target not in self.results:
+						self.results[target] = []
+					self.results[target].append(result)
+				else:
+					print(result)
+		
+		if self.out_file is None and self.to_json is False:
+			return
+		
+		logger.info('Writing results...')		
+		if self.out_file is not None:
+			with open(self.out_file,'w', newline = '') as f:
+				if self.to_json is True:
+					f.write(json.dumps(self.results, cls = UniversalEncoder, indent=4, sort_keys=True))
+				else:
+					for target in self.results:
+						for res in self.results[target]:
+							f.write( '%s %s\r\n' % (target, res))
+		else:
+			print(json.dumps(self.results, cls = UniversalEncoder, indent=4, sort_keys=True))
 			
 
 class SessionMonitor:
@@ -85,6 +115,8 @@ class SessionMonitor:
 		
 		self.timeout = 1
 		self.pre_check = True
+		self.out_file = None
+		self.to_json = False
 		
 		
 	def load_targets_ldap(self, ldap):
@@ -106,7 +138,7 @@ class SessionMonitor:
 		self.hosts += targets
 		
 	def run(self):
-		self.result_process = SMResProc(self.outQ)
+		self.result_process = SMResProc(self.outQ, out_file = self.out_file, to_json = self.to_json)
 		self.result_process.daemon = True
 		self.result_process.start()
 		

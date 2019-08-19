@@ -1,10 +1,10 @@
-from winrecon.cf.defines import *
 import enum
 import datetime
 import ctypes
 from ctypes import wintypes
 
-from winrecon.cf.netapi32_high import *
+from pypykatz.commons.winapi.local.function_defs.defines import *
+from pypykatz.commons.winapi.local.function_defs.netapi32_high import *
 
 """
 D: NetShareEnum 

@@ -27,6 +27,15 @@ class FileInfo:
 		
 		return sess
 		
+	def to_dict(self):
+		return {
+			'fid' : str(self.netname),
+			'permissions' : str(self.permissions),
+			'num_locks' : str(self.num_locks),
+			'pathname' : str(self.pathname),
+			'username' : str(self.username),
+		}
+		
 	def __str__(self):
 		t = '==ShareInfo==\r\n'
 		t+= 'netname : %s\r\n' % self.netname
@@ -77,6 +86,15 @@ class ShareInfo:
 		sess.servername = si.servername
 		return sess
 		
+	def to_dict(self):
+		return {
+			'netname' : str(self.netname),
+			'type' : str(self.type),
+			'remark' : str(self.remark),
+			'flags' : str(self.flags),
+			'servername' : str(self.servername),
+		}
+		
 	def __str__(self):
 		t = '==ShareInfo==\r\n'
 		t+= 'netname : %s\r\n' % self.netname
@@ -106,6 +124,14 @@ class UserSessionInfo:
 		sess.idle_time = si.idle_time
 		return sess
 		
+	def to_dict(self):
+		return {
+			'computername' : str(self.computername),
+			'username' : str(self.username),
+			'time' : str(self.time),
+			'idle_time' : str(self.idle_time),
+		}
+		
 	def __str__(self):
 		t = '==Session==\r\n'
 		t+= 'computername : %s\r\n' % self.computername
@@ -120,7 +146,15 @@ class LocalGroupInfo:
 		self.sidusage = None
 		self.domain = None
 		self.username = None
-
+		
+	def to_dict(self):
+		return {
+			'sid' : str(self.sid),
+			'sidusage' : str(self.sidusage),
+			'domain' : str(self.domain),
+			'username' : str(self.username),
+		}
+		
 	def from_struct(lg, level):
 		lgi = LocalGroupInfo()
 		if level == 0:
