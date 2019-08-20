@@ -22,12 +22,16 @@ class ShareEnumThread(Thread):
 			if not target:
 				break
 			if self.pre_check is True:
-				if is_port_up(target, 445, timeout = self.timeout) is False:
+				try:
+					if is_port_up(target, 445, timeout = self.timeout, throw = True) is False:
+						continue
+				except Exception as e:
+					self.outQ.put((target, None, str(e)))
 					continue
 			
 			try:
 				for share in NetShareEnum(target, level=1):
-					self.outQ.put((target, share))
+					self.outQ.put((target, share, None))
 			except Exception as e:
 				logger.debug('ShareEnumerator error: %s' % str(e))
 				continue
@@ -56,6 +60,7 @@ class SMResProc(Process):
 		Process.__init__(self)
 		self.outQ = outQ
 		self.results = {}
+		self.errors = {}
 		self.out_file = out_file
 		self.to_json = to_json
 		
@@ -69,11 +74,22 @@ class SMResProc(Process):
 			if not result:
 				break
 			
-			target, share = result
+			target, share, err = result
+			if err is not None:
+				if self.to_json is False and self.out_file is None:
+					print('%s : %s' % (target, str(err)))
+				
+				else:
+					self.errors[target] = err
+				
+				continue
+				
+			
 			if self.to_json is True:
 				if target not in self.results:
 					self.results[target] = []
 				self.results[target].append(share.to_dict())
+				
 			
 			else:
 				result = '%s %s %s %s %s' % (target, share.netname, share.type, share.remark, share.passwd)
@@ -85,19 +101,22 @@ class SMResProc(Process):
 					print(result)
 		
 		if self.out_file is None and self.to_json is False:
+			#print already heppened
 			return
 		
 		logger.info('Writing results...')		
 		if self.out_file is not None:
 			with open(self.out_file,'w', newline = '') as f:
 				if self.to_json is True:
-					f.write(json.dumps(self.results, cls = UniversalEncoder, indent=4, sort_keys=True))
+					f.write(json.dumps({'results' : self.results, 'errors': self.errors}, cls = UniversalEncoder, indent=4, sort_keys=True))
 				else:
 					for target in self.results:
 						for res in self.results[target]:
 							f.write( '%s %s\r\n' % (target, res))
+					for target in self.errors:
+						f.write( '%s %s\r\n' % (target, self.errors[target]))
 		else:
-			print(json.dumps(self.results, cls = UniversalEncoder, indent=4, sort_keys=True))
+			print(json.dumps({'results' : self.results, 'errors': self.errors}, cls = UniversalEncoder, indent=4, sort_keys=True))
 			
 
 class ShareEnumerator:
