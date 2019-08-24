@@ -5,6 +5,10 @@
 #
 
 import os
+import json
+import hmac
+import hashlib
+from hashlib import sha1, pbkdf2_hmac
 
 from pypykatz import logger
 from pypykatz.dpapi.structures.masterkeyfile import MasterKeyFile
@@ -14,10 +18,7 @@ from pypykatz.dpapi.structures.vault import VAULT_VCRD, VAULT_VPOL, VAULT_VPOL_K
 
 from pypykatz.crypto.unified.aes import AES
 from pypykatz.crypto.unified.common import SYMMETRIC_MODE
-
-import hmac
-import hashlib
-from hashlib import sha1, pbkdf2_hmac
+from pypykatz.commons.common import UniversalEncoder
 
 """
 So! DPAPI...
@@ -99,6 +100,48 @@ class DPAPI:
 		#'%SYSTEMDIR%\Microsoft\Protect'
 		# TODO: implement this
 		pass
+
+	def dump_pre_keys(self, filename = None):
+		if filename is None:
+			for x in self.user_keys:
+				print(x.hex())
+			for x in self.machine_keys:
+				print(x.hex())
+		else:
+			with open(filename, 'w', newline = '') as f:
+				for x in self.user_keys:
+					f.write(x.hex() + '\r\n')
+				for x in self.machine_keys:
+					f.write(x.hex() + '\r\n')
+
+	def load_pre_keys(self, filename):
+		with open(filename, 'r') as f:
+			for line in f:
+				line = line.strip()
+				self.user_keys.append(bytes.fromhex(line))
+
+	def dump_masterkeys(self, filename = None):
+		if filename is None:
+			for x in self.masterkeys:
+				print('[GUID] %s [MASTERKEY] %s' % (x, self.masterkeys[x].hex()))
+			for x in self.backupkeys:
+				print('[GUID] %s [BACKUPKEY] %s' % (x, self.backupkeys[x].hex()))
+		else:
+			with open(filename, 'w', newline = '') as f:
+				t = { 'masterkeys' : self.masterkeys, 'backupkeys': self.backupkeys}
+				f.write(json.dumps(t, cls = UniversalEncoder, indent=4, sort_keys=True))
+
+	def load_masterkeys(self, filename):
+		with open(filename, 'r') as f:
+			data = json.loads(f.read())
+		
+
+		for guid in data['backupkeys']:
+			self.backupkeys[guid] = bytes.fromhex(data['backupkeys'][guid])
+		for guid in data['masterkeys']:
+			self.masterkeys[guid] = bytes.fromhex(data['masterkeys'][guid])
+
+		print(self.masterkeys)
 		
 	def get_prekeys_from_password(self, sid, password = None, nt_hash = None):
 		"""
@@ -114,6 +157,8 @@ class DPAPI:
 			raise Exception('Provide either password or NT hash!')
 		
 		if password is None and nt_hash:
+			if isinstance(nt_hash, str):
+				nt_hash = bytes.fromhex(nt_hash)
 			key1 = None
 		
 		if password:
@@ -147,14 +192,16 @@ class DPAPI:
 		user = []
 		machine = []
 		from pypykatz.registry.security.common import LSASecretDPAPI
-		for secret in lr.security.cached_secrets:
-			if isinstance(secret, LSASecretDPAPI):
-				logger.debug('[DPAPI] Found DPAPI user key in registry! Key: %s' % secret.user_key)
-				logger.debug('[DPAPI] Found DPAPI machine key in registry! Key: %s' % secret.machine_key)
-				self.user_keys.append(secret.user_key)
-				user.append(secret.user_key)
-				self.machine_keys.append(secret.machine_key)
-				machine.append(secret.machine_key)
+
+		if lr.security:
+			for secret in lr.security.cached_secrets:
+				if isinstance(secret, LSASecretDPAPI):
+					logger.debug('[DPAPI] Found DPAPI user key in registry! Key: %s' % secret.user_key)
+					logger.debug('[DPAPI] Found DPAPI machine key in registry! Key: %s' % secret.machine_key)
+					self.user_keys.append(secret.user_key)
+					user.append(secret.user_key)
+					self.machine_keys.append(secret.machine_key)
+					machine.append(secret.machine_key)
 		
 		if lr.sam is not None:
 			for secret in lr.sam.secrets:
@@ -308,6 +355,9 @@ class DPAPI:
 		key: raw bytes of the decryption key. If not supplied the function will look for keys already cached in the DPAPI object.
 		returns: CREDENTIAL_BLOB object
 		"""
+		if key is not None:
+			if isinstance(key, str):
+				key = bytes.fromhex(key)
 		with open(file_path, 'rb') as f:
 			return self.decrypt_credential_bytes(f.read(), key = key)
 	
@@ -336,6 +386,7 @@ class DPAPI:
 		returns: bytes of the cleartext data
 		"""
 		if key is None:
+			logger.debug('[DPAPI] Looking for master key with GUID %s' % dpapi_blob.masterkey_guid)
 			if dpapi_blob.masterkey_guid not in self.masterkeys:
 				raise Exception('No matching masterkey was found for the blob!')
 			key = self.masterkeys[dpapi_blob.masterkey_guid]
@@ -359,6 +410,11 @@ class DPAPI:
 		file_path: path to the vcrd file
 		returns: dictionary of attrbitues as key, and a list of possible decrypted data
 		"""
+		
+		if key is not None:
+			if isinstance(key, str):
+				key = bytes.fromhex(key)
+
 		with open(file_path, 'rb') as f:
 			return self.decrypt_vcrd_bytes(f.read(), key = key)
 			
@@ -437,6 +493,9 @@ class DPAPI:
 		keys: Optional.
 		returns: touple of bytes, describing two keys
 		"""
+		if key is not None:
+			if isinstance(key, str):
+				key = bytes.fromhex(key)
 		with open(file_path, 'rb') as f:
 			return self.decrypt_vpol_bytes(f.read(), key = key)
 
