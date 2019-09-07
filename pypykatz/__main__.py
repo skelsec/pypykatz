@@ -26,11 +26,12 @@ def main():
 	from pypykatz.kerberos.cmdhelper import KerberosCMDHelper
 	from pypykatz.lsadecryptor.cmdhelper import LSACMDHelper
 	from pypykatz.registry.cmdhelper import RegistryCMDHelper
+	from pypykatz.remote.cmdhelper import RemoteCMDHelper
 	
-	cmdhelpers = [CryptoCMDHelper(), LDAPCMDHelper(), KerberosCMDHelper(), LSACMDHelper(), RegistryCMDHelper()]
+	cmdhelpers = [LSACMDHelper(), RegistryCMDHelper(), CryptoCMDHelper(), LDAPCMDHelper(), KerberosCMDHelper(), RemoteCMDHelper()]
 	
 
-	parser = argparse.ArgumentParser(description='Pure Python implementation of Mimikatz --or at least some parts of it--')
+	parser = argparse.ArgumentParser(description='Pure Python implementation of Mimikatz --and more--')
 	parser.add_argument('-v', '--verbose', action='count', default=0)
 	
 	subparsers = parser.add_subparsers(help = 'commands')
@@ -38,7 +39,7 @@ def main():
 	subparsers.dest = 'command'
 	
 	live_group = subparsers.add_parser('live', help='Get secrets from live machine')
-	live_subparsers = live_group.add_subparsers(help = 'module')
+	live_subparsers = live_group.add_subparsers()
 	live_subparsers.required = True
 	live_subparsers.dest = 'module'
 	
@@ -66,19 +67,45 @@ def main():
 	live_subparser_dpapi_group.add_argument('--vcred', help= 'VCRED file')
 	live_subparser_dpapi_group.add_argument('--cred', help= 'credential file')
 	live_subparser_dpapi_group.add_argument('--mkf', help= 'masterkey file')
-	
+
 	dpapi_group = subparsers.add_parser('dpapi', help='DPAPI (offline) related commands')
-	dpapi_group.add_argument('cmd', choices=['masterkey', 'credential', 'vault'])
-	dpapi_group.add_argument('-r', '--method_registry', action='store_true', help= 'Getting prekeys from registry hive files. Using this you will need to also supply system, security and optionally sam switches')
-	dpapi_group.add_argument('--system', help= 'Path to SYSTEM hive file')
-	dpapi_group.add_argument('--sam', help= 'Path to SAM hive file')
-	dpapi_group.add_argument('--security', help= 'Path to SECURITY hive file')
-	dpapi_group.add_argument('--vcred', help= 'VCRED file')
-	dpapi_group.add_argument('--cred', help= 'credential file')
-	dpapi_group.add_argument('--mkf', help= 'masterkey file')
-	dpapi_group.add_argument('--key', help= 'Key used for decryption. The usage of this key depends on what other params you supply.')
-	dpapi_group.add_argument('--sid', help= 'Key used for decryption. The usage of this key depends on what other params you supply.')
-	dpapi_group.add_argument('--password', help= 'Key used for decryption. The usage of this key depends on what other params you supply.')
+	dpapi_subparsers = dpapi_group.add_subparsers()
+	dpapi_subparsers.required = True
+	dpapi_subparsers.dest = 'dapi_module'
+
+	dpapi_prekey_group = dpapi_subparsers.add_parser('prekey', help='Obtains keys for masterkey decryption. Sources can be registry hives file or plaintext password and SID or NT hash and SID')
+	dpapi_prekey_group.add_argument('keysource', choices=['registry', 'password', 'nt'], help = 'Define what type of input you want to parse')
+	dpapi_prekey_group.add_argument('-o', '--out-file', help= 'Key candidates will be stored in this file. Easier to handle this way in the masterkeyfil command.')
+	dpapi_prekey_group.add_argument('--system', help= '[registry] Path to SYSTEM hive file')
+	dpapi_prekey_group.add_argument('--sam', help= '[registry] Path to SAM hive file')
+	dpapi_prekey_group.add_argument('--security', help= '[registry] Path to SECURITY hive file')
+	dpapi_prekey_group.add_argument('--sid', help= '[password and nt] Key used for decryption. The usage of this key depends on what other params you supply.')
+	dpapi_prekey_group.add_argument('--password', help= '[password] Plaintext passowrd of the user. Used together with SID')
+	dpapi_prekey_group.add_argument('--nt', help= '[nt] NT hash of the user password. Used together with SID. !!Succsess not guaranteed!!')
+	
+	dpapi_minidump_group = dpapi_subparsers.add_parser('minidump', help='Dump masterkeys from minidump file')
+	dpapi_minidump_group.add_argument('minidumpfile', help='path to minidump file')
+
+	dpapi_mastekey_group = dpapi_subparsers.add_parser('masterkey', help='Decrypt masterkey file')
+	dpapi_mastekey_group.add_argument('mkf', help='path to masterkey file')
+	dpapi_mastekey_group.add_argument('--key', help= 'Key used for decryption, in hex format')
+	dpapi_mastekey_group.add_argument('--prekey', help= 'Path to prekey file, which has multiple decryption key candidates')
+	dpapi_mastekey_group.add_argument('-o', '--out-file', help= 'Master and Backup keys will be stored in this file. Easier to handle in other commands.')
+
+
+	dpapi_credential_group = dpapi_subparsers.add_parser('credential', help='Decrypt credential file')
+	dpapi_credential_group.add_argument('cred', help='path to credential file')
+	dpapi_credential_group.add_argument('--masterkey', help= 'Masterkey used for decryption, in hex format')
+	dpapi_credential_group.add_argument('-m', '--mkb-file', help= 'Keyfile generated by the masterkey -o command.')
+
+	dpapi_vcred_group = dpapi_subparsers.add_parser('vcred', help='Decrypt vcred file')
+	dpapi_vcred_group.add_argument('vcred', help='path to vcred file')
+	dpapi_vcred_group.add_argument('--vpolkey', help= 'Key obtained by decrypting the corresponding VPOL file, in hex format. Remember to try both VPOL keys')
+
+	dpapi_vpol_group = dpapi_subparsers.add_parser('vpol', help='Decrypt vpol file')
+	dpapi_vpol_group.add_argument('vpol', help='path to vpol file')
+	dpapi_vpol_group.add_argument('--masterkey', help= 'Masterkey used for decryption, in hex format')
+	dpapi_vpol_group.add_argument('-m', '--mkb-file', help= 'Keyfile generated by the masterkey -o command.')
 	
 	sake_group = subparsers.add_parser('sake', help='sake')
 	
@@ -200,119 +227,101 @@ def main():
 	###### DPAPI offline
 	elif args.command == 'dpapi':
 		from pypykatz.dpapi.dpapi import DPAPI
-		
-		if args.key is not None:
-			key = bytes.fromhex(args.key)
-		
+
 		dpapi = DPAPI()
-		if args.cmd == 'masterkey':
-			if args.mkf is None:
-				raise Exception('You need to provide a masterkey file.')
-			
-			if args.method_registry == True:
-				if args.system is None or args.security is None:
-					raise Exception('For offline registry parsing you will need to provide SYSTEM and SECURITY hives!')
-				
+
+		if args.dapi_module == 'prekey':
+			if args.keysource == 'registry':
+				if args.system is None:
+					raise Exception('SYSTEM hive must be specified for registry parsing!')
+				if args.sam is None and args.security is None:
+					raise Exception('Either SAM or SECURITY hive must be supplied for registry parsing! Best to have both.')
+
 				dpapi.get_prekeys_form_registry_files(args.system, args.security, args.sam)
-				dpapi.decrypt_masterkey_file(args.mkf)			
 			
-			elif args.key is not None:
-				dpapi.decrypt_masterkey_file(args.mkf, key)
+			elif args.keysource == 'password':
+				if args.sid is None:
+					raise Exception('SID must be specified for generating prekey in this mode')
 				
-			elif args.sid is not None:
 				pw = args.password
 				if args.password is None:
 					import getpass
 					pw = getpass.getpass()
+
+				dpapi.get_prekeys_from_password(args.sid, password = pw)
 			
-				
-				dpapi.get_prekeys_from_password(args.sid, pw)
+			elif args.keysource == 'nt':
+				if args.nt is None or args.sid is None:
+					raise Exception('NT hash and SID must be specified for generating prekey in this mode')
+
+				dpapi.get_prekeys_from_password(args.sid, nt_hash = args.nt)
+
+
+			dpapi.dump_pre_keys(args.out_file)
+
+
+		elif args.dapi_module == 'minidump':
+			if args.minidumpfile is None:
+				raise Exception('minidump file must be specified for mindiump parsing!')
+			
+			dpapi.get_masterkeys_from_lsass_dump(args.minidumpfile)
+			dpapi.dump_masterkeys(args.out_file)
+
+
+		elif args.dapi_module == 'masterkey':
+			if args.key is None and args.prekey is None:
+				raise Exception('Etieher KEY or path to prekey file must be supplied!')
+
+			if args.prekey:
+				dpapi.load_pre_keys(args.prekey)
 				dpapi.decrypt_masterkey_file(args.mkf)
-				
-			else:
-				raise Exception('For masterkey decryption you must provide either registry hives OR key data OR SID and password')
-				
-			for guid in dpapi.masterkeys:
-				print('GUID %s MASTERKEY %s' % (guid, dpapi.masterkeys[guid].hex()))
-			if len(dpapi.masterkeys) == 0:
+
+			if args.key:
+				dpapi.decrypt_masterkey_file(args.mkf, bytes.fromhex(args.key))
+			
+			if len(dpapi.masterkeys) == 0 and len(dpapi.backupkeys) == 0:
 				print('Failed to decrypt the masterkeyfile!')
-		
-		elif args.cmd == 'credential':
-			if args.key is not None:
-				cred_blob = dpapi.decrypt_credential_file(args.cred, key)
-				print(cred_blob.to_text())
-				
+				return
+
+			dpapi.dump_masterkeys(args.out_file)
+
+		elif args.dapi_module == 'credential':
+			if args.masterkey is None and args.mkb_file is None:
+				raise Exception('Either masterkey or pre-generated MKB file must be specified')
+
+			if args.mkb_file is not None:
+				dpapi.load_masterkeys(args.mkb_file)
+				cred_blob = dpapi.decrypt_credential_file(args.cred)
 			else:
-				if args.method_registry == True:
-					if args.system is None or args.security is None:
-						raise Exception('For offline registry parsing you will need to provide SYSTEM and SECURITY hives!')
-					
-					dpapi.get_prekeys_form_registry_files(args.system, args.security, args.sam)
-					dpapi.decrypt_masterkey_file(args.mkf, key)
+				cred_blob = dpapi.decrypt_credential_file(args.cred, args.masterkey)
+			
+			print(cred_blob.to_text())
+
+		elif args.dapi_module == 'vpol':
+			if args.masterkey is None and args.mkb_file is None:
+				raise Exception('Either masterkey or pre-generated MKB file must be specified')
+
+			if args.mkb_file is not None:
+				dpapi.load_masterkeys(args.mkb_file)
+				key1, key2 = dpapi.decrypt_vpol_file(args.vpol)
+			else:
+				key1, key2 = dpapi.decrypt_vpol_file(args.vpol, args.masterkey)
+
+			
+			print('VPOL key1: %s' % key1.hex())
+			print('VPOL key2: %s' % key2.hex())
+
+
+		elif args.dapi_module == 'vcred':
+			if args.vpolkey is None:
+				raise Exception('VPOL key bust be specified!')
 				
-				elif args.sid is not None:
-					pw = args.password
-					if args.password is None:
-						import getpass
-						pw = getpass.getpass()
-					
-					dpapi.get_prekeys_from_password(args.sid, pw)
-					dpapi.decrypt_masterkey_file(args.mkf, key)
-					
-				elif args.minidump is not None:
-					dpapi.get_masterkeys_from_lsass_dump(args.minidumpfile)
-					
-				
-				cred_blob = dpapi.decrypt_credential_file(args.cred, key)
-				print(cred_blob.to_text())
-				
-		elif args.cmd == 'vault':
-			if args.vpol is not None:
-				if args.key is not None:
-					key1, key2 = dpapi.decrypt_vpol_file(args.vpol, key)
-					print('VPOL key1: %s' % key1.hex())
-					print('VPOL key2: %s' % key2.hex())
-					
-				else:
-					if args.method_registry == True:
-						if args.system is None or args.security is None:
-							raise Exception('For offline registry parsing you will need to provide SYSTEM and SECURITY hives!')
-						
-						dpapi.get_prekeys_form_registry_files(args.system, args.security, args.sam)
-						dpapi.decrypt_masterkey_file(args.mkf, key)
-					
-					elif args.sid is not None:
-						pw = args.password
-						if args.password is None:
-							import getpass
-							pw = getpass.getpass()
-						
-						dpapi.get_prekeys_from_password(args.sid, pw)
-						dpapi.decrypt_masterkey_file(args.mkf, key)
-						
-					elif args.minidump is not None:
-						dpapi.get_masterkeys_from_lsass_dump(args.minidumpfile)
-				
-					key1, key2 = dpapi.decrypt_vpol_file(args.vpol)
-					print('VPOL key1: %s' % key1.hex())
-					print('VPOL key2: %s' % key2.hex())
-					
-				if args.vcred is not None:
-					res = dpapi.decrypt_vcrd_file(args.vcred)
-					for attr in res:
-						for i in range(len(res[attr])):
-							if res[attr][i] is not None:
-								print('AttributeID: %s Key %s' % (attr.id, i))
-								print(hexdump(res[attr][i]))
-		
-			if args.vcred is not None:
-				if args.key is not None:
-					key1, key2 = dpapi.decrypt_vpol_file(args.vpol, key)
-					print('VPOL key1: %s' % key1.hex())
-					print('VPOL key2: %s' % key2.hex())
-					
-				if args.vpol is None:
-					raise Exception('VCRED decryption requires a key OR a VPOL file')
+			res = dpapi.decrypt_vpol_file(args.vcred, args.vpolkey)
+			for attr in res:
+				for i in range(len(res[attr])):
+					if res[attr][i] is not None:
+						print('AttributeID: %s Key %s' % (attr.id, i))
+						print(hexdump(res[attr][i]))
 	
 	###### Sake
 	elif args.command == 'sake':

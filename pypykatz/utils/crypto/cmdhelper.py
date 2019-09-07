@@ -16,11 +16,11 @@ class CryptoCMDHelper:
 		group = parser.add_parser('lm', help='Generates LM hash of the password')
 		group.add_argument('password', help= 'Password to be hashed')
 		
-		group = parser.add_parser('dcc', help='Generates LM hash of the password')
+		group = parser.add_parser('dcc', help='Generates DCC v1 (domain cached credentials version 1) hash of the password')
 		group.add_argument('username', help= 'username')
 		group.add_argument('password', help= 'Password to be hashed')
 		
-		group = parser.add_parser('dcc2', help='Generates LM hash of the password')
+		group = parser.add_parser('dcc2', help='Generates DCC v2 (domain cached credentials version 2) hash of the password')
 		group.add_argument('username', help= 'username')
 		group.add_argument('password', help= 'Password to be hashed')
 		group.add_argument('-i','--iteration-count', type = int, default=10240, help= 'iteration-count')
