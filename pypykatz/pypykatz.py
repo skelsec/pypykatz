@@ -57,6 +57,24 @@ class pypykatz:
 		return mimi
 
 	@staticmethod
+	def parse_minidump_bytes(data):
+		minidump = MinidumpFile.parse_bytes(data)
+		reader = minidump.get_reader().get_buffered_reader()
+		sysinfo = KatzSystemInfo.from_minidump(minidump)
+		mimi = pypykatz(reader, sysinfo)
+		mimi.start()
+		return mimi
+	
+	@staticmethod
+	def parse_minidump_buffer(buff):
+		minidump = MinidumpFile.parse_buff(buff)
+		reader = minidump.get_reader().get_buffered_reader()
+		sysinfo = KatzSystemInfo.from_minidump(minidump)
+		mimi = pypykatz(reader, sysinfo)
+		mimi.start()
+		return mimi
+
+	@staticmethod
 	def parse_memory_dump_rekall(filename, override_timestamp = None):
 		from pypykatz.commons.readers.rekall.rekallreader import RekallReader
 		reader = RekallReader.from_memory_file(filename, override_timestamp)
