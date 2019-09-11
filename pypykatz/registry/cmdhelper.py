@@ -58,6 +58,7 @@ class RegistryCMDHelper:
 			traceback.print_exc()
 			logging.debug('Failed to obtain registry secrets via direct registry reading method. Reason: %s' % str(e))
 			try:
+				from pypykatz.registry.offline_parser import OffineRegistry
 				lr = OffineRegistry.from_live_system()
 			except Exception as e:
 				logging.debug('Failed to obtain registry secrets via filedump method')

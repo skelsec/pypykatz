@@ -45,8 +45,8 @@ class OffineRegistry:
 			self.security.get_secrets()
 			
 		if self.software_hive:
-			self.security = SOFTWARE(self.software_hive, bootkey)
-			self.security.get_default_logon()
+			self.software = SOFTWARE(self.software_hive, bootkey)
+			self.software.get_default_logon()
 			
 		self.cleanup()
 		
@@ -88,13 +88,36 @@ class OffineRegistry:
 		if self.software:
 			t += str(self.software)
 		return t
+
+	@staticmethod
+	def from_bytes(system_data, sam_data = None, security_data = None, software_data = None):
+		system_buff = io.BytesIO(system_data)
+		sam_buff = None
+		security_buff = None
+		software_buff = None
+
+		if sam_data:
+			sam_buff  = io.BytesIO(sam_data)
+		if security_data:
+			security_buff = io.BytesIO(security_data)
+		if software_data:
+			software_buff = io.BytesIO(software_data)
+
+		return OffineRegistry.from_buffer(system_buff, sam_buff = sam_buff, security_buff = security_buff, software_buff = software_buff)
+
+	@staticmethod
+	def from_buffer(system_buff, sam_buff = None, security_buff = None, software_buff = None):
+		return OffineRegistry.from_files(system_buff, sam_path = sam_buff, security_path = security_buff, software_path = software_buff, notfile = True)
 		
 	@staticmethod
-	def from_files(system_path, sam_path = None, security_path = None, software_path = None):
+	def from_files(system_path, sam_path = None, security_path = None, software_path = None, notfile = False):
 		po = OffineRegistry()
 		
 		try:
-			sys_hive = open(system_path, 'rb')
+			if notfile == True:
+				sys_hive = system_path
+			else:
+				sys_hive = open(system_path, 'rb')
 			po.system_hive = AIOWinRegHive(sys_hive)
 		except Exception as e:
 			logger.error('Failed to open SYSTEM hive! Reason: %s' % str(e))
@@ -102,7 +125,11 @@ class OffineRegistry:
 		
 		if sam_path:
 			try:
-				sam_hive = open(sam_path, 'rb')
+				if notfile == True:
+					sam_hive = sam_path
+				else:
+					sam_hive = open(sam_path, 'rb')
+
 				po.sam_hive = AIOWinRegHive(sam_hive)
 			except Exception as e:
 				logger.error('Failed to open SAM hive! Reason: %s' % str(e))
@@ -113,7 +140,10 @@ class OffineRegistry:
 			
 		if security_path:
 			try:
-				sec_hive = open(security_path, 'rb')
+				if notfile == True:
+					sec_hive = security_path
+				else:
+					sec_hive = open(security_path, 'rb')				
 				po.security_hive = AIOWinRegHive(sec_hive)
 			except Exception as e:
 				logger.error('Failed to open SECURITY hive! Reason: %s' % str(e))
@@ -124,7 +154,11 @@ class OffineRegistry:
 			
 		if software_path:
 			try:
-				sof_hive = open(software_path, 'rb')
+				if notfile == True:
+					sof_hive = software_path
+				else:
+					sof_hive = open(software_path, 'rb')
+				
 				po.software_hive = AIOWinRegHive(sof_hive)
 			except Exception as e:
 				logger.error('Failed to open SECURITY hive! Reason: %s' % str(e))
