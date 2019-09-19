@@ -159,7 +159,7 @@ class LsaTemplate(PackageTemplate):
 					template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 			
 			
-			elif sysinfo.buildnumber <= WindowsBuild.WIN_10_1809.value:
+			elif sysinfo.buildnumber < WindowsBuild.WIN_10_1809.value:
 				key_pattern = LSADecyptorKeyPattern()
 				key_pattern.signature = b'\x83\x64\x24\x30\x00\x48\x8d\x45\xe0\x44\x8b\x4d\xd8\x48\x8d\x15'
 				key_pattern.IV_length = 16
