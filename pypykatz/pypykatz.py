@@ -8,6 +8,7 @@ import platform
 from .commons.common import *
 from .lsadecryptor import *
 
+from pypykatz import logger
 from minidump.minidumpfile import MinidumpFile
 from minikerberos.ccache import CCACHE
 
@@ -28,7 +29,7 @@ class pypykatz:
 		self.orphaned_creds = []
 		self.kerberos_ccache = CCACHE()
 		
-		self.logger = logging.getLogger('pypykatz')
+		#self.logger = logging.getLogger('pypykatz')
 		
 	def to_dict(self):
 		t = {}
@@ -49,11 +50,20 @@ class pypykatz:
 		
 	@staticmethod
 	def parse_minidump_file(filename):
-		minidump = MinidumpFile.parse(filename)
-		reader = minidump.get_reader().get_buffered_reader()
-		sysinfo = KatzSystemInfo.from_minidump(minidump)
-		mimi = pypykatz(reader, sysinfo)
-		mimi.start()
+		try:
+			minidump = MinidumpFile.parse(filename)
+			reader = minidump.get_reader().get_buffered_reader()
+			sysinfo = KatzSystemInfo.from_minidump(minidump)
+		except Exception as e:
+			logger.exception('Minidump parsing error!')
+			raise e
+		try:
+			mimi = pypykatz(reader, sysinfo)
+			mimi.start()
+		except Exception as e:
+			#logger.info('Credentials parsing error!')
+			mimi.log_basic_info()
+			raise e
 		return mimi
 
 	@staticmethod
@@ -96,13 +106,13 @@ class pypykatz:
 		"""
 		In case of error, please attach this to the issues page
 		"""
-		self.logger.debug('===== BASIC INFO. SUBMIT THIS IF THERE IS AN ISSUE =====')
-		self.logger.debug('CPU arch: %s' % self.sysinfo.architecture.name)
-		self.logger.debug('OS: %s' % self.sysinfo.operating_system)
-		self.logger.debug('BuildNumber: %s' % self.sysinfo.buildnumber)
-		self.logger.debug('MajorVersion: %s ' % self.sysinfo.major_version)
-		self.logger.debug('MSV timestamp: %s' % self.sysinfo.msv_dll_timestamp)
-		self.logger.debug('===== BASIC INFO END =====')
+		logger.info('===== BASIC INFO. SUBMIT THIS IF THERE IS AN ISSUE =====')
+		logger.info('CPU arch: %s' % self.sysinfo.architecture.name)
+		logger.info('OS: %s' % self.sysinfo.operating_system)
+		logger.info('BuildNumber: %s' % self.sysinfo.buildnumber)
+		logger.info('MajorVersion: %s ' % self.sysinfo.major_version)
+		logger.info('MSV timestamp: %s' % self.sysinfo.msv_dll_timestamp)
+		logger.info('===== BASIC INFO END =====')
 		
 	def get_logoncreds(self):
 		credman_template = CredmanTemplate.get_template(self.sysinfo)
@@ -114,7 +124,7 @@ class pypykatz:
 	def get_lsa(self):
 		lsa_dec_template = LsaTemplate.get_template(self.sysinfo)
 		lsa_dec = LsaDecryptor(self.reader, lsa_dec_template, self.sysinfo)
-		self.logger.debug(lsa_dec.dump())
+		logger.debug(lsa_dec.dump())
 		return lsa_dec
 	
 	def get_wdigest(self):
@@ -182,7 +192,8 @@ class pypykatz:
 				self.orphaned_creds.append(cred)
 	
 	def start(self):
-		self.log_basic_info()
+		#self.log_basic_info()
+		#input()
 		self.lsa_decryptor = self.get_lsa()
 		self.get_logoncreds()
 		self.get_wdigest()

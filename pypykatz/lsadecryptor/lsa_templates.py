@@ -169,7 +169,7 @@ class LsaTemplate(PackageTemplate):
 				
 				template.key_pattern = key_pattern
 				template.key_struct = KIWI_BCRYPT_KEY81
-				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
+				template.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY				
 				
 				
 			#elif sysinfo.buildnumber <= WindowsBuild.WIN_10_1809.value:
