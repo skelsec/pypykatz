@@ -81,7 +81,7 @@ def filetime_to_dt(ft):
 	>>> filetime_to_dt(128930364000000000)
 	datetime.datetime(2009, 7, 25, 23, 0)
 	"""
-	return datetime.utcfromtimestamp((ft - EPOCH_AS_FILETIME) / HUNDREDS_OF_NANOSECONDS)
+	return datetime.fromtimestamp((ft - EPOCH_AS_FILETIME) / HUNDREDS_OF_NANOSECONDS, tz=utc)
 
 
 if __name__ == "__main__":
