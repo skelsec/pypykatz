@@ -23,7 +23,8 @@ class KerberosSessionKey:
 	def __init__(self):
 		self.keydata = None
 		self.sessionkey = None
-		
+	
+	@staticmethod
 	def parse(key_struct, sysinfo):
 		ksk = KerberosSessionKey()
 		ksk.keydata = key_struct.Data
@@ -121,7 +122,8 @@ class KerberosTicket:
 		krbcred['enc-part'] = EncryptedData({'etype': EncryptionType.NULL.value, 'cipher': EncKrbCredPart(enc_krbcred).dump()})
 	
 		return KRBCRED(krbcred)
-		
+	
+	@staticmethod
 	def parse(kerberos_ticket, reader, sysinfo, type = None):
 		kt = KerberosTicket()
 		kt.type = type

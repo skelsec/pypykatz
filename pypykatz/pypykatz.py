@@ -68,7 +68,28 @@ class pypykatz:
 
 	@staticmethod
 	def parse_minidump_bytes(data):
+		"""
+		Parses LSASS minidump file bytes.
+		data needs to be bytearray
+		"""
 		minidump = MinidumpFile.parse_bytes(data)
+		reader = minidump.get_reader().get_buffered_reader()
+		sysinfo = KatzSystemInfo.from_minidump(minidump)
+		mimi = pypykatz(reader, sysinfo)
+		mimi.start()
+		return mimi
+
+	@staticmethod
+	def parse_minidump_external(handle):
+		"""
+		Parses LSASS minidump file based on the file object.
+		File object can really be any object as longs as 
+		it implements read, seek, tell functions with the 
+		same parameters as a file object would.
+
+		handle: file like object
+		"""
+		minidump = MinidumpFile.parse_external(handle)
 		reader = minidump.get_reader().get_buffered_reader()
 		sysinfo = KatzSystemInfo.from_minidump(minidump)
 		mimi = pypykatz(reader, sysinfo)
@@ -77,6 +98,10 @@ class pypykatz:
 	
 	@staticmethod
 	def parse_minidump_buffer(buff):
+		"""
+		Parses LSASS minidump file which contents are in a bytes buffer
+		buff: io.BytesIO object
+		"""
 		minidump = MinidumpFile.parse_buff(buff)
 		reader = minidump.get_reader().get_buffered_reader()
 		sysinfo = KatzSystemInfo.from_minidump(minidump)
@@ -120,12 +145,34 @@ class pypykatz:
 		logoncred_decryptor = MsvDecryptor(self.reader, msv_template, self.lsa_decryptor, credman_template, self.sysinfo)
 		logoncred_decryptor.start()
 		self.logon_sessions = logoncred_decryptor.logon_sessions
+
+	def get_lsa_bruteforce(self):
+		#good luck!
+		logger.info('Testing all available templates! Expect warnings!')
+		for lsa_dec_template in LsaTemplate.get_template_brute(self.sysinfo):
+			try:
+				lsa_dec = LsaDecryptor.choose(self.reader, lsa_dec_template, self.sysinfo)
+				logger.debug(lsa_dec.dump())
+			except:
+				pass
+			else:
+				logger.info('Lucky you! Brutefoce method found a -probably- working template!')
+				return lsa_dec
 	
 	def get_lsa(self):
-		lsa_dec_template = LsaTemplate.get_template(self.sysinfo)
-		lsa_dec = LsaDecryptor(self.reader, lsa_dec_template, self.sysinfo)
-		logger.debug(lsa_dec.dump())
-		return lsa_dec
+		#trying with automatic template detection
+		try:
+			lsa_dec_template = LsaTemplate.get_template(self.sysinfo)
+			lsa_dec = LsaDecryptor.choose(self.reader, lsa_dec_template, self.sysinfo)
+			logger.debug(lsa_dec.dump())
+		except:
+			logger.exception('Failed to automatically detect correct LSA template!')
+			lsa_dec = self.get_lsa_bruteforce()
+			if lsa_dec is None:
+				raise Exception('All detection methods failed.')
+			return lsa_dec
+		else:
+			return lsa_dec
 	
 	def get_wdigest(self):
 		decryptor_template = WdigestTemplate.get_template(self.sysinfo)

@@ -481,6 +481,13 @@ class des(_baseDes):
 
 			i += 1
 
+	def replace_K(self, K):
+		#print(self.Kn)
+		#input('above the original')
+		#print(K)
+		#input('above the replacement')
+		self.Kn = K
+
 	# Main part of the encryption algorithm, the number cruncher :)
 	def __des_crypt(self, block, crypt_type):
 		"""Crypt the block of data through DES bit-manipulation"""

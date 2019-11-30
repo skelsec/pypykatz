@@ -13,6 +13,7 @@ import traceback
 from pypykatz import logging
 from pypykatz.pypykatz import pypykatz
 from pypykatz.commons.common import UniversalEncoder
+from pypykatz.lsadecryptor.packages.msv.decryptor import LogonSession
 
 
 
@@ -38,6 +39,7 @@ class LSACMDHelper:
 		group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
 		group.add_argument('-r', '--recursive', action='store_true', help = 'Recursive parsing')
 		group.add_argument('-d', '--directory', action='store_true', help = 'Parse all dump files in a folder')
+		group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
 		
 	def execute(self, args):
 		if len(self.keywords) > 0 and args.command in self.keywords:
@@ -50,7 +52,15 @@ class LSACMDHelper:
 		if args.outfile and args.json:
 			with open(args.outfile, 'w') as f:
 				json.dump(results, f, cls = UniversalEncoder, indent=4, sort_keys=True)
-				
+
+		elif args.outfile and args.grep:
+			with open(args.outfile, 'w', newline = '') as f:
+				f.write(':'.join(LogonSession.grep_header) + '\r\n')
+				for result in results:
+					for luid in results[result].logon_sessions:
+						for row in results[result].logon_sessions[luid].to_grep_rows():
+							f.write(':'.join(row) + '\r\n')
+		
 		elif args.outfile:
 			with open(args.outfile, 'w') as f:
 				for result in results:
@@ -71,8 +81,13 @@ class LSACMDHelper:
 						
 		elif args.json:
 			print(json.dumps(results, cls = UniversalEncoder, indent=4, sort_keys=True))
-			
-			
+		
+		elif args.grep:
+			print(':'.join(LogonSession.grep_header))
+			for result in results:
+				for luid in results[result].logon_sessions:
+					for row in results[result].logon_sessions[luid].to_grep_rows():
+						print(':'.join(row))
 		else:
 			for result in results:
 				print('FILE: ======== %s =======' % result)	

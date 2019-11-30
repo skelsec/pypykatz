@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+#
+# Author:
+#  Tamas Jos (@skelsec)
+#
+
 from .credman.templates import *
 from .dpapi.templates import *
 from .dpapi.decryptor import *

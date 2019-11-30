@@ -74,13 +74,15 @@ class PWdigestListEntry(POINTER):
 		
 class WdigestListEntry:
 	def __init__(self, reader):
+		#print(hexdump(reader.peek(0x50)))
+		#input('wdigest above!')
 		self.Flink = PWdigestListEntry(reader)
 		self.Blink = PWdigestListEntry(reader)
 		self.usage_count = ULONG(reader)
-		reader.align()
+		reader.align() #8?
 		self.this_entry = PWdigestListEntry(reader)
 		self.luid = LUID(reader).value
-		self.flag = int.from_bytes(reader.read(8), byteorder = 'little', signed = False) 
+		self.flag = int.from_bytes(reader.read(8), byteorder = 'little', signed = False)
 		self.UserName = LSA_UNICODE_STRING(reader)
 		self.DomainName = LSA_UNICODE_STRING(reader)
 		self.Password = LSA_UNICODE_STRING(reader)

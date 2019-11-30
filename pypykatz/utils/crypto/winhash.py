@@ -9,6 +9,8 @@ from pypykatz.crypto.unified.des import DES, expand_DES_key
 from pypykatz.crypto.unified.pbkdf2 import pbkdf2
 
 def LM(password):
+	if password is None:
+		return bytes.fromhex('aad3b435b51404eeaad3b435b51404ee')
 	LM_SECRET = b'KGS!@#$%'
 	password_uppercase = password.upper()
 	password_uppercase_bytes = password_uppercase.encode('ascii')
@@ -24,6 +26,8 @@ def LM(password):
 	return lm_hash
 
 def NT(password):
+	if password is None:
+		return bytes.fromhex('31d6cfe0d16ae931b73c59d7e0c089c0')
 	password_bytes = password.encode('utf-16-le')
 	md4 = hashlib.new('md4')
 	md4.update(password_bytes)

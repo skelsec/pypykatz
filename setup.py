@@ -5,7 +5,7 @@ setup(
 	name="pypykatz",
 
 	# Version number (initial):
-	version="0.2.4",
+	version="0.3.0",
 
 	# Application author details:
 	author="Tamas Jos",
@@ -34,7 +34,7 @@ setup(
 		"Operating System :: OS Independent",
 	),
 	install_requires=[
-		'minidump>=0.0.10',
+		'minidump>=0.0.11',
 		'minikerberos>=0.0.11',
 		'aiowinreg>=0.0.1',
 		'msldap>=0.1.1',
