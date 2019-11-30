@@ -142,7 +142,7 @@ class KerberosTicket:
 		kt.StartTime = filetime_to_dt(kerberos_ticket.StartTime)
 		kt.EndTime = filetime_to_dt(kerberos_ticket.EndTime)
 		if kerberos_ticket.RenewUntil == 0:
-			kt.RenewUntil = datetime.datetime(1970, 1, 1, 0, 0)
+			kt.RenewUntil = datetime.datetime(1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)
 		else:
 			kt.RenewUntil = filetime_to_dt(kerberos_ticket.RenewUntil)
 		
