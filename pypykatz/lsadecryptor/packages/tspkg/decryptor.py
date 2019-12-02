@@ -65,8 +65,14 @@ class TspkgDecryptor(PackageDecryptor):
 			if not primary_credential is None:
 				c = TspkgCredential()
 				c.luid = credential_struct.LocallyUniqueIdentifier
-				c.username = primary_credential.credentials.UserName.read_string(self.reader)
-				c.domainname = primary_credential.credentials.Domaine.read_string(self.reader)
+				#c.username = primary_credential.credentials.UserName.read_string(self.reader)
+				#c.domainname = primary_credential.credentials.Domaine.read_string(self.reader)
+				#### the above two lines will be switched, because it seems that username and domainname is always switched in this package.
+				#### reason is beyond me...
+
+				c.domainname = primary_credential.credentials.UserName.read_string(self.reader)
+				c.username = primary_credential.credentials.Domaine.read_string(self.reader)
+				
 				if primary_credential.credentials.Password.Length != 0:
 					enc_data = primary_credential.credentials.Password.read_maxdata(self.reader)
 					c.password = self.decrypt_password(enc_data)					
