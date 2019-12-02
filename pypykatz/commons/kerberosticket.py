@@ -127,23 +127,17 @@ class KerberosTicket:
 	def parse(kerberos_ticket, reader, sysinfo, type = None):
 		kt = KerberosTicket()
 		kt.type = type
-		if kerberos_ticket.ServiceName.read(reader):
-			kt.ServiceName_type = kerberos_ticket.ServiceName.read(reader).NameType
-			kt.ServiceName = kerberos_ticket.ServiceName.read(reader).read(reader)
-		if kerberos_ticket.DomainName:
-			kt.DomainName = kerberos_ticket.DomainName.read_string(reader)
+		kt.ServiceName_type = kerberos_ticket.ServiceName.read(reader).NameType
+		kt.ServiceName = kerberos_ticket.ServiceName.read(reader).read(reader)
+		kt.DomainName = kerberos_ticket.DomainName.read_string(reader)
 		if kerberos_ticket.TargetName.read(reader):
 			kt.ETargetName = kerberos_ticket.TargetName.read(reader).read(reader)
 			kt.ETargetName_type = kerberos_ticket.TargetName.read(reader).NameType 
-		if kerberos_ticket.TargetDomainName:
-			kt.TargetDomainName = kerberos_ticket.TargetDomainName.read_string(reader) 
-		if kerberos_ticket.ClientName:
-			kt.EClientName = kerberos_ticket.ClientName.read(reader).read(reader)
-			kt.EClientName_type = kerberos_ticket.ClientName.read(reader).NameType
-		if kerberos_ticket.AltTargetDomainName:
-			kt.AltTargetDomainName = kerberos_ticket.AltTargetDomainName.read_string(reader)
-		if kerberos_ticket.Description:
-			kt.Description = kerberos_ticket.Description.read_string(reader)
+		kt.TargetDomainName = kerberos_ticket.TargetDomainName.read_string(reader) 
+		kt.EClientName = kerberos_ticket.ClientName.read(reader).read(reader)
+		kt.EClientName_type = kerberos_ticket.ClientName.read(reader).NameType
+		kt.AltTargetDomainName = kerberos_ticket.AltTargetDomainName.read_string(reader)
+		kt.Description = kerberos_ticket.Description.read_string(reader)
 		
 		kt.StartTime = filetime_to_dt(kerberos_ticket.StartTime)
 		kt.EndTime = filetime_to_dt(kerberos_ticket.EndTime)
