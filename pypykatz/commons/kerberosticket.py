@@ -183,7 +183,7 @@ class KerberosTicket:
 		t += 'EndTime: %s\n'% self.EndTime.isoformat()
 		t += 'RenewUntil: %s\n'% self.RenewUntil.isoformat()
 		t += 'KeyType: %s\n'% self.KeyType
-		t += 'Key: %s\n'% self.Key
+		t += 'Key: %s\n'% self.Key.hex()
 		t += 'TicketFlags: %s\n'% self.TicketFlags
 		t += 'TicketEncType: %s\n'% self.TicketEncType
 		t += 'TicketKvno: %s\n'% self.TicketKvno

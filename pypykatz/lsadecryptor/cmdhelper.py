@@ -89,6 +89,16 @@ class LSACMDHelper:
 				for luid in results[result].logon_sessions:
 					for row in results[result].logon_sessions[luid].to_grep_rows():
 						print(':'.join(row))
+				for cred in results[result].orphaned_creds:
+					t = cred.to_dict()
+					if t['credtype'] != 'dpapi':
+						if t['password'] is not None:
+							x =  [str(t['credtype']), str(t['domainname']), str(t['username']), '', '', '', '', '', str(t['password'])]
+							print(':'.join(x))
+					else:
+						t = cred.to_dict()
+						x = [str(t['credtype']), '', '', '', '', '', str(t['masterkey']), str(t['sha1_masterkey']), str(t['key_guid']), '']
+						print(':'.join(x))
 		else:
 			for result in results:
 				print('FILE: ======== %s =======' % result)	

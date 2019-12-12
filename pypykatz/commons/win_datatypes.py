@@ -210,3 +210,14 @@ class GUID:
 			hex(int.from_bytes(self.Data4[:2], byteorder = 'big', signed = False))[2:],
 			hex(int.from_bytes(self.Data4[2:], byteorder = 'big', signed = False))[2:]
 		])
+
+class PLIST_ENTRY(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, LIST_ENTRY)
+		
+class LIST_ENTRY:
+	def __init__(self, reader):
+		self.location = reader.tell()
+		self.Flink = PLIST_ENTRY(reader)
+		self.Blink = PLIST_ENTRY(reader)
+		

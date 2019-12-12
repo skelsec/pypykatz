@@ -312,7 +312,7 @@ class KIWI_MSV1_0_LIST_52:
 	def __init__(self, reader):
 		self.Flink = PKIWI_MSV1_0_LIST_52(reader)
 		self.Blink = PKIWI_MSV1_0_LIST_52(reader)
-		self.LocallyUniqueIdentifier = LUID
+		self.LocallyUniqueIdentifier = LUID(reader).value
 		self.UserName = LSA_UNICODE_STRING(reader)
 		self.Domaine = LSA_UNICODE_STRING(reader)
 		self.unk0 = PVOID(reader).value

@@ -42,7 +42,6 @@ class LsaTemplate_NT5(PackageTemplate):
 	@staticmethod
 	def get_template(sysinfo):
 		template = None
-		print(sysinfo.buildnumber)
 		if sysinfo.architecture == KatzSystemArchitecture.X86:
 			if sysinfo.buildnumber <= WindowsMinBuild.WIN_VISTA.value:
 				return templates['nt5']['x86']['1']
@@ -59,16 +58,28 @@ class SYMCRYPT_NT5_DES_EXPANDED_KEY:
 	def __init__(self, reader):
 		self.roundKey = []
 		for _ in range(16):
-			r = int.from_bytes(reader.read(4), 'big', signed = False)
-			l = int.from_bytes(reader.read(4), 'big', signed = False)
+			r = int.from_bytes(reader.read(4), 'little', signed = False)
+			l = int.from_bytes(reader.read(4), 'little', signed = False)
 			self.roundKey.append([r, l])
+		
+	def __str__(self):
+		t = 'SYMCRYPT_NT5_DES_EXPANDED_KEY\r\n'
+		for i, x in enumerate(self.roundKey):
+			t += '%s L: %s R: %s\r\n' % (i, hex(x[0]), hex(x[1]))
+		return t
 		
 class SYMCRYPT_NT5_DESX_EXPANDED_KEY:
 	def __init__(self, reader):
-		input(hexdump(reader.peek(0x50), start = 0))
 		self.inputWhitening = reader.read(8)
 		self.outputWhitening = reader.read(8)
-		self.desKey = SYMCRYPT_NT5_DES_EXPANDED_KEY(reader).roundKey
+		self.desKey = SYMCRYPT_NT5_DES_EXPANDED_KEY(reader)
+
+	def __str__(self):
+		t = 'SYMCRYPT_NT5_DESX_EXPANDED_KEY\r\n'
+		t += 'inputWhitening : %s\r\n' % (self.inputWhitening.hex())
+		t += 'outputWhitening : %s\r\n' % (self.outputWhitening.hex())
+		t += 'desKey : %s\r\n' % (str(self.desKey))
+		return t
 
 class PSYMCRYPT_NT5_DESX_EXPANDED_KEY(POINTER):
 	def __init__(self, reader):

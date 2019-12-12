@@ -316,7 +316,8 @@ class KIWI_KERBEROS_LOGON_SESSION_51:
 		self.unk6 = PVOID(reader).value
 		self.unk7 = PVOID(reader).value
 		self.LocallyUniqueIdentifier = LUID(reader).value
-		self.unkAlign = ULONG(reader).value  #aliing on x86(reader).value
+		reader.align(8)
+		#self.unkAlign = ULONG(reader).value  #aliing on x86(reader).value
 		self.unk8 = FILETIME(reader).value
 		self.unk9 = PVOID(reader).value
 		self.unk10 = ULONG(reader).value     #	// filetime.1 ?(reader).value
@@ -939,6 +940,7 @@ class KERB_HASHPASSWORD_6_1607:
 class PKIWI_KERBEROS_KEYS_LIST_5(POINTER):
 	def __init__(self, reader):
 		super().__init__(reader, KIWI_KERBEROS_KEYS_LIST_5)
+
 class KIWI_KERBEROS_KEYS_LIST_5:
 	def __init__(self, reader):
 		self.unk0 = DWORD(reader).value		#// dword_1233EC8 dd 4
@@ -946,6 +948,13 @@ class KIWI_KERBEROS_KEYS_LIST_5:
 		self.unk1 = PVOID(reader).value
 		self.unk2 = PVOID(reader).value
 		#//KERB_HASHPASSWORD_5 KeysEntries[ANYSIZE_ARRAY] = (reader).value
+		self.KeyEntries_start = reader.tell()
+		self.KeyEntries = []
+
+	def read(self, reader, keyentries_type):
+		reader.move(self.KeyEntries_start)
+		for i in range(self.cbItem):
+			self.KeyEntries.append(keyentries_type(reader))
 
 class PKIWI_KERBEROS_KEYS_LIST_6(POINTER):
 	def __init__(self, reader):

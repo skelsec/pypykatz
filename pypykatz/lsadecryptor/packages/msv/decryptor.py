@@ -72,7 +72,7 @@ class CredmanCredential:
 		
 		
 class LogonSession:
-	grep_header = ['packagename', 'domain', 'user', 'NT', 'LM', 'SHA1', 'masterkey', 'sha1_masterkey', 'plaintext']
+	grep_header = ['packagename', 'domain', 'user', 'NT', 'LM', 'SHA1', 'masterkey', 'sha1_masterkey', 'key_guid','plaintext']
 	
 	def __init__(self):
 		self.authentication_id = None
@@ -229,6 +229,7 @@ class LogonSession:
 				t['SHAHash'].hex() if t['SHAHash'] else '',
 				'',
 				'',
+				'',
 				''
 			]
 		
@@ -236,11 +237,11 @@ class LogonSession:
 			for cred in package:
 				t = cred.to_dict()
 				if t['password'] is not None:
-					yield [str(t['credtype']), str(t['domainname']), str(t['username']), '', '', '', '', '', str(t['password'])]
+					yield [str(t['credtype']), str(t['domainname']), str(t['username']), '', '', '', '', '', '', str(t['password'])]
 
 		for cred in self.dpapi_creds:
 			t = cred.to_dict()
-			yield [str(t['credtype']), str(self.domainname), str(self.username), '', '', '', str(t['masterkey']), str(t['sha1_masterkey']), '']
+			yield [str(t['credtype']), '', '', '', '', '', str(t['masterkey']), str(t['sha1_masterkey']), str(t['key_guid']), '']
 
 
 		
@@ -316,7 +317,6 @@ class MsvDecryptor(PackageDecryptor):
 		
 	
 	def add_primary_credentials(self, primary_credentials_entry):
-		
 		encrypted_credential_data = primary_credentials_entry.encrypted_credentials.read_data(self.reader)
 
 		#this is super-strange but sometimes the encrypted data can be empty (seen in forensics images)
@@ -361,7 +361,7 @@ class MsvDecryptor(PackageDecryptor):
 		for i in range(self.logon_session_count):
 			self.reader.move(entry_ptr_loc)
 			for x in range(i*2): #skipping offset in an architecture-agnostic way
-				self.reader.read_int() #dows nothing just moves the position
+				self.reader.read_int() #does nothing just moves the position
 				self.log('moving to other logon session')
 			entry_ptr = self.decryptor_template.list_entry(self.reader)
 			self.walk_list(entry_ptr, self.add_entry)

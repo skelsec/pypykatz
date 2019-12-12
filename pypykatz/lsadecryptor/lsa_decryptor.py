@@ -15,7 +15,7 @@ class LsaDecryptor:
 	@staticmethod
 	def choose(reader, decryptor_template, sysinfo):
 		if isinstance(decryptor_template, LsaTemplate_NT5):
-			raise Exception('Windows NT5 (XP, 2003) is not yet supported!')
-			#return LsaDecryptor_NT5(reader, decryptor_template, sysinfo)
+			#raise Exception('Windows NT5 (XP, 2003) is not yet supported!')
+			return LsaDecryptor_NT5(reader, decryptor_template, sysinfo)
 		else:
 			return LsaDecryptor_NT6(reader, decryptor_template, sysinfo)
