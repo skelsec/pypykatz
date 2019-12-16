@@ -49,7 +49,7 @@ class LiveRegistry:
 			#getting a SYSTEM token...
 			pm.assign_token_thread_sid()
 		except Exception as e:
-			logging.error('Failed to obtain SYSTEM prvis. On-the-fly parsing is not possible.')
+			logger.error('Failed to obtain SYSTEM prvis. On-the-fly parsing is not possible.')
 			raise e
 		else:
 			self.system = SYSTEM(self.system_hive)
@@ -68,7 +68,7 @@ class LiveRegistry:
 					self.software = SOFTWARE(self.software_hive, bootkey)
 					self.software.get_default_logon()
 				except Exception as e:
-					logging.warning('Failed to parse SOFTWARE hive. Reason: %s' % str(e))
+					logger.warning('Failed to parse SOFTWARE hive. Reason: %s' % str(e))
 			self.cleanup()
 			
 	def cleanup(self):
