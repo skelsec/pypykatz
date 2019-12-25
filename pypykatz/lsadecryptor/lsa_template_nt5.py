@@ -21,22 +21,7 @@ class LsaTemplate_NT5(PackageTemplate):
 
 	@staticmethod
 	def get_template_brute(sysinfo):
-		pass
-		if sysinfo.architecture == KatzSystemArchitecture.X86:
-			if sysinfo.buildnumber <= WindowsMinBuild.WIN_XP.value:
-				raise Exception('NT 5 is not yet supported!')
-			elif sysinfo.buildnumber <= WindowsMinBuild.WIN_2K3.value:
-				raise Exception('NT 5 is not yet supported!')
-			else:
-				raise Exception('NT 6 is in another castle!')
-
-		elif sysinfo.architecture == KatzSystemArchitecture.X64:
-			if sysinfo.buildnumber <= WindowsMinBuild.WIN_XP.value:
-				raise Exception('NT 5 is not yet supported!')
-			elif sysinfo.buildnumber <= WindowsMinBuild.WIN_2K3.value:
-				raise Exception('NT 5 is not yet supported!')
-			else:
-				raise Exception('NT 6 is in another castle!')
+		raise Exception('Template guessing is not applicable for NT5')
 
 	
 	@staticmethod

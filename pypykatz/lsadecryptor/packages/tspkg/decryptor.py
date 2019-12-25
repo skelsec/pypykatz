@@ -5,6 +5,7 @@
 #
 import io
 import json
+from pypykatz import logger
 
 from pypykatz.lsadecryptor.package_commons import *
 
@@ -55,7 +56,11 @@ class TspkgDecryptor(PackageDecryptor):
 			return
 		result_ptr_list = []
 		self.reader.move(entry_ptr_value)
-		start_node = PRTL_AVL_TABLE(self.reader).read(self.reader)
+		try:
+			start_node = PRTL_AVL_TABLE(self.reader).read(self.reader)
+		except Exception as e:
+			logger.error('Failed to prcess TSPKG package! Reason: %s' % e)
+			return
 		self.walk_avl(start_node.BalancedRoot.RightChild, result_ptr_list)
 		for ptr in result_ptr_list:
 			self.log_ptr(ptr, self.decryptor_template.credential_struct.__name__)

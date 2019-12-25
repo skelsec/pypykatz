@@ -126,6 +126,16 @@ class pypykatz:
 		mimi = pypykatz(reader, sysinfo)
 		mimi.start()
 		return mimi
+
+	@staticmethod
+	def go_volatility3(vol3_obj):
+		from pypykatz.commons.readers.volatility3.volreader import Vol3Reader, vol3_treegrid
+		reader = Vol3Reader(vol3_obj)
+		sysinfo = reader.get_sysinfo()
+		mimi = pypykatz(reader, sysinfo)
+		mimi.start()
+		return vol3_treegrid(mimi)
+
 		
 	def log_basic_info(self):
 		"""
