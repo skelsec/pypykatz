@@ -9,11 +9,10 @@ from .commons.common import *
 from .lsadecryptor import *
 
 from pypykatz import logger
+from pypykatz.commons.common import UniversalEncoder
 from minidump.minidumpfile import MinidumpFile
 from minikerberos.ccache import CCACHE
-
-if platform.system() == 'Windows':
-	from .commons.readers.local.live_reader import LiveReader
+from pypykatz._version import __version__
 
 class pypykatz:
 	def __init__(self, reader, sysinfo):
@@ -25,23 +24,29 @@ class pypykatz:
 		self.buildnumber = None
 		self.lsa_decryptor = None
 		
-		self.logon_sessions = []
+		self.logon_sessions = {}
 		self.orphaned_creds = []
 		self.kerberos_ccache = CCACHE()
 		
-		#self.logger = logging.getLogger('pypykatz')
-		
 	def to_dict(self):
 		t = {}
-		t['logon_sessions'] = self.logon_sessions
-		t['orphaned_creds'] = self.orphaned_creds
+		t['logon_sessions'] = {}
+		for ls in self.logon_sessions:
+			print(ls)
+			t['logon_sessions'][ls] = (self.logon_sessions[ls].to_dict())
+		t['orphaned_creds'] = []
+		for oc in self.orphaned_creds:
+			t['orphaned_creds'].append(oc.to_dict())
 		return t
 		
 	def to_json(self):
-		return json.dumps(self.to_dict())
+		return json.dumps(self.to_dict(), cls = UniversalEncoder)
 		
 	@staticmethod
 	def go_live():
+		if platform.system() != 'Windows':
+			raise Exception('Live parsing will only work on Windows')
+		from pypykatz.commons.readers.local.live_reader import LiveReader
 		reader = LiveReader()
 		sysinfo = KatzSystemInfo.from_live_reader(reader)
 		mimi = pypykatz(reader.get_buffered_reader(), sysinfo)
@@ -142,6 +147,7 @@ class pypykatz:
 		In case of error, please attach this to the issues page
 		"""
 		logger.info('===== BASIC INFO. SUBMIT THIS IF THERE IS AN ISSUE =====')
+		logger.info('pypyKatz version: %s' % __version__)
 		logger.info('CPU arch: %s' % self.sysinfo.architecture.name)
 		logger.info('OS: %s' % self.sysinfo.operating_system)
 		logger.info('BuildNumber: %s' % self.sysinfo.buildnumber)

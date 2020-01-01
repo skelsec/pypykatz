@@ -47,7 +47,11 @@ class MsvTemplate(PackageTemplate):
 				template.list_entry = PKIWI_MSV1_0_LIST_61	
 		
 		elif sysinfo.buildnumber < WindowsMinBuild.WIN_BLUE.value:
-			template.list_entry = PKIWI_MSV1_0_LIST_62
+			#template.list_entry = PKIWI_MSV1_0_LIST_62
+			if sysinfo.msv_dll_timestamp >  0x53480000:
+				template.list_entry = PKIWI_MSV1_0_LIST_63
+			else:
+				template.list_entry = PKIWI_MSV1_0_LIST_62
 		
 		else:
 			template.list_entry = PKIWI_MSV1_0_LIST_63
@@ -155,7 +159,7 @@ class MsvTemplate(PackageTemplate):
 				raise Exception('Could not identify template! sysinfo.buildnumber: %d' % sysinfo.buildnumber)
 		
 		else:
-			raise Exception('Unknown Architecture: %s , Build number %s' % (architecture, sysinfo.buildnumber))
+			raise Exception('Unknown Architecture: %s , Build number %s' % (sysinfo.architecture, sysinfo.buildnumber))
 			
 		
 		return template

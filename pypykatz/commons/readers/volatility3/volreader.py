@@ -4,6 +4,11 @@
 #  Tamas Jos (@skelsec)
 #
 #
+# This file contains a reader implementation to interface pypykatz lsass parsing module with volatility3
+# One would need to install volatility3 and drop the plugin file (separate project) to the appropriate volatility3 plugins folder
+# The reason why the reader code is not in the plugin folder is that in case pypykatz plugin becomes official in vol3, I don't wish to administer changes via PR to the vol3 team
+# they probably have more important things to deal with :)
+#
 
 import logging
 

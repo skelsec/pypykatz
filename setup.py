@@ -1,15 +1,25 @@
 from setuptools import setup, find_packages
+import re
+
+VERSIONFILE="pypykatz/_version.py"
+verstrline = open(VERSIONFILE, "rt").read()
+VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
+mo = re.search(VSRE, verstrline, re.M)
+if mo:
+    verstr = mo.group(1)
+else:
+    raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
 
 setup(
 	# Application name:
 	name="pypykatz",
 
 	# Version number (initial):
-	version="0.3.3",
+	version=verstr,
 
 	# Application author details:
 	author="Tamas Jos",
-	author_email="info@skelsec.com",
+	author_email="skelsecprojects@gmail.com",
 
 	# Packages
 	packages=find_packages(),
@@ -34,7 +44,7 @@ setup(
 		"Operating System :: OS Independent",
 	),
 	install_requires=[
-		'minidump>=0.0.11',
+		'minidump>=0.0.12',
 		'minikerberos>=0.0.11',
 		'aiowinreg>=0.0.2',
 		'msldap>=0.1.1',
