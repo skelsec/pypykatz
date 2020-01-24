@@ -32,7 +32,7 @@ class pypykatz:
 		t = {}
 		t['logon_sessions'] = {}
 		for ls in self.logon_sessions:
-			print(ls)
+			# print(ls)
 			t['logon_sessions'][ls] = (self.logon_sessions[ls].to_dict())
 		t['orphaned_creds'] = []
 		for oc in self.orphaned_creds:
