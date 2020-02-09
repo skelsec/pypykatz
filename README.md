@@ -1,6 +1,7 @@
 # pypykatz
 Mimikatz implementation in pure Python. At least a part of it :)  
 Runs on all OS's which support python>=3.6
+![pypy_card](https://user-images.githubusercontent.com/19204702/71646030-221fe200-2ce1-11ea-9e2a-e587ea4790d7.jpg)
 
 ## WIKI
 Since version 0.1.1 the command line changed a little. Worry not, I have an awesome [WIKI](https://github.com/skelsec/pypykatz/wiki) for you.
