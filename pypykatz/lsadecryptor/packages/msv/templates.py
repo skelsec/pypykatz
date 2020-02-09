@@ -100,19 +100,19 @@ class MsvTemplate(PackageTemplate):
 				template.offset2 = -6	
 				
 			elif WindowsBuild.WIN_10_1507.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1703.value:
+				#1503 and 1603
 				template.signature = b'\x33\xff\x41\x89\x37\x4c\x8b\xf3\x45\x85\xc0\x74'
 				template.first_entry_offset = 16
 				template.offset2 = -4
-				#template.signature = b'\x8b\xde\x48\x8d\x0c\x5b\x48\xc1\xe1\x05\x48\x8d\x05'
-				#template.first_entry_offset = 36
-				#template.offset2 = -6
 
 			elif WindowsBuild.WIN_10_1703.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1803.value:
+				#1703
 				template.signature = b'\x33\xff\x45\x89\x37\x48\x8b\xf3\x45\x85\xc9\x74'
 				template.first_entry_offset = 23
 				template.offset2 = -4
 			
 			elif WindowsBuild.WIN_10_1803.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1903.value:
+				#1803
 				template.signature = b'\x33\xff\x41\x89\x37\x4c\x8b\xf3\x45\x85\xc9\x74'
 				template.first_entry_offset = 23
 				template.offset2 = -4
@@ -564,6 +564,10 @@ class KIWI_MSV1_0_LIST_63:
 		self.SecondaryLocallyUniqueIdentifier = LUID(reader).value
 		self.waza = reader.read(12)
 		reader.align()
+		#
+		#print(hexdump(reader.peek(0x100)))
+		#input()
+		#
 		self.UserName = LSA_UNICODE_STRING(reader)
 		self.Domaine = LSA_UNICODE_STRING(reader)
 		self.unk14 = PVOID(reader).value

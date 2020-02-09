@@ -66,7 +66,7 @@ class PackageDecryptor:
 		Searches for a sequence of bytes in the module identified by module_name
 		"""
 		self.log('Searching for key struct signature')
-		fl = self.reader.find_in_module(module_name,self.decryptor_template.signature)
+		fl = self.reader.find_in_module(module_name, self.decryptor_template.signature)
 		if len(fl) == 0:
 			raise Exception('Signature was not found in module %s Signature: %s' % (module_name, self.decryptor_template.signature.hex()))
 		return fl[0]

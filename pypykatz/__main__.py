@@ -22,13 +22,13 @@ def main():
 	import glob
 	
 	from pypykatz.utils.crypto.cmdhelper import CryptoCMDHelper
-	from pypykatz.ldap.cmdhelper import LDAPCMDHelper
+	#from pypykatz.ldap.cmdhelper import LDAPCMDHelper
 	from pypykatz.kerberos.cmdhelper import KerberosCMDHelper
 	from pypykatz.lsadecryptor.cmdhelper import LSACMDHelper
 	from pypykatz.registry.cmdhelper import RegistryCMDHelper
 	from pypykatz.remote.cmdhelper import RemoteCMDHelper
 	
-	cmdhelpers = [LSACMDHelper(), RegistryCMDHelper(), CryptoCMDHelper(), LDAPCMDHelper(), KerberosCMDHelper(), RemoteCMDHelper()]
+	cmdhelpers = [LSACMDHelper(), RegistryCMDHelper(), CryptoCMDHelper(), KerberosCMDHelper(), RemoteCMDHelper()] #LDAPCMDHelper(),
 	
 
 	parser = argparse.ArgumentParser(description='Pure Python implementation of Mimikatz --and more--')
@@ -126,8 +126,8 @@ def main():
 		logging.basicConfig(level=level)
 	
 	##### Common obj
-	results = {}
-	files_with_error = []
+	#results = {}
+	#files_with_error = []
 	
 	for helper in cmdhelpers:
 		helper.execute(args)

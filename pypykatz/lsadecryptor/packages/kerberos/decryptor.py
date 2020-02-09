@@ -25,8 +25,12 @@ class KerberosCredential:
 		t += '\t\tUsername: %s\n' % self.username
 		t += '\t\tDomain: %s\n' % self.domainname
 		t += '\t\tPassword: %s\n' % self.password
-		for ticket in self.tickets:
-			t += '\t\t%s' % str(ticket).replace('\n','\n\t\t\t')[:-3]
+
+		# TODO: check if users actually need this.
+		# I think it's not useful to print out the kerberos ticket data as string, as noone uses it directly.
+		# It is better to use the -k flag an export the tickets
+		#for ticket in self.tickets:
+		#	t += '\t\t%s' % str(ticket).replace('\n','\n\t\t\t')[:-3]
 		
 		return t
 		

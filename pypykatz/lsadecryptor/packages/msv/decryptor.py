@@ -362,7 +362,14 @@ class MsvDecryptor(PackageDecryptor):
 			self.reader.move(entry_ptr_loc)
 			for x in range(i*2): #skipping offset in an architecture-agnostic way
 				self.reader.read_int() #does nothing just moves the position
-				self.log('moving to other logon session')
-			entry_ptr = self.decryptor_template.list_entry(self.reader)
-			self.walk_list(entry_ptr, self.add_entry)
+				#self.log('moving to other logon session')
 
+			entry_ptr = self.decryptor_template.list_entry(self.reader)
+			
+			if entry_ptr.location == entry_ptr.value:
+				# when there are multiple logon sessions (modern windows) there are cases when the
+				# logon session list doesnt exist anymore. worry not, there are multiple of them, 
+				# but we need to skip the ones that are empty (eg. pointer points to itself)
+				continue
+			
+			self.walk_list(entry_ptr, self.add_entry)
