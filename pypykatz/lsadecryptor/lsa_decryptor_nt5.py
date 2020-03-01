@@ -5,11 +5,13 @@
 #
 import io
 import logging
-from pypykatz.commons.common import *
-from pypykatz.crypto.des import *
-from pypykatz.crypto.aes import AESModeOfOperationCBC
-from pypykatz.lsadecryptor.lsa_templates import *
+#from pypykatz.commons.common import *
+#from pypykatz.crypto.des import *
+#from pypykatz.crypto.aes import AESModeOfOperationCBC
+#from pypykatz.lsadecryptor.lsa_templates import *
 from pypykatz.crypto.RC4 import RC4
+from pypykatz.lsadecryptor.package_commons import PackageDecryptor
+from pypykatz.commons.win_datatypes import LONG
 
 class LsaDecryptor_NT5(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, sysinfo):

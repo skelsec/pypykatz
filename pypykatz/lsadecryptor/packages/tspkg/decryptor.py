@@ -7,7 +7,8 @@ import io
 import json
 from pypykatz import logger
 
-from pypykatz.lsadecryptor.package_commons import *
+from pypykatz.lsadecryptor.package_commons import PackageDecryptor
+from pypykatz.commons.win_datatypes import PRTL_AVL_TABLE
 
 class TspkgCredential:
 	def __init__(self):

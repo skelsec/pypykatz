@@ -3,12 +3,13 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from pypykatz.commons.common import *
-from pypykatz.crypto.des import *
+
+
+from pypykatz import logger
+from pypykatz.commons.common import hexdump
+from pypykatz.crypto.des import triple_des, CBC
 from pypykatz.crypto.aes import AESModeOfOperationCBC
-from pypykatz.lsadecryptor.lsa_templates import *
+from pypykatz.lsadecryptor.package_commons import PackageDecryptor
 
 class LsaDecryptor_NT6(PackageDecryptor):
 	def __init__(self, reader, decryptor_template, sysinfo):
@@ -42,7 +43,7 @@ class LsaDecryptor_NT6(PackageDecryptor):
 		self.log('Looking for main struct signature in memory...')
 		fl = self.reader.find_in_module('lsasrv.dll', self.decryptor_template.key_pattern.signature)
 		if len(fl) == 0:
-			logging.warning('signature not found! %s' % self.decryptor_template.key_pattern.signature.hex())
+			logger.warning('signature not found! %s' % self.decryptor_template.key_pattern.signature.hex())
 			raise Exception('LSA signature not found!')
 			
 		self.log('Found candidates on the following positions: %s' % ' '.join(hex(x) for x in fl))

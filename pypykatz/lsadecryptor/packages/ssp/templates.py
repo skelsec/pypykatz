@@ -3,13 +3,11 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from minidump.win_datatypes import *
-from pypykatz.commons.common import *
-from pypykatz.commons.win_datatypes import *
 
-from pypykatz.lsadecryptor.package_commons import *
+
+from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild, WindowsBuild
+from pypykatz.commons.win_datatypes import ULONG, LUID, KIWI_GENERIC_PRIMARY_CREDENTIAL, POINTER
+from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
 class SspTemplate(PackageTemplate):
 	def __init__(self):
@@ -39,7 +37,7 @@ class SspTemplate(PackageTemplate):
 			
 			else:
 				#currently this doesnt make sense, but keeping it here for future use
-				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (architecture, sysinfo.buildnumber))
+				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (sysinfo.architecture, sysinfo.buildnumber))
 			
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
@@ -47,7 +45,7 @@ class SspTemplate(PackageTemplate):
 			template.first_entry_offset = 12
 			
 		else:
-			raise Exception('Unknown architecture! %s' % architecture)
+			raise Exception('Unknown architecture! %s' % sysinfo.architecture)
 
 			
 		return template

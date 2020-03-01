@@ -5,12 +5,12 @@
 #
 import io
 import json
-from pypykatz.commons.common import *
-from pypykatz.commons.filetime import *
-from pypykatz.commons.win_datatypes import *
-from pypykatz.lsadecryptor.packages.msv.templates import *
-from pypykatz.lsadecryptor.packages.credman.templates import *
-from pypykatz.lsadecryptor.package_commons import *
+from pypykatz.commons.common import WindowsMinBuild, KatzSystemArchitecture, GenericReader, UniversalEncoder, hexdump
+from pypykatz.commons.filetime import filetime_to_dt
+#from pypykatz.commons.win_datatypes import *
+from pypykatz.lsadecryptor.packages.msv.templates import MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC
+from pypykatz.lsadecryptor.packages.credman.templates import KIWI_CREDMAN_LIST_STARTER, KIWI_CREDMAN_SET_LIST_ENTRY
+from pypykatz.lsadecryptor.package_commons import PackageDecryptor
 
 class MsvCredential:
 	def __init__(self):

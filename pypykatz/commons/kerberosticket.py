@@ -3,12 +3,16 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
+
+import datetime
 from asn1crypto import core
-from pypykatz.commons.filetime import *
-from pypykatz.commons.common import *
-from pypykatz.commons.win_datatypes import *
-from minikerberos.asn1_structs import *
-from minikerberos.constants import *
+from pypykatz.commons.filetime import filetime_to_dt
+from pypykatz.commons.common import WindowsBuild, GenericReader
+from pypykatz.commons.win_datatypes import LSAISO_DATA_BLOB, ENC_LSAISO_DATA_BLOB
+from minikerberos.protocol.asn1_structs import EncryptionKey, PrincipalName, \
+	TicketFlags, KrbCredInfo, krb5_pvno, EncryptedData, KRBCRED, Ticket, \
+	EncKrbCredPart
+from minikerberos.protocol.constants import NAME_TYPE, MESSAGE_TYPE, EncryptionType
 
 import enum
 import os
@@ -72,8 +76,8 @@ class KerberosTicket:
 		self.kirbi_data = {}
 		self.session_key = None
 		
-	def generate_filename(self):
-		return '%s@%s_%s' % ('-'.join(self.EClientName) , '-'.join(self.ServiceName), hashlib.sha1(self.Ticket).hexdigest()[:8])
+	#def generate_filename(self):
+	#	return '%s@%s_%s' % ('-'.join(self.EClientName) , '-'.join(self.ServiceName), hashlib.sha1(self.Ticket).hexdigest()[:8])
 	
 	def to_dict(self):
 		#not sure if anyone would need this, so only parts will be shown

@@ -5,7 +5,7 @@
 #
 import io
 import json
-from pypykatz.lsadecryptor.package_commons import *
+from pypykatz.lsadecryptor.package_commons import PackageDecryptor
 
 class LiveSspCredential:
 	def __init__(self):

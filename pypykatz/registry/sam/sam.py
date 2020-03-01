@@ -9,7 +9,7 @@ import io
 from pypykatz.registry.sam.structures import *
 from pypykatz.crypto.RC4 import RC4
 from pypykatz.crypto.aes import AESModeOfOperationCBC
-from pypykatz.crypto.des import *
+from pypykatz.crypto.des import des, expand_DES_key
 
 #####
 from pypykatz.registry.sam.structures import *

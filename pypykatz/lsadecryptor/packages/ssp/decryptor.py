@@ -3,9 +3,10 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
+
+
 import json
-from pypykatz.lsadecryptor.package_commons import *
+from pypykatz.lsadecryptor.package_commons import PackageDecryptor
 
 class SspCredential:
 	def __init__(self):

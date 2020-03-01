@@ -3,12 +3,12 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-from minidump.win_datatypes import *
-from pypykatz.commons.common import *
-from pypykatz.commons.win_datatypes import *
 
-from pypykatz.lsadecryptor.package_commons import *
+#import io
+#from minidump.win_datatypes import *
+from pypykatz.commons.common import KatzSystemArchitecture, WindowsBuild, WindowsMinBuild
+from pypykatz.commons.win_datatypes import KIWI_GENERIC_PRIMARY_CREDENTIAL, POINTER, PVOID, LUID
+from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
 class TspkgTemplate(PackageTemplate):
 	def __init__(self):
@@ -32,7 +32,7 @@ class TspkgTemplate(PackageTemplate):
 				
 			else:
 				#currently this doesnt make sense, but keeping it here for future use
-				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (self.arch, sysinfo.buildnumber))
+				raise Exception('Could not identify template! Architecture: %s Buildnumber: %s' % (sysinfo.architecture, sysinfo.buildnumber))
 			
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
@@ -57,7 +57,7 @@ class TspkgTemplate(PackageTemplate):
 				template.credential_struct = KIWI_TS_CREDENTIAL_1607
 			
 		else:
-			raise Exception('Unknown architecture! %s' % self.arch)
+			raise Exception('Unknown architecture! %s' % sysinfo.architecture)
 
 		template.log_template('credential_struct', template.credential_struct)
 			

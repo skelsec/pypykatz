@@ -4,10 +4,10 @@
 #  Tamas Jos (@skelsec)
 #
 import io
-from minidump.win_datatypes import *
-from pypykatz.commons.common import *
-from pypykatz.commons.win_datatypes import *
-from pypykatz.lsadecryptor.package_commons import *
+#from minidump.win_datatypes import *
+from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild
+from pypykatz.commons.win_datatypes import LSA_UNICODE_STRING, ULONG, PVOID, PWSTR, POINTER, LIST_ENTRY
+from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
 class CredmanTemplate(PackageTemplate):
 	def __init__(self):

@@ -45,7 +45,7 @@ setup(
 	),
 	install_requires=[
 		'minidump>=0.0.12',
-		'minikerberos>=0.0.11',
+		'minikerberos>=0.2.0',
 		'aiowinreg>=0.0.2',
 		'msldap>=0.1.1',
 		'winsspi>=0.0.3'

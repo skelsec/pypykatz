@@ -3,11 +3,12 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-from minidump.win_datatypes import *
-from pypykatz.commons.common import *
-from pypykatz.commons.win_datatypes import *
-from pypykatz.lsadecryptor.package_commons import *
+
+
+from minidump.win_datatypes import FILETIME, ULONG
+from pypykatz.commons.common import WindowsMinBuild, KatzSystemArchitecture, WindowsBuild
+from pypykatz.commons.win_datatypes import LUID, GUID, POINTER
+from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
 class DpapiTemplate(PackageTemplate):
 	def __init__(self):
@@ -53,7 +54,7 @@ class DpapiTemplate(PackageTemplate):
 			
 			else:
 				#currently this doesnt make sense, but keeping it here for future use
-				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (architecture, sysinfo.buildnumber))
+				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (sysinfo.architecture, sysinfo.buildnumber))
 			
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
@@ -70,7 +71,7 @@ class DpapiTemplate(PackageTemplate):
 				template.first_entry_offset = -4
 			
 		else:
-			raise Exception('Unknown architecture! %s' % architecture)
+			raise Exception('Unknown architecture! %s' % sysinfo.architecture)
 
 			
 		return template	

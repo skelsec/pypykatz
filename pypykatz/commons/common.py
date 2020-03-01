@@ -209,42 +209,42 @@ def hexdump( src, length=16, sep='.', start = 0):
 
 	@note Full support for python2 and python3 !
 	'''
-	result = [];
+	result = []
 
 	# Python3 support
 	try:
-		xrange(0,1);
+		xrange(0,1)
 	except NameError:
-		xrange = range;
+		xrange = range
 
 	for i in xrange(0, len(src), length):
-		subSrc = src[i:i+length];
-		hexa = '';
-		isMiddle = False;
+		subSrc = src[i:i+length]
+		hexa = ''
+		isMiddle = False
 		for h in xrange(0,len(subSrc)):
 			if h == length/2:
-				hexa += ' ';
-			h = subSrc[h];
+				hexa += ' '
+			h = subSrc[h]
 			if not isinstance(h, int):
-				h = ord(h);
-			h = hex(h).replace('0x','');
+				h = ord(h)
+			h = hex(h).replace('0x','')
 			if len(h) == 1:
-				h = '0'+h;
-			hexa += h+' ';
-		hexa = hexa.strip(' ');
-		text = '';
+				h = '0'+h
+			hexa += h+' '
+		hexa = hexa.strip(' ')
+		text = ''
 		for c in subSrc:
 			if not isinstance(c, int):
-				c = ord(c);
+				c = ord(c)
 			if 0x20 <= c < 0x7F:
-				text += chr(c);
+				text += chr(c)
 			else:
-				text += sep;
+				text += sep
 		if start == 0:
-			result.append(('%08x:  %-'+str(length*(2+1)+1)+'s  |%s|') % (i, hexa, text));
+			result.append(('%08x:  %-'+str(length*(2+1)+1)+'s  |%s|') % (i, hexa, text))
 		else:
-			result.append(('%08x(+%04x):  %-'+str(length*(2+1)+1)+'s  |%s|') % (start+i, i, hexa, text));
-	return '\n'.join(result);
+			result.append(('%08x(+%04x):  %-'+str(length*(2+1)+1)+'s  |%s|') % (start+i, i, hexa, text))
+	return '\n'.join(result)
 	
 class UniversalEncoder(json.JSONEncoder):
 	"""

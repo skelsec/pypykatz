@@ -4,10 +4,12 @@
 #  Tamas Jos (@skelsec)
 #
 import io
-from minidump.win_datatypes import *
-from pypykatz.commons.common import *
-from pypykatz.commons.win_datatypes import *
-from pypykatz.lsadecryptor.package_commons import *
+from minidump.win_datatypes import ULONG64, FILETIME, PCWSTR, SIZE_T, BOOL  #WCHAR, ANYSIZE_ARRAY
+from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild, WindowsBuild
+from pypykatz.commons.win_datatypes import POINTER, PVOID, ULONG, LIST_ENTRY, \
+	DWORD, LSA_UNICODE_STRING, PKERB_EXTERNAL_NAME, KIWI_GENERIC_PRIMARY_CREDENTIAL, \
+	LUID, PLSAISO_DATA_BLOB
+from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
 class KerberosTemplate(PackageTemplate):
 	def __init__(self, sysinfo):
@@ -100,7 +102,7 @@ class KerberosTemplate(PackageTemplate):
 				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
 			
 			else:
-				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (architecture, sysinfo.buildnumber))
+				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (sysinfo.architecture, sysinfo.buildnumber))
 			
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
@@ -193,7 +195,7 @@ class KerberosTemplate(PackageTemplate):
 		
 		
 		else:
-			raise Exception('Unknown architecture! %s' % architecture)
+			raise Exception('Unknown architecture! %s' % sysinfo.architecture)
 
 			
 		return template
@@ -953,7 +955,7 @@ class KIWI_KERBEROS_KEYS_LIST_5:
 
 	def read(self, reader, keyentries_type):
 		reader.move(self.KeyEntries_start)
-		for i in range(self.cbItem):
+		for _ in range(self.cbItem):
 			self.KeyEntries.append(keyentries_type(reader))
 
 class PKIWI_KERBEROS_KEYS_LIST_6(POINTER):
@@ -974,7 +976,7 @@ class KIWI_KERBEROS_KEYS_LIST_6:
 		
 	def read(self, reader, keyentries_type):
 		reader.move(self.KeyEntries_start)
-		for i in range(self.cbItem):
+		for _ in range(self.cbItem):
 			self.KeyEntries.append(keyentries_type(reader))
 			#//KERB_HASHPASSWORD_6 KeysEntries[ANYSIZE_ARRAY] = (reader).value
 

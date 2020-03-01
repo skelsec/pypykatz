@@ -3,11 +3,11 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-import logging
-from minidump.win_datatypes import *
-from pypykatz.commons.common import *
-from .package_commons import *
+
+
+from minidump.win_datatypes import ULONG, PVOID, POINTER
+from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild, WindowsBuild
+from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
 class LsaTemplate_NT6(PackageTemplate):
 	def __init__(self):

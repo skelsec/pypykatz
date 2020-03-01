@@ -4,10 +4,11 @@
 #  Tamas Jos (@skelsec)
 #
 import io
-from minidump.win_datatypes import *
-from pypykatz.commons.common import *
-from pypykatz.commons.win_datatypes import *
-from pypykatz.lsadecryptor.package_commons import *
+#from minidump.win_datatypes import *
+from pypykatz.commons.common import KatzSystemArchitecture
+from pypykatz.commons.win_datatypes import POINTER, ULONG, \
+	KIWI_GENERIC_PRIMARY_CREDENTIAL, PVOID, DWORD, LUID, LSA_UNICODE_STRING
+from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
 class LiveSspTemplate(PackageTemplate):
 	def __init__(self):
@@ -32,7 +33,7 @@ class LiveSspTemplate(PackageTemplate):
 			template.first_entry_offset = -8
 			
 		else:
-			raise Exception('Unknown architecture! %s' % architecture)
+			raise Exception('Unknown architecture! %s' % sysinfo.architecture)
 
 			
 		return template

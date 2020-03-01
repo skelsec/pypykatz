@@ -6,7 +6,7 @@
 import io
 import json
 import hashlib
-from pypykatz.lsadecryptor.package_commons import *
+from pypykatz.lsadecryptor.package_commons import PackageDecryptor
 
 class DpapiCredential:
 	def __init__(self):

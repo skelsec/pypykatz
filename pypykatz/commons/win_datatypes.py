@@ -7,8 +7,10 @@
 import io
 import enum
 import logging
-from minidump.win_datatypes import *
-from pypykatz.commons.common import *
+from minidump.win_datatypes import DWORD, LONG, LONGLONG, \
+	POINTER, UINT8, ULONG, PWSTR, USHORT, PCHAR, SHORT, \
+	BYTE, PVOID, WORD
+#from pypykatz.commons.common import *
 
 class LARGE_INTEGER:
 	def __init__(self, reader):
@@ -26,7 +28,7 @@ class SID:
 		self.SubAuthorityCount = UINT8(reader).value
 		self.IdentifierAuthority = int.from_bytes(b'\x00\x00' + reader.read(6), byteorder = 'big', signed = False)
 		self.SubAuthority = []
-		for i in range(self.SubAuthorityCount):
+		for _ in range(self.SubAuthorityCount):
 			self.SubAuthority.append(ULONG(reader).value)
 	
 	def __str__(self):
@@ -121,7 +123,7 @@ class KERB_EXTERNAL_NAME:
 		self.NameCount = USHORT(reader).value
 		reader.align()
 		self.Names = []	# list of LSA_UNICODE_STRING
-		for i in range(self.NameCount):
+		for _ in range(self.NameCount):
 			self.Names.append(LSA_UNICODE_STRING(reader))
 		
 	def read(self, reader):

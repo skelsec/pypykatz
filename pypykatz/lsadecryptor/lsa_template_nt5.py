@@ -4,11 +4,9 @@
 #  Tamas Jos (@skelsec)
 #
 
-import io
-import logging
-from minidump.win_datatypes import *
-from pypykatz.commons.common import *
-from .package_commons import *
+from minidump.win_datatypes import POINTER
+from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild
+from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
 class LsaTemplate_NT5(PackageTemplate):
 	def __init__(self):
@@ -26,7 +24,6 @@ class LsaTemplate_NT5(PackageTemplate):
 	
 	@staticmethod
 	def get_template(sysinfo):
-		template = None
 		if sysinfo.architecture == KatzSystemArchitecture.X86:
 			if sysinfo.buildnumber <= WindowsMinBuild.WIN_VISTA.value:
 				return templates['nt5']['x86']['1']

@@ -5,13 +5,19 @@
 #
 
 import platform
-from .commons.common import *
-from .lsadecryptor import *
+import json
+
+from pypykatz.commons.common import KatzSystemInfo
+from pypykatz.lsadecryptor import CredmanTemplate, MsvTemplate, \
+	MsvDecryptor, WdigestTemplate, LsaTemplate, WdigestDecryptor, \
+	LiveSspTemplate, LiveSspDecryptor, SspDecryptor, SspTemplate, \
+	TspkgDecryptor, TspkgTemplate, KerberosTemplate, KerberosDecryptor, \
+	DpapiTemplate, DpapiDecryptor, LsaDecryptor
 
 from pypykatz import logger
 from pypykatz.commons.common import UniversalEncoder
 from minidump.minidumpfile import MinidumpFile
-from minikerberos.ccache import CCACHE
+from minikerberos.common.ccache import CCACHE
 from pypykatz._version import __version__
 
 class pypykatz:

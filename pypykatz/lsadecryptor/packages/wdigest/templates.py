@@ -3,11 +3,12 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-from minidump.win_datatypes import *
-from pypykatz.commons.common import *
-from pypykatz.commons.win_datatypes import *
-from pypykatz.lsadecryptor.package_commons import *
+
+#import io
+#from minidump.win_datatypes import *
+from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild
+from pypykatz.commons.win_datatypes import LUID, ULONG, POINTER
+from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
 class WdigestTemplate(PackageTemplate):
 	def __init__(self):
@@ -41,7 +42,7 @@ class WdigestTemplate(PackageTemplate):
 				template.list_entry = PWdigestListEntry
 				
 			else:
-				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (architecture, sysinfo.buildnumber))
+				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (sysinfo.architecture, sysinfo.buildnumber))
 			
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
@@ -82,7 +83,7 @@ class WdigestTemplate(PackageTemplate):
 				template.list_entry = PWdigestListEntry
 		
 		else:
-			raise Exception('Unknown architecture! %s' % architecture)
+			raise Exception('Unknown architecture! %s' % sysinfo.architecture)
 		
 		template.log_template('list_entry', template.list_entry)
 		return template

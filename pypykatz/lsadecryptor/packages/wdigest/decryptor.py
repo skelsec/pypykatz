@@ -6,7 +6,8 @@
 import io
 import json
 
-from pypykatz.lsadecryptor.package_commons import *
+from pypykatz.lsadecryptor.package_commons import PackageDecryptor
+from pypykatz.commons.win_datatypes import LSA_UNICODE_STRING
 
 class WdigestCredential:
 	def __init__(self):
