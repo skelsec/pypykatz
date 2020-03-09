@@ -5,6 +5,7 @@
 #
 import io
 #from minidump.win_datatypes import *
+from pypykatz.commons.common import hexdump
 from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild
 from pypykatz.commons.win_datatypes import LSA_UNICODE_STRING, ULONG, PVOID, PWSTR, POINTER, LIST_ENTRY
 from pypykatz.lsadecryptor.package_commons import PackageTemplate
@@ -52,7 +53,7 @@ class KIWI_CREDMAN_LIST_ENTRY_5_X86:
 		#
 		self.cbEncPassword = ULONG(reader).value
 		reader.align()
-		self.encPassword = PWSTR
+		self.encPassword = PWSTR(reader)
 		self.unk0 = ULONG(reader).value
 		self.unk1 = ULONG(reader).value
 		self.unk2 = PVOID(reader)
@@ -60,9 +61,9 @@ class KIWI_CREDMAN_LIST_ENTRY_5_X86:
 		self.UserName = PWSTR(reader)
 		self.cbUserName = ULONG(reader).value
 		reader.align()
-		self.Flink = PKIWI_CREDMAN_LIST_ENTRY_5
-		self.Blink = PKIWI_CREDMAN_LIST_ENTRY_5
-		self.server1 = LSA_UNICODE_STRING
+		self.Flink = PKIWI_CREDMAN_LIST_ENTRY_5(reader)
+		self.Blink = PKIWI_CREDMAN_LIST_ENTRY_5(reader)
+		self.server1 = LSA_UNICODE_STRING(reader)
 		self.unk6 = PVOID(reader)
 		self.unk7 = PVOID(reader)
 		self.user = LSA_UNICODE_STRING(reader)
@@ -93,8 +94,8 @@ class KIWI_CREDMAN_LIST_ENTRY_60_X86:
 		self.UserName = PWSTR(reader)
 		self.cbUserName = ULONG(reader).value
 		reader.align()
-		self.Flink = PKIWI_CREDMAN_LIST_ENTRY_60
-		self.Blink = PKIWI_CREDMAN_LIST_ENTRY_60
+		self.Flink = PKIWI_CREDMAN_LIST_ENTRY_60(reader)
+		self.Blink = PKIWI_CREDMAN_LIST_ENTRY_60(reader)
 		self.type = LSA_UNICODE_STRING(reader)
 		self.unk5 = PVOID(reader)
 		self.server1 = LSA_UNICODE_STRING(reader)
@@ -106,6 +107,8 @@ class KIWI_CREDMAN_LIST_ENTRY_60_X86:
 		self.user = LSA_UNICODE_STRING(reader)
 		self.unk11 = ULONG(reader).value
 		reader.align()
+		#print('a')
+		#input('KIWI_CREDMAN_LIST_ENTRY_60 \n%s' % hexdump(reader.peek(0x50), start = reader.tell()))
 		self.server2 = LSA_UNICODE_STRING(reader)
 	
 class PKIWI_CREDMAN_LIST_ENTRY_X86(POINTER):
