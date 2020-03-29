@@ -48,7 +48,7 @@ setup(
 		'minikerberos>=0.2.0',
 		'aiowinreg>=0.0.3',
 		'msldap>=0.2.7',
-		'winsspi>=0.0.3'
+		'winsspi>=0.0.7'
 	],
 	
 	entry_points={
