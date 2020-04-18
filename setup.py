@@ -45,10 +45,10 @@ setup(
 	),
 	install_requires=[
 		'minidump>=0.0.12',
-		'minikerberos>=0.2.0',
+		'minikerberos>=0.2.1',
 		'aiowinreg>=0.0.3',
-		'msldap>=0.2.7',
-		'winsspi>=0.0.7'
+		'msldap>=0.2.13',
+		'winsspi>=0.0.9'
 	],
 	
 	entry_points={
