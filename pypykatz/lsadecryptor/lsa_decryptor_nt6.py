@@ -43,7 +43,7 @@ class LsaDecryptor_NT6(PackageDecryptor):
 		self.log('Looking for main struct signature in memory...')
 		fl = self.reader.find_in_module('lsasrv.dll', self.decryptor_template.key_pattern.signature)
 		if len(fl) == 0:
-			logger.warning('signature not found! %s' % self.decryptor_template.key_pattern.signature.hex())
+			logger.debug('signature not found! %s' % self.decryptor_template.key_pattern.signature.hex())
 			raise Exception('LSA signature not found!')
 			
 		self.log('Found candidates on the following positions: %s' % ' '.join(hex(x) for x in fl))

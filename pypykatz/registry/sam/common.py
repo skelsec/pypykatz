@@ -3,6 +3,7 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
+import json
 
 class SAMSecret:
 	def __init__(self, username, rid, nt_hash, lm_hash):
