@@ -89,6 +89,18 @@ class pypykatz:
 		mimi = pypykatz(reader.get_buffered_reader(), sysinfo)
 		mimi.start()
 		return mimi
+
+	@staticmethod
+	def go_live_phandle(lsass_process_handle):
+		if platform.system() != 'Windows':
+			raise Exception('Live parsing will only work on Windows')
+		from pypykatz.commons.readers.local.live_reader import LiveReader
+		reader = LiveReader()
+		reader.lsass_process_handle = lsass_process_handle
+		sysinfo = KatzSystemInfo.from_live_reader(reader)
+		mimi = pypykatz(reader.get_buffered_reader(), sysinfo)
+		mimi.start()
+		return mimi
 		
 	@staticmethod
 	def parse_minidump_file(filename):
