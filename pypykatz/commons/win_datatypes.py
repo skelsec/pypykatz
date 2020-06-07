@@ -206,11 +206,11 @@ class GUID:
 		self.Data3 = WORD(reader).value
 		self.Data4 = reader.read(8)
 		self.value = '-'.join([
-			hex(self.Data1)[2:], 
-			hex(self.Data2)[2:], 
-			hex(self.Data3)[2:], 
-			hex(int.from_bytes(self.Data4[:2], byteorder = 'big', signed = False))[2:],
-			hex(int.from_bytes(self.Data4[2:], byteorder = 'big', signed = False))[2:]
+			hex(self.Data1)[2:].zfill(8), 
+			hex(self.Data2)[2:].zfill(4), 
+			hex(self.Data3)[2:].zfill(4), 
+			hex(int.from_bytes(self.Data4[:2], byteorder = 'big', signed = False))[2:].zfill(4),
+			hex(int.from_bytes(self.Data4[2:], byteorder = 'big', signed = False))[2:].zfill(12)
 		])
 
 class PLIST_ENTRY(POINTER):
