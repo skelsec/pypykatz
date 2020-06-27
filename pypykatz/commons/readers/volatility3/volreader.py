@@ -225,7 +225,7 @@ def vol3_generator(mimi):
 		t = cred.to_dict()
 		if t['credtype'] != 'dpapi':
 			if t['password'] is not None:
-				x =  [str(t['credtype']), str(t['domainname']), str(t['username']), '', '', '', '', '', str(t['password'])]
+				x =  [str(t['credtype']), str(t['domainname']), str(t['username']), '', '', '', '', '', str(t['password']), '']
 				yield 0, x
 		else:
 			t = cred.to_dict()
