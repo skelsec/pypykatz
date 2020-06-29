@@ -293,10 +293,10 @@ class BufferedLiveReader:
 		
 		
 class LiveReader:
-	def __init__(self):
+	def __init__(self, lsass_process_handle = None):
 		self.processor_architecture = None
 		self.lsass_process_name = 'lsass.exe'
-		self.lsass_process_handle = None
+		self.lsass_process_handle = lsass_process_handle
 		self.current_position = None
 		self.BuildNumber = None
 		self.modules = []
