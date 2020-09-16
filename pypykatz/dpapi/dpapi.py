@@ -161,7 +161,7 @@ class DPAPI:
 				nt_hash = bytes.fromhex(nt_hash)
 			key1 = None
 		
-		if password:
+		if password or password == '':
 			md4 = hashlib.new('md4')
 			md4.update(password.encode('utf-16le'))
 			nt_hash = md4.digest()
