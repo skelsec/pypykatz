@@ -85,6 +85,8 @@ def main():
 	
 	dpapi_minidump_group = dpapi_subparsers.add_parser('minidump', help='Dump masterkeys from minidump file')
 	dpapi_minidump_group.add_argument('minidumpfile', help='path to minidump file')
+	dpapi_minidump_group.add_argument('-o', '--out-file', help= 'Master and Backup keys will be stored in this file. Easier to handle in other commands.')
+
 
 	dpapi_mastekey_group = dpapi_subparsers.add_parser('masterkey', help='Decrypt masterkey file')
 	dpapi_mastekey_group.add_argument('mkf', help='path to masterkey file')
