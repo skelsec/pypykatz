@@ -37,10 +37,10 @@ class KerberosCMDHelper:
 			
 	def run_live(self, args):
 		from winsspi.sspi import KerberoastSSPI
-		from minikerberos.security import TGSTicket2hashcat, APREPRoast
-		from minikerberos.utils import TGTTicket2hashcat
-		from minikerberos.communication import KerberosSocket
-		from minikerberos.common import KerberosTarget
+		from minikerberos.common.utils import TGSTicket2hashcat, TGTTicket2hashcat
+		from minikerberos.security import APREPRoast
+		from minikerberos.network.clientsocket import KerberosClientSocket
+		from minikerberos.common.target import KerberosTarget
 		from pypykatz.commons.winapi.machine import LiveMachine
 		
 		if not args.target_file and not args.target_user:
@@ -113,7 +113,7 @@ class KerberosCMDHelper:
 				dcip = args.dc_ip
 				if args.dc_ip is None:
 					dcip = machine.get_domain()
-				ks = KerberosSocket( dcip )
+				ks = KerberosClientSocket( dcip )
 				ar = APREPRoast(ks)
 				results = ar.run(targets)
 
