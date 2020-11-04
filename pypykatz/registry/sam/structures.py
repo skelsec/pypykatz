@@ -197,7 +197,6 @@ class USER_ACCOUNT_V:
 		self.homedir_connect = None
 		self.script_path = None
 		self.profile_path = None
-		self.profile_path = None
 		self.workstations = None
 		self.hoursallowed = None
 		self.LM_hash = None
