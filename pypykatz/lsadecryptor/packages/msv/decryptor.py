@@ -373,3 +373,25 @@ class MsvDecryptor(PackageDecryptor):
 				continue
 			
 			self.walk_list(entry_ptr, self.add_entry)
+
+		#self.brute_test()
+	
+	#def brute_test(self):
+	#	from pypykatz.commons.win_datatypes import LUID
+	#	luid_int = 1138792
+	#	luid_bytes = luid_int.to_bytes(8, byteorder='little', signed=False)
+	#	needle_luid = LUID(io.BytesIO(luid_bytes)).value
+	#	offset = 0x70
+	#
+	#	for luid_pos in self.reader.find_all_global(luid_bytes):
+	#		self.reader.move(luid_pos - offset)
+	#		et = self.decryptor_template.list_entry(self.reader).finaltype
+	#		self.reader.move(luid_pos - offset)
+	#		test_ptr = et(self.reader)
+	#		if test_ptr.LocallyUniqueIdentifier == needle_luid:
+	#			print('HIT!')
+	#			entry_ptr = self.decryptor_template.list_entry(self.reader)
+	#			try:
+	#				self.walk_list(test_ptr.Flink, self.add_entry)
+	#			except Exception as e:
+	#				print('ERR! %s' % e)

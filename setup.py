@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 import re
+import platform
 
 VERSIONFILE="pypykatz/_version.py"
 verstrline = open(VERSIONFILE, "rt").read()
@@ -9,6 +10,12 @@ if mo:
     verstr = mo.group(1)
 else:
     raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
+
+ep = {
+	'console_scripts': [
+			'pypykatz = pypykatz.__main__:main',
+		],
+	}
 
 setup(
 	# Application name:
@@ -47,7 +54,7 @@ setup(
 		'minidump>=0.0.13',
 		'minikerberos>=0.2.5',
 		'aiowinreg>=0.0.3',
-		'msldap>=0.3.19',
+		'msldap>=0.3.20',
 		'winsspi>=0.0.9',
 	],
 	
@@ -56,10 +63,5 @@ setup(
 	# Thank you for runing it for everyone.
 	# 
 	# 
-
-	#entry_points={
-	#	'console_scripts': [
-	#		'pypykatz = pypykatz.__main__:main',
-	#	],
-	#}
+	entry_points=ep if platform.system().lower() != 'windows' else {}
 )
