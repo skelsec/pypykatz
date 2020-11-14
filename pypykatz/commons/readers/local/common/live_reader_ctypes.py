@@ -4,8 +4,8 @@ import ctypes
 import enum
 import logging
 
-from .kernel32 import *
-from .psapi import *
+from pypykatz.commons.readers.local.common.kernel32 import *
+from pypykatz.commons.readers.local.common.psapi import *
 
 class WindowsMinBuild(enum.Enum):
 	WIN_XP = 2500
@@ -50,6 +50,7 @@ else:
 	
 PROCESS_QUERY_INFORMATION = 0x0400
 PROCESS_VM_READ = 0x0010
+MAXIMUM_ALLOWED = 33554432
 
 	
 #https://msdn.microsoft.com/en-us/library/windows/desktop/ms683217(v=vs.85).aspx
@@ -76,3 +77,4 @@ def get_lsass_pid():
 			return pid
 			
 	raise Exception('Failed to find lsass.exe')
+	

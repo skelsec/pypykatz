@@ -65,6 +65,8 @@ MEM_IMAGE		 = SEC_IMAGE
 WRITE_WATCH_FLAG_RESET = 0x01
 FILE_MAP_ALL_ACCESS = 0xF001F
 
+PROCESS_DUP_HANDLE = 0x0040
+
 class UserModeHandle (HANDLE):
 	"""
 	Base class for non-kernel handles. Generally this means they are closed
@@ -342,6 +344,14 @@ def GetCurrentProcessId():
 	_GetCurrentProcessId.argtypes = []
 	_GetCurrentProcessId.restype  = DWORD
 	return _GetCurrentProcessId()
+
+# HANDLE WINAPI GetCurrentProcess(void);
+def GetCurrentProcess():
+	##    return 0xFFFFFFFFFFFFFFFFL
+	_GetCurrentProcess = windll.kernel32.GetCurrentProcess
+	_GetCurrentProcess.argtypes = []
+	_GetCurrentProcess.restype  = HANDLE
+	return _GetCurrentProcess()
 
 # BOOL WINAPI QueryFullProcessImageName(
 #   __in	 HANDLE hProcess,

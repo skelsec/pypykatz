@@ -703,6 +703,9 @@ class UNICODE_STRING(Structure):
         ("MaximumLength",   USHORT),
         ("Buffer",          PVOID),
     ]
+    
+    def getString(self):
+        return ctypes.string_at(self.Buffer, self.Length).decode('utf-16-le')
 
 # From MSDN:
 #

