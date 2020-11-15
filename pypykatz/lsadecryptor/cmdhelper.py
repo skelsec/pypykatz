@@ -145,7 +145,6 @@ class LSACMDHelper:
 		if args.module == 'lsa':
 			filename = 'live'
 			try:
-				print( args.method)
 				if args.method == 'procopen':
 					mimi = pypykatz.go_live()
 				elif args.method == 'handledup':

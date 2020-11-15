@@ -111,7 +111,7 @@ def enum_lsass_handles():
 				try:
 					pname = QueryFullProcessImageNameW(dupHandle)
 					if pname.lower().find('lsass.exe') != -1:
-						logger.info('Found open handle to lsass! PID: %s HANDLE: %s' % (pid, hex(syshandle.Handle)))
+						logger.debug('Found open handle to lsass! PID: %s HANDLE: %s' % (pid, hex(syshandle.Handle)))
 						#print('%s : %s' % (pid, pname))
 						lsass_handles.append((pid, dupHandle))
 				except Exception as e:
