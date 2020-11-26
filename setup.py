@@ -54,8 +54,9 @@ setup(
 		'minidump>=0.0.13',
 		'minikerberos>=0.2.5',
 		'aiowinreg>=0.0.3',
-		'msldap>=0.3.20',
+		'msldap>=0.3.22',
 		'winsspi>=0.0.9',
+		'kerberoast>=0.1.4',
 	],
 	
 	# No more conveinent .exe entry point thanks to some idiot who 

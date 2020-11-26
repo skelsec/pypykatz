@@ -183,6 +183,7 @@ class VAULT_VPOL:
 		self.guid3 = None
 		self.key_size = None
 		self.blob = None #encrypted VAULT_VPOL_KEYS
+		self.blobdata = None #encrypted VAULT_VPOL_KEYS
 	
 	@staticmethod
 	def from_bytes(data):
@@ -200,7 +201,8 @@ class VAULT_VPOL:
 		sk.guid2 = GUID(buff).value
 		sk.guid3 = GUID(buff).value
 		sk.key_size = int.from_bytes(buff.read(4), 'little', signed = False)
-		sk.blob = DPAPI_BLOB.from_bytes(buff.read(sk.key_size))
+		sk.blobdata = buff.read(sk.key_size)
+		sk.blob = DPAPI_BLOB.from_bytes(sk.blobdata)
 		
 		return sk
 		
