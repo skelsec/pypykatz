@@ -1,4 +1,6 @@
 from pypykatz.commons.common import UniversalEncoder, hexdump
+import argparse
+import platform
 
 class DPAPICMDHelper:
 	def __init__(self):
@@ -6,10 +8,44 @@ class DPAPICMDHelper:
 		self.keywords = ['dpapi']
 	
 	def add_args(self, parser, live_parser):
-		live_group = live_parser.add_parser('dpapi', help='DPAPI (live) related commands. This will use winAPI to decrypt secrets using the current user context.')
-		live_group.add_argument('cmd', choices=['vpol', 'vcred', 'cred', 'blob', 'securestring','chrome', 'blobfile', 'securestringfile'])
-		live_group.add_argument('data', nargs='*', help='Input data or string to decrypt.')
+
+		live_subcommand_parser = argparse.ArgumentParser(add_help=False)                                                                                                  
+		live_kerberos_subparsers = live_subcommand_parser.add_subparsers(help = 'livedpapicommand')
+		live_kerberos_subparsers.required = True
+		live_kerberos_subparsers.dest = 'livedpapicommand'
 		
+		live_keys_parser = live_kerberos_subparsers.add_parser('keys', help = 'Dump all DPAPI related keys. Aggressively. This takes a while!')
+		live_keys_parser.add_argument('--method', choices = ['lsass', 'registry', 'all'], default = 'all', help= 'Where to look for the keys')
+		live_keys_parser.add_argument('-o', '--outfile', help= 'Output file base name')
+
+		live_vpol_parser = live_kerberos_subparsers.add_parser('vpol', help = 'Decrypting VPOL file with current user context')
+		live_vpol_parser.add_argument('vpolfile', help= 'VPOL file to decrypt')
+
+		live_vcred_parser = live_kerberos_subparsers.add_parser('vcred', help = '')
+		live_vcred_parser.add_argument('vpolfile', help= 'VPOL file to use to decrypt the VCRED file')
+		live_vcred_parser.add_argument('vcredfile', help= 'VCRED file to decrypt')
+		
+		live_cred_parser = live_kerberos_subparsers.add_parser('cred', help = '')
+		live_cred_parser.add_argument('credfile', help= 'CRED file to decrypt')
+
+		
+		live_blob_parser = live_kerberos_subparsers.add_parser('blob', help = '')
+		live_blob_parser.add_argument('blob', help= 'blob string in hex format')
+		
+		live_securestring_parser = live_kerberos_subparsers.add_parser('securestring', help = '')
+		live_securestring_parser.add_argument('securestring', help= 'securestring in hex format')
+		
+		live_chrome_parser = live_kerberos_subparsers.add_parser('chrome', help = '')
+		
+		live_blobfile_parser = live_kerberos_subparsers.add_parser('blobfile', help = '')
+		live_blobfile_parser.add_argument('blobfile', help= 'blob file')
+		
+		live_securestringfile_parser = live_kerberos_subparsers.add_parser('securestringfile', help = '')
+		live_securestringfile_parser.add_argument('securestringfile', help= 'securestring file')
+
+		live_parser.add_parser('dpapi', help='DPAPI (live) related commands. This will use winAPI to decrypt secrets using the current user context.', parents=[live_subcommand_parser])
+
+		#offline
 		dpapi_group = parser.add_parser('dpapi', help='DPAPI (offline) related commands')
 		dpapi_subparsers = dpapi_group.add_subparsers()
 		dpapi_subparsers.required = True
@@ -181,19 +217,37 @@ class DPAPICMDHelper:
 		
 
 	def run_live(self, args):
+		if platform.system().lower() != 'windows':
+			raise Exception('Live commands only work on Windows!')
+
 		from pypykatz.dpapi.dpapi import DPAPI	
 		dpapi = DPAPI(use_winapi=True)
-		if args.cmd == 'cred':
+
+		if args.livedpapicommand == 'keys':
+			from pypykatz.dpapi.dpapi import prepare_dpapi_live	
+			
+			dpapi = prepare_dpapi_live(args.method)
+				
+			if args.outfile is not None:
+				dpapi.dump_pre_keys(args.outfile + '_prekeys')
+				dpapi.dump_masterkeys(args.outfile + '_masterkeys')
+			else:
+				dpapi.dump_pre_keys()
+				dpapi.dump_masterkeys()
+			
+			return
+
+		elif args.livedpapicommand == 'cred':
 			cred_blob = dpapi.decrypt_credential_file(args.credfile)
 			print(cred_blob.to_text())
 				
-		elif args.cmd == 'vpol':
+		elif args.livedpapicommand == 'vpol':
 			data = args.data[0]
 			key1, key2 = dpapi.decrypt_vpol_file(data)
 			print('VPOL key1: %s' % key1.hex())
 			print('VPOL key2: %s' % key2.hex())
 
-		elif args.cmd == 'vcred':
+		elif args.livedpapicommand == 'vcred':
 			vpol_file = args.data[0]
 			vcred_file = args.data[1]
 			key1, key2 = dpapi.decrypt_vpol_file(vpol_file)
@@ -205,29 +259,29 @@ class DPAPICMDHelper:
 						print(hexdump(res[attr][i]))
 
 			
-		elif args.cmd == 'securestring':
+		elif args.livedpapicommand == 'securestring':
 			data = args.data[0]
 			dec_sec = dpapi.decrypt_securestring_hex(data)
 			print('HEX: %s' % dec_sec.hex())
 			print('STR: %s' % dec_sec.decode('utf-16-le'))
 
-		elif args.cmd == 'securestringfile':
+		elif args.livedpapicommand == 'securestringfile':
 			data = args.data[0]
 			dec_sec = dpapi.decrypt_securestring_file(data)
 			print('HEX: %s' % dec_sec.hex())
 			print('STR: %s' % dec_sec.decode('utf-16-le'))
 
-		elif args.cmd == 'blob':
+		elif args.livedpapicommand == 'blob':
 			data = args.data[0]
 			dec_sec = dpapi.decrypt_securestring_hex(data)
 			print('HEX: %s' % dec_sec.hex())
 
-		elif args.cmd == 'blobfile':
+		elif args.livedpapicommand == 'blobfile':
 			data = args.data[0]
 			dec_sec = dpapi.decrypt_securestring_file(data)
 			print('HEX: %s' % dec_sec.hex())
 			
-		elif args.cmd == 'chrome':
+		elif args.livedpapicommand == 'chrome':
 			res = dpapi.decrypt_all_chrome_live()
 			for file_path, url, user, password in res:
 				print('file: %s user: %s pass: %s url: %s' % (file_path, user, password, url))		

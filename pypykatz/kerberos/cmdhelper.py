@@ -4,6 +4,7 @@
 #  Tamas Jos (@skelsec)
 #
 
+import argparse
 from pypykatz import logging
 
 """
@@ -14,18 +15,54 @@ This is a wrapper for minikerberos and winsspi packages
 class KerberosCMDHelper:
 	def __init__(self):
 		self.live_keywords = ['kerberos']
-		self.keywords = []
+		self.keywords = ['kerberos']
 		
 	def add_args(self, parser, live_parser):
-		live_group = live_parser.add_parser('kerberos', help='Kerberos (live) related commands')
-		live_group.add_argument('-c','--credential', help= 'Credential to be used, if omitted it will use teh credentials of the current user. If specified, it will try to impersonate the user. (requires the the target user has a session on the local computer)')
-		live_group.add_argument('--dc-ip', help= 'IP address or hostname of the LDAP server. Optional. If omitted will use registry to check for the DC.')
-		live_group.add_argument('cmd', choices=['spnroast', 'asreproast'])
-		live_group.add_argument('-o','--out-file', help= 'File to stroe results in')
-		live_group.add_argument('-t','--target-file', help= 'List of target users to roast. One user per line. Format: asreproast->username spnroast->domain/username')
-		live_group.add_argument('-u','--target-user', action='append', help='Target users to roast in <realm>/<username> format or just the <username>, if -r is specified. Can be stacked.')
-		live_group.add_argument('-r','--realm', help= 'Kerberos Realm.')
+		live_subcommand_parser = argparse.ArgumentParser(add_help=False)
+		live_kerberos_subparsers = live_subcommand_parser.add_subparsers(help = 'live_kerberos_module')
+		live_kerberos_subparsers.required = True
+		live_kerberos_subparsers.dest = 'live_kerberos_module'
 		
+		live_roast_parser = live_kerberos_subparsers.add_parser('roast', help = 'Automatically run spnroast and asreproast')
+		live_tgs_parser = live_kerberos_subparsers.add_parser('tgs', help = 'Request a TGS ticket for a given service')
+
+		live_parser.add_parser('kerberos', help = 'Kerberos related commands', parents=[live_subcommand_parser])
+
+		#offline part
+		kerberos_group = parser.add_parser('kerberos', help='Kerberos related commands')
+		kerberos_subparsers = kerberos_group.add_subparsers()
+		kerberos_subparsers.required = True
+		kerberos_subparsers.dest = 'kerberos_module'
+
+		tgt_parser = kerberos_subparsers.add_parser('tgt', help = 'Fetches a TGT for a given user')
+		tgt_parser.add_argument('url', help='user credentials in URL format')
+		tgt_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
+
+		tgs_parser = kerberos_subparsers.add_parser('tgs', help = 'Fetches a TGS for a given service/user')
+		tgs_parser.add_argument('url', help='user credentials in URL format')
+		tgs_parser.add_argument('spn', help='SPN string of the service to request the ticket for')
+		tgs_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
+
+		brute_parser = kerberos_subparsers.add_parser('brute', help = 'Bruteforcing usernames')
+		brute_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
+		brute_parser.add_argument('address', help='Kerberos server IP/hostname')
+		brute_parser.add_argument('targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
+
+		asreproast_parser = kerberos_subparsers.add_parser('asreproast', help='asreproast')
+		asreproast_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
+		asreproast_parser.add_argument('address', help='Kerberos server IP/hostname')
+		asreproast_parser.add_argument('targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
+
+		spnroast_parser = kerberos_subparsers.add_parser('spnroast', help = 'kerberoast/spnroast')
+		spnroast_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
+		spnroast_parser.add_argument('url', help='user credentials in URL format')
+		spnroast_parser.add_argument('targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
+
+		s4u_parser = kerberos_subparsers.add_parser('s4u', help = 'Gets an S4U2proxy ticket impersonating given user')
+		s4u_parser.add_argument('url', help='user credentials in URL format')
+		s4u_parser.add_argument('spn', help='SPN string of the service to request the ticket for')
+		s4u_parser.add_argument('targetuser', help='')
+		s4u_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
 		
 	def execute(self, args):
 		if len(self.keywords) > 0 and args.command in self.keywords:
@@ -43,94 +80,51 @@ class KerberosCMDHelper:
 		from minikerberos.common.target import KerberosTarget
 		from pypykatz.commons.winapi.machine import LiveMachine
 		
-		if not args.target_file and not args.target_user:
-			raise Exception('No targets loaded! Either -u or -t MUST be specified!')
+		if args.live_kerberos_module == 'roast':
+			pass
+			#tgt_parser.add_argument('url', help='user credentials in URL format')
+			#tgt_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
 		
-		machine = LiveMachine()
-		
-		realm = args.realm
-		if not args.realm:
-			realm = machine.get_domain()
-		
-		if args.cmd in ['spnroast','asreproast']:
-			targets = []
-			if args.target_file:
-				with open(args.target_file, 'r') as f:
-					for line in f:
-						line = line.strip()
-						domain = None
-						username = None
-						if line.find('/') != -1:
-							#we take for granted that usernames do not have the char / in them!
-							domain, username = line.split('/')
-						else:
-							username = line
-
-						if args.realm:
-							domain = args.realm
-						else:
-							if domain is None:
-								raise Exception('Realm is missing. Either use the -r parameter or store the target users in <realm>/<username> format in the targets file')
-						
-						target = KerberosTarget()
-						target.username = username
-						target.domain = domain
-						targets.append(target)
-						
-			if args.target_user:
-				for user in args.target_user:
-					domain = None
-					username = None
-					if user.find('/') != -1:
-						#we take for granted that usernames do not have the char / in them!
-						domain, username = user.split('/')
-					else:
-						username = user
-
-					if args.realm:
-						domain = args.realm
-					else:
-						if domain is None:
-							raise Exception('Realm is missing. Either use the -r parameter or store the target users in <realm>/<username> format in the targets file')
-					target = KerberosTarget()
-					target.username = username
-					target.domain = domain
-					targets.append(target)
-			
-			results = []
-			errors = []
-			if args.cmd  == 'spnroast':
-				for spn_name in targets:
-					ksspi = KerberoastSSPI()
-					try:
-						ticket = ksspi.get_ticket_for_spn(spn_name.get_formatted_pname())
-					except Exception as e:
-						errors.append((spn_name, e))
-						continue
-					results.append(TGSTicket2hashcat(ticket))
-				
-			elif args.cmd == 'asreproast':
-				dcip = args.dc_ip
-				if args.dc_ip is None:
-					dcip = machine.get_domain()
-				ks = KerberosClientSocket( dcip )
-				ar = APREPRoast(ks)
-				results = ar.run(targets)
-
-				
-			if args.out_file:
-				with open(args.out_file, 'w') as f:
-					for thash in results:
-						f.write(thash + '\r\n')
-
-			else:
-				for thash in results:
-					print(thash)
-			
-			for err in errors:
-				print('Failed to get ticket for %s. Reason: %s' % (err[0], err[1]))
-
-			logging.info('SSPI based Kerberoast complete')
+		elif args.live_kerberos_module == 'tgs':
+			pass
+			#tgt_parser.add_argument('url', help='user credentials in URL format')
+			#tgt_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
 		
 	def run(self, args):
 		raise NotImplementedError('Platform independent kerberos not implemented!')
+
+		if args.kerberos_module == 'tgt':
+			pass
+			#tgt_parser.add_argument('url', help='user credentials in URL format')
+			#tgt_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
+		
+		elif args.kerberos_module == 'tgs':
+			pass
+			#tgs_parser.add_argument('url', help='user credentials in URL format')
+			#tgs_parser.add_argument('spn', help='SPN string of the service to request the ticket for')
+			#tgs_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
+		
+		elif args.kerberos_module == 'brute':
+			pass
+			#brute_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
+			#brute_parser.add_argument('address', help='Kerberos server IP/hostname')
+			#brute_parser.add_argument('targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
+
+		elif args.kerberos_module == 'asreproast':
+			pass
+			#asreproast_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
+			#asreproast_parser.add_argument('address', help='Kerberos server IP/hostname')
+			#asreproast_parser.add_argument('targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
+		
+		elif args.kerberos_module == 'spnroast':
+			pass
+			#spnroast_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
+			#spnroast_parser.add_argument('url', help='user credentials in URL format')
+			#spnroast_parser.add_argument('targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
+
+		elif args.kerberos_module == 's4u':
+			pass
+			#s4u_parser.add_argument('url', help='user credentials in URL format')
+			#s4u_parser.add_argument('spn', help='SPN string of the service to request the ticket for')
+			#s4u_parser.add_argument('targetuser', help='')
+			#s4u_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')

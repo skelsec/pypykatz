@@ -135,18 +135,6 @@ def main():
 				lm = LiveMachine()
 				user = lm.get_current_user()
 				print(str(user))
-			
-		elif args.module == 'dpapikeys':
-			from pypykatz.dpapi.dpapi import prepare_dpapi_live	
-			
-			dpapi = prepare_dpapi_live(args.method)
-				
-			if args.outfile is not None:
-				dpapi.dump_pre_keys(args.outfile + '_prekeys')
-				dpapi.dump_masterkeys(args.outfile + '_masterkeys')
-			else:
-				dpapi.dump_pre_keys()
-				dpapi.dump_masterkeys()	
 	
 	###### Sake
 	elif args.command == 'sake':
