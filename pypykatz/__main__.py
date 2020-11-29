@@ -66,6 +66,7 @@ def main():
 
 	version_group = subparsers.add_parser('version', help='version')
 	banner_group = subparsers.add_parser('banner', help='banner')
+	logo_group = subparsers.add_parser('logo', help='logo')
 	
 	####### PARSING ARGUMENTS
 	
@@ -135,12 +136,6 @@ def main():
 				lm = LiveMachine()
 				user = lm.get_current_user()
 				print(str(user))
-	
-	###### Sake
-	elif args.command == 'sake':
-		from pypykatz.utils.sake.sake import Sake
-		s = Sake()
-		print(s.draw())
 
 	elif args.command == 'version':
 		from pypykatz._version import __version__
@@ -149,6 +144,11 @@ def main():
 	elif args.command == 'banner':
 		from pypykatz._version import __banner__
 		print(__banner__)
+	
+	elif args.command == 'logo':
+		from pypykatz._version import __logo__, __logo_color__
+		print(__logo_color__)
+		print(__logo__)
 					
 	
 	

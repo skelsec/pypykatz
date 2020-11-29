@@ -46,22 +46,36 @@ class DPAPICMDHelper:
 		live_parser.add_parser('dpapi', help='DPAPI (live) related commands. This will use winAPI to decrypt secrets using the current user context.', parents=[live_subcommand_parser])
 
 		#offline
+		prekey_subcommand_parser = argparse.ArgumentParser(add_help=False)
+		dpapi_prekey_subparsers = prekey_subcommand_parser.add_subparsers(help = 'prekey_command')
+		dpapi_prekey_subparsers.required = True
+		dpapi_prekey_subparsers.dest = 'prekey_command'
+
+		prekey_passwd = dpapi_prekey_subparsers.add_parser('password', help = 'Generate prekeys from password')
+		prekey_passwd.add_argument('sid', help='SID of the user')
+		prekey_passwd.add_argument('password', help='Password of the user')
+		prekey_passwd.add_argument('-o', '--out-file', help= 'Key candidates will be stored in this file. Easier to handle this way in the masterkeyfil command.')
+
+		prekey_nt = dpapi_prekey_subparsers.add_parser('nt', help = 'Generate prekeys from NT hash')
+		prekey_nt.add_argument('sid', help='SID of the user')
+		prekey_nt.add_argument('nthash', help='NT hash of the user')
+		prekey_nt.add_argument('-o', '--out-file', help= 'Key candidates will be stored in this file. Easier to handle this way in the masterkeyfil command.')
+
+		prekey_registry = dpapi_prekey_subparsers.add_parser('registry', help = 'Generate prekeys from registry secrets')
+		prekey_registry.add_argument('system', help='SYSTEM hive')
+		prekey_registry.add_argument('sam', help='SAM hive')
+		prekey_registry.add_argument('security', help='SECURITY hive')
+		prekey_registry.add_argument('-o', '--out-file', help= 'Key candidates will be stored in this file. Easier to handle this way in the masterkeyfil command.')
+		
+
 		dpapi_group = parser.add_parser('dpapi', help='DPAPI (offline) related commands')
 		dpapi_subparsers = dpapi_group.add_subparsers()
 		dpapi_subparsers.required = True
 		dpapi_subparsers.dest = 'dapi_module'
 
-		dpapi_prekey_group = dpapi_subparsers.add_parser('prekey', help='Obtains keys for masterkey decryption. Sources can be registry hives file or plaintext password and SID or NT hash and SID')
-		dpapi_prekey_group.add_argument('keysource', choices=['registry', 'password', 'nt'], help = 'Define what type of input you want to parse')
-		dpapi_prekey_group.add_argument('-o', '--out-file', help= 'Key candidates will be stored in this file. Easier to handle this way in the masterkeyfil command.')
-		dpapi_prekey_group.add_argument('--system', help= '[registry] Path to SYSTEM hive file')
-		dpapi_prekey_group.add_argument('--sam', help= '[registry] Path to SAM hive file')
-		dpapi_prekey_group.add_argument('--security', help= '[registry] Path to SECURITY hive file')
-		dpapi_prekey_group.add_argument('--sid', help= '[password and nt] Key used for decryption. The usage of this key depends on what other params you supply.')
-		dpapi_prekey_group.add_argument('--password', help= '[password] Plaintext passowrd of the user. Used together with SID')
-		dpapi_prekey_group.add_argument('--nt', help= '[nt] NT hash of the user password. Used together with SID. !!Succsess not guaranteed!!')
+		dpapi_subparsers.add_parser('prekey', help = 'Prekey generation', parents=[prekey_subcommand_parser])
 		
-		dpapi_minidump_group = dpapi_subparsers.add_parser('minidump', help='Dump masterkeys from minidump file')
+		dpapi_minidump_group = dpapi_subparsers.add_parser('minidump', help='Dump masterkeys and prekeys from minidump file')
 		dpapi_minidump_group.add_argument('minidumpfile', help='path to minidump file')
 		dpapi_minidump_group.add_argument('-o', '--out-file', help= 'Master and Backup keys will be stored in this file. Easier to handle in other commands.')
 
@@ -106,7 +120,7 @@ class DPAPICMDHelper:
 		dpapi = DPAPI()
 
 		if args.dapi_module == 'prekey':
-			if args.keysource == 'registry':
+			if args.prekey_command == 'registry':
 				if args.system is None:
 					raise Exception('SYSTEM hive must be specified for registry parsing!')
 				if args.sam is None and args.security is None:
@@ -114,7 +128,7 @@ class DPAPICMDHelper:
 
 				dpapi.get_prekeys_form_registry_files(args.system, args.security, args.sam)
 			
-			elif args.keysource == 'password':
+			elif args.prekey_command == 'password':
 				if args.sid is None:
 					raise Exception('SID must be specified for generating prekey in this mode')
 				
@@ -125,7 +139,7 @@ class DPAPICMDHelper:
 
 				dpapi.get_prekeys_from_password(args.sid, password = pw)
 			
-			elif args.keysource == 'nt':
+			elif args.prekey_command == 'nt':
 				if args.nt is None or args.sid is None:
 					raise Exception('NT hash and SID must be specified for generating prekey in this mode')
 
@@ -141,6 +155,7 @@ class DPAPICMDHelper:
 			
 			dpapi.get_masterkeys_from_lsass_dump(args.minidumpfile)
 			dpapi.dump_masterkeys(args.out_file)
+			dpapi.dump_pre_keys(args.out_file + '_prekeys')
 
 
 		elif args.dapi_module == 'masterkey':

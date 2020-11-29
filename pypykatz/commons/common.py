@@ -3,10 +3,17 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
+import traceback
 import enum
 import json
 import datetime
 from minidump.streams.SystemInfoStream import PROCESSOR_ARCHITECTURE
+
+def geterr(err:Exception):
+	t = str(err) + '\r\n'
+	for line in traceback.format_tb(err.__traceback__):
+		t += line
+	return t
 
 class KatzSystemArchitecture(enum.Enum):
 	X86 = enum.auto()

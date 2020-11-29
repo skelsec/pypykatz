@@ -305,6 +305,20 @@ class DPAPI:
 			for dc in katz.logon_sessions[x].dpapi_creds:
 				logger.debug('[DPAPI] Got masterkey for GUID %s via minidump LSASS method' % dc.key_guid)
 				self.masterkeys[dc.key_guid] = bytes.fromhex(dc.masterkey)
+
+		for package,_,_, nthex, lmhex, shahex, _,_,_, plaintext in katz.logon_sessions[x].to_grep_rows():
+				if package.lower() == 'dpapi':
+					continue
+				
+				sids = [katz.logon_sessions[x].sid]
+				for sid in sids:
+					if plaintext is not None:
+						self.get_prekeys_from_password(sid, password = plaintext, nt_hash = None)
+					if nthex is not None and len(nthex) == 32:
+						self.get_prekeys_from_password(sid, password = None, nt_hash = nthex)
+				
+				if shahex is not None and len(shahex) == 40:
+					self.prekeys[bytes.fromhex(shahex)] = 1
 				
 		return self.masterkeys
 			
