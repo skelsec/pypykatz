@@ -60,7 +60,11 @@ class LDAPCMDHelper:
 		la.url = args.url
 		la.verbose = args.verbose
 		if args.commands is not None and len(args.commands) > 0:
-			la.commands = args.commands
+			la.commands = []
+			if args.commands[0] != 'login':
+				la.commands.append('login')
+			for command in args.commands:
+				la.commands.append(command)
 
 		asyncio.run(amain(la))
 		
