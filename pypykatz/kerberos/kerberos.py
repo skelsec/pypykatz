@@ -344,7 +344,7 @@ async def live_roast(outfile = None):
 		asrep_users = []
 		errors = []
 		results = []
-		res = []
+		final_results = []
 		spn_cnt = 0
 		asrep_cnt = 0
 		async for user, err in client.get_all_knoreq_users():
@@ -378,7 +378,7 @@ async def live_roast(outfile = None):
 						asrep_cnt += 1
 						f.write(thash + '\r\n')
 		else:
-			res += results
+			final_results += results
 
 		results = []
 		for cred in spn_users:
@@ -401,9 +401,9 @@ async def live_roast(outfile = None):
 					f.write(thash + '\r\n')
 		
 		else:
-			res += results
+			final_results += results
 
-		return res, errors, None
+		return final_results, errors, None
 
 	except Exception as e:
 		return None, None, e

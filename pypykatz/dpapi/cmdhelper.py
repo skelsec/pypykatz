@@ -43,6 +43,8 @@ class DPAPICMDHelper:
 		live_securestringfile_parser = live_kerberos_subparsers.add_parser('securestringfile', help = '')
 		live_securestringfile_parser.add_argument('securestringfile', help= 'securestring file')
 
+		live_wifi_parser = live_kerberos_subparsers.add_parser('wifi', help = '')
+
 		live_parser.add_parser('dpapi', help='DPAPI (live) related commands. This will use winAPI to decrypt secrets using the current user context.', parents=[live_subcommand_parser])
 
 		#offline
@@ -257,16 +259,13 @@ class DPAPICMDHelper:
 			print(cred_blob.to_text())
 				
 		elif args.livedpapicommand == 'vpol':
-			data = args.data[0]
-			key1, key2 = dpapi.decrypt_vpol_file(data)
+			key1, key2 = dpapi.decrypt_vpol_file(args.vpolfile)
 			print('VPOL key1: %s' % key1.hex())
 			print('VPOL key2: %s' % key2.hex())
 
 		elif args.livedpapicommand == 'vcred':
-			vpol_file = args.data[0]
-			vcred_file = args.data[1]
-			key1, key2 = dpapi.decrypt_vpol_file(vpol_file)
-			res = dpapi.decrypt_vcrd_file(vcred_file)
+			key1, key2 = dpapi.decrypt_vpol_file(args.vpolfile)
+			res = dpapi.decrypt_vcrd_file(args.vcredfile)
 			for attr in res:
 				for i in range(len(res[attr])):
 					if res[attr][i] is not None:
@@ -275,8 +274,7 @@ class DPAPICMDHelper:
 
 			
 		elif args.livedpapicommand == 'securestring':
-			data = args.data[0]
-			dec_sec = dpapi.decrypt_securestring_hex(data)
+			dec_sec = dpapi.decrypt_securestring_hex(args.securestring)
 			print('HEX: %s' % dec_sec.hex())
 			print('STR: %s' % dec_sec.decode('utf-16-le'))
 
@@ -287,16 +285,19 @@ class DPAPICMDHelper:
 			print('STR: %s' % dec_sec.decode('utf-16-le'))
 
 		elif args.livedpapicommand == 'blob':
-			data = args.data[0]
-			dec_sec = dpapi.decrypt_securestring_hex(data)
+			dec_sec = dpapi.decrypt_securestring_hex(args.blob)
 			print('HEX: %s' % dec_sec.hex())
 
 		elif args.livedpapicommand == 'blobfile':
-			data = args.data[0]
-			dec_sec = dpapi.decrypt_securestring_file(data)
+			dec_sec = dpapi.decrypt_securestring_file(args.blobfile)
 			print('HEX: %s' % dec_sec.hex())
 			
 		elif args.livedpapicommand == 'chrome':
 			res = dpapi.decrypt_all_chrome_live()
-			for file_path, url, user, password in res:
-				print('file: %s user: %s pass: %s url: %s' % (file_path, user, password, url))		
+			for file_path, url, user, password in res['logins']:
+				print('file: %s user: %s pass: %s url: %s' % (file_path, user, password, url))
+			for file_path, host_key, name, path, value in res['cookies']:
+				print('file: %s host_key: %s name: %s path: %s value: %s' % (file_path, host_key, name, path, value))
+
+		elif args.livedpapicommand == 'wifi':
+			dpapi.decrypt_wifi_live()

