@@ -407,3 +407,21 @@ async def live_roast(outfile = None):
 
 	except Exception as e:
 		return None, None, e
+
+def purge(luid):
+	from pypykatz.commons.winapi.processmanipulator import ProcessManipulator
+	from pypykatz.kerberos.functiondefs.netsecapi import LsaConnectUntrusted, LsaLookupAuthenticationPackage, KERB_PURGE_TKT_CACHE_REQUEST, LsaCallAuthenticationPackage, LsaDeregisterLogonProcess, LsaRegisterLogonProcess
+	
+	if luid == 0:
+		lsa_handle = LsaConnectUntrusted()
+	else:
+		pm = ProcessManipulator()
+		pm.getsystem()
+		lsa_handle = LsaRegisterLogonProcess('HELLOOO')
+		pm.dropsystem()
+
+	package_id = LsaLookupAuthenticationPackage(lsa_handle, 'kerberos')
+	message = KERB_PURGE_TKT_CACHE_REQUEST()
+	message_ret, status_ret = LsaCallAuthenticationPackage(lsa_handle, package_id, message)
+	print(status_ret)
+	LsaDeregisterLogonProcess(lsa_handle)

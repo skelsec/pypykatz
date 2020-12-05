@@ -20,6 +20,9 @@
 	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 	FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 	DEALINGS IN THE SOFTWARE.
+
+	SkelSec Note: the original code has been modified to work using questionable crypto libraries by myself who is not a cryptographer.
+	              I'd say "use it with suspicion" but in truth: just do not use this at all outside of this library.
 """
 
 from pypykatz.crypto.aes import AESModeOfOperationCTR, AESModeOfOperationECB, Counter

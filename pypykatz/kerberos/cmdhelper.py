@@ -12,7 +12,8 @@ import traceback
 from pypykatz.commons.common import geterr
 from pypykatz.kerberos.kerberos import get_TGS, get_TGT, generate_targets, \
 	brute, asreproast, spnroast, s4u, process_keytab, list_ccache, \
-	del_ccache, roast_ccache, ccache_to_kirbi, kirbi_to_ccache, parse_kirbi
+	del_ccache, roast_ccache, ccache_to_kirbi, kirbi_to_ccache, parse_kirbi, \
+	purge
 
 """
 Kerberos is not part of pypykatz directly. 
@@ -36,6 +37,9 @@ class KerberosCMDHelper:
 		live_tgs_parser = live_kerberos_subparsers.add_parser('tgs', help = 'Request a TGS ticket for a given service')
 		live_tgs_parser.add_argument('spn', help='SPN string of the service to request the ticket for')
 		live_tgs_parser.add_argument('-o','--out-file', help='Output ccache file name')
+
+		live_purge_parser = live_kerberos_subparsers.add_parser('purge', help = 'Purge all tickets for the current user OR for a given luid')
+		live_purge_parser.add_argument('--luid', default = '0', help='LUID of the user whose tickets to be purged. Use "0x" if you specify a hex value!')
 
 		live_parser.add_parser('kerberos', help = 'Kerberos related commands', parents=[live_subcommand_parser])
 
@@ -152,6 +156,15 @@ class KerberosCMDHelper:
 			pass
 			#tgt_parser.add_argument('url', help='user credentials in URL format')
 			#tgt_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
+
+		elif args.live_kerberos_module == 'purge':
+			luid = args.luid
+			if luid.startswith('0x') is True:
+				luid = int(luid, 16)
+			luid=int(luid)
+
+			purge(luid)
+			print('Tickets purged!')
 		
 	def run(self, args):
 		#raise NotImplementedError('Platform independent kerberos not implemented!')
