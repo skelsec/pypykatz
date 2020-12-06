@@ -1,6 +1,11 @@
 import enum
-from ctypes import byref, Structure, c_char, c_buffer, string_at, windll, c_void_p, c_uint32, POINTER, c_wchar_p, WinError, sizeof, c_int32, c_uint16, create_string_buffer
+import io
+from ctypes import c_byte, c_wchar, c_char_p, addressof, c_ubyte, c_int16, c_longlong, cast, byref, Structure, c_char, c_buffer, string_at, windll, c_void_p, c_uint32, POINTER, c_wchar_p, WinError, sizeof, c_int32, c_uint16, create_string_buffer
 
+BYTE        = c_ubyte
+UCHAR       = BYTE
+SHORT       = c_int16
+USHORT      = c_uint16
 LONG        = c_int32
 LPWSTR      = c_wchar_p
 LPVOID      = c_void_p
@@ -15,6 +20,8 @@ PNTSTATUS   = POINTER(NTSTATUS)
 USHORT      = c_uint16
 ULONG       = c_uint32
 PULONG      = POINTER(ULONG)
+LARGE_INTEGER = c_longlong
+PLARGE_INTEGER = POINTER(LARGE_INTEGER)
 
 
 LSA_OPERATIONAL_MODE = ULONG
@@ -22,6 +29,41 @@ PLSA_OPERATIONAL_MODE = POINTER(LSA_OPERATIONAL_MODE)
 
 
 ERROR_SUCCESS                       = 0
+
+
+class SID:
+	def __init__(self):
+		self.Revision = None
+		self.SubAuthorityCount = None
+		self.IdentifierAuthority = None
+		self.SubAuthority = []
+
+	def __str__(self):
+		t = 'S-1-'
+		if self.IdentifierAuthority < 2**32:
+			t += str(self.IdentifierAuthority)
+		else:
+			t += '0x' + self.IdentifierAuthority.to_bytes(6, 'big').hex().upper().rjust(12, '0')
+		for i in self.SubAuthority:
+			t += '-' + str(i)
+		return t
+
+	@staticmethod
+	def from_ptr(ptr):
+		if ptr == None:
+			return None
+		data = string_at(ptr, 8)
+		buff = io.BytesIO(data)
+		sid = SID()
+		sid.Revision = int.from_bytes(buff.read(1), 'little', signed = False)
+		sid.SubAuthorityCount = int.from_bytes(buff.read(1), 'little', signed = False)
+		sid.IdentifierAuthority = int.from_bytes(buff.read(6), 'big', signed = False)
+
+		data = string_at(ptr+8, sid.SubAuthorityCount*4)
+		buff = io.BytesIO(data)
+		for _ in range(sid.SubAuthorityCount):
+			sid.SubAuthority.append(int.from_bytes(buff.read(4), 'little', signed = False))
+		return sid
 
 class KERB_PROTOCOL_MESSAGE_TYPE(enum.Enum):
     KerbDebugRequestMessage = 0
@@ -59,20 +101,25 @@ class KERB_PROTOCOL_MESSAGE_TYPE(enum.Enum):
     
 class LUID(Structure):
 	_fields_ = [
-		("LowPart",	 DWORD),
-		("HighPart",	LONG),
+		("LowPart",  DWORD),
+		("HighPart", LONG),
 	]
 
+	def to_int(self):
+		return LUID.luid_to_int(self)
+
+	@staticmethod
+	def luid_to_int(luid):
+		return (luid.HighPart << 32) + luid.LowPart
+
+	@staticmethod
+	def from_int(i):
+		luid = LUID()
+		luid.HighPart = i >> 32
+		luid.LowPart = i & 0xFFFFFFFF
+		return luid
+
 PLUID = POINTER(LUID)
-
-def luid_to_int(luid):
-	return (luid.HighPart << 32) + luid.LowPart
-
-def int_to_luid(i):
-	luid = LUID()
-	luid.HighPart = i >> 32
-	luid.LowPart = i & 0xFFFFFFFF
-	return luid
 
 class LSA_STRING(Structure):
 	_fields_ = [
@@ -80,7 +127,101 @@ class LSA_STRING(Structure):
 		("MaximumLength",   USHORT),
 		("Buffer",          POINTER(c_char)),
 	]
+	def to_string(self):
+		return string_at(self.Buffer, self.MaximumLength).decode()
+
 PLSA_STRING = POINTER(LSA_STRING)
+
+class LSA_UNICODE_STRING(Structure):
+	_fields_ = [
+		("Length",          USHORT),
+		("MaximumLength",   USHORT),
+		("Buffer",          POINTER(c_char)),
+	]
+
+	@staticmethod
+	def from_string(s):
+		s = s.encode('utf-16-le')
+		lus = LSA_UNICODE_STRING()
+		lus.Buffer = create_string_buffer(s, len(s))
+		lus.MaximumLength = len(s)+1
+		lus.Length = len(s)
+		return lus
+
+	def to_string(self):
+		return string_at(self.Buffer, self.MaximumLength).decode('utf-16-le').replace('\x00','')
+
+PLSA_UNICODE_STRING = POINTER(LSA_UNICODE_STRING)
+
+class LSA_LAST_INTER_LOGON_INFO(Structure):
+	_fields_ = [
+		("LastSuccessfulLogon", LARGE_INTEGER),
+		("LastFailedLogon",	LARGE_INTEGER),
+		("FailedAttemptCountSinceLastSuccessfulLogon", ULONG)
+	]
+	def to_dict(self):
+		return {
+			"LastSuccessfulLogon" : self.LastSuccessfulLogon,
+			"LastFailedLogon" : self.LastFailedLogon,
+			"FailedAttemptCountSinceLastSuccessfulLogon" : self.FailedAttemptCountSinceLastSuccessfulLogon
+		}
+PLSA_LAST_INTER_LOGON_INFO = POINTER(LSA_LAST_INTER_LOGON_INFO)
+
+class SECURITY_LOGON_SESSION_DATA(Structure):
+	_fields_ = [
+		("Size",                  ULONG),
+		("LogonId",               LUID),
+		("UserName",              LSA_UNICODE_STRING),
+		("LogonDomain",           LSA_UNICODE_STRING),
+		("AuthenticationPackage", LSA_UNICODE_STRING),
+		("LogonType",             ULONG),
+		("Session",               ULONG),
+		("Sid",                   PVOID), # PSID
+		("LogonTime",             LARGE_INTEGER),
+		("LogonServer",           LSA_UNICODE_STRING),
+		("DnsDomainName",         LSA_UNICODE_STRING),
+		("Upn",                   LSA_UNICODE_STRING),
+		("UserFlags",             ULONG),
+		("LastLogonInfo",         LSA_LAST_INTER_LOGON_INFO),
+		("LogonScript",           LSA_UNICODE_STRING),
+		("ProfilePath",           LSA_UNICODE_STRING),
+		("HomeDirectory",         LSA_UNICODE_STRING),
+		("HomeDirectoryDrive",    LSA_UNICODE_STRING),
+		("LogoffTime",            LARGE_INTEGER),
+		("KickOffTime",           LARGE_INTEGER),
+		("PasswordLastSet",       LARGE_INTEGER),
+		("PasswordCanChange",     LARGE_INTEGER),
+		("PasswordMustChange",    LARGE_INTEGER),
+	]
+
+	def to_dict(self):
+		return {
+			"LogonId":               self.LogonId.to_int(),
+			"UserName":              self.UserName.to_string(),
+			"LogonDomain":           self.LogonDomain.to_string(),
+			"AuthenticationPackage": self.AuthenticationPackage.to_string(),
+			"LogonType":             self.LogonType,
+			"Session":               self.Session,
+			"Sid":                   str(SID.from_ptr(self.Sid)), #PVOID), # PSID
+			"LogonTime":             self.LogonTime,
+			"LogonServer":           self.LogonServer.to_string(),
+			"DnsDomainName":         self.DnsDomainName.to_string(),
+			"Upn":                   self.Upn.to_string(),
+			"UserFlags":             self.UserFlags,
+			"LastLogonInfo":         self.LastLogonInfo.to_dict(),
+			"LogonScript":           self.LogonScript.to_string(),
+			"ProfilePath":           self.ProfilePath.to_string(),
+			"HomeDirectory":         self.HomeDirectory.to_string(),
+			"HomeDirectoryDrive":    self.HomeDirectoryDrive.to_string(),
+			"LogoffTime":            self.LogoffTime,
+			"KickOffTime":           self.KickOffTime,
+			"PasswordLastSet":       self.PasswordLastSet,
+			"PasswordCanChange":     self.PasswordCanChange,
+			"PasswordMustChange":    self.PasswordMustChange,
+		}
+
+PSECURITY_LOGON_SESSION_DATA = POINTER(SECURITY_LOGON_SESSION_DATA)      
+
 
 class KERB_PURGE_TKT_CACHE_REQUEST(Structure):
 	_fields_ = [
@@ -92,11 +233,85 @@ class KERB_PURGE_TKT_CACHE_REQUEST(Structure):
 
 	def __init__(self, logonid = 0, servername=None, realname = None):
 		if isinstance(logonid, int):
-			logonid = int_to_luid(logonid)
+			logonid = LUID.from_int(logonid)
 		
 		super(KERB_PURGE_TKT_CACHE_REQUEST, self).__init__(KERB_PROTOCOL_MESSAGE_TYPE.KerbPurgeTicketCacheMessage.value, logonid)
 
-class KERB_TICKET_CACHE_INFO_EX2(Structure):
+class KERB_TICKET_CACHE_INFO(Structure):
+	_fields_ = [
+		("ServerName", LSA_UNICODE_STRING),
+		("RealmName",  LSA_UNICODE_STRING),
+		("StartTime",  LARGE_INTEGER),
+		("EndTime",    LARGE_INTEGER),
+		("RenewTime",  LARGE_INTEGER), 
+		("EncryptionType", LONG),    
+		("TicketFlags", ULONG)      
+	]
+
+	def to_dict(self):
+		return {
+			"ServerName" : self.ServerName.to_string(),
+			"RealmName" : self.RealmName.to_string(),
+			"StartTime" : self.StartTime,
+			"EndTime" : self.EndTime,
+			"RenewTime" : self.RenewTime,
+			"EncryptionType" : self.EncryptionType,
+			"TicketFlags" : self.TicketFlags,
+		}
+PKERB_TICKET_CACHE_INFO = POINTER(KERB_TICKET_CACHE_INFO)
+
+class KERB_CRYPTO_KEY(Structure):
+	_fields_ = [
+		("KeyType", LONG),
+		("Length",  ULONG),
+		("Value",   PVOID), #PUCHAR
+	]
+
+	def to_dict(self):
+		return {
+			'KeyType' : self.KeyType,
+			'Key' : string_at(self.Value, self.Length)
+		}
+			
+PKERB_CRYPTO_KEY = POINTER(KERB_CRYPTO_KEY)
+  
+class KERB_EXTERNAL_NAME(Structure):
+	_fields_ = [
+		("NameType", SHORT), 
+		("NameCount", USHORT),        
+		("Names", LSA_UNICODE_STRING) #LIST!!!! not implemented!
+	]		
+PKERB_EXTERNAL_NAME = POINTER(KERB_EXTERNAL_NAME)
+
+class KERB_EXTERNAL_TICKET(Structure):
+	_fields_ = [
+		("ServiceName" ,         PVOID), #PKERB_EXTERNAL_NAME
+		("TargetName" ,          PVOID), #PKERB_EXTERNAL_NAME
+		("ClientName" ,          PVOID), #PKERB_EXTERNAL_NAME
+		("DomainName" ,          LSA_UNICODE_STRING),
+		("TargetDomainName" ,    LSA_UNICODE_STRING),
+		("AltTargetDomainName" , LSA_UNICODE_STRING),
+		("SessionKey" ,          KERB_CRYPTO_KEY),
+		("TicketFlags" ,         ULONG),
+		("Flags" ,               ULONG),
+		("KeyExpirationTime" ,   LARGE_INTEGER),
+		("StartTime" ,           LARGE_INTEGER),
+		("EndTime" ,             LARGE_INTEGER),
+		("RenewUntil" ,          LARGE_INTEGER),
+		("TimeSkew" ,            LARGE_INTEGER),
+		("EncodedTicketSize" ,   ULONG),
+		("EncodedTicket" ,       PVOID)
+	]
+
+	def get_data(self):
+		return {
+			'Key' : self.Key.to_dict(),
+			'Ticket' : string_at(self.EncodedTicket, self.EncodedTicketSize)
+		}
+
+PKERB_EXTERNAL_TICKET = KERB_EXTERNAL_TICKET
+
+class KERB_QUERY_TKT_CACHE_REQUEST(Structure):
 	_fields_ = [
 		("MessageType", DWORD),
 		("LogonId",     LUID),
@@ -104,9 +319,107 @@ class KERB_TICKET_CACHE_INFO_EX2(Structure):
 
 	def __init__(self, logonid = 0):
 		if isinstance(logonid, int):
-			logonid = int_to_luid(logonid)
+			logonid = LUID.from_int(logonid)
 		
-		super(KERB_TICKET_CACHE_INFO_EX2, self).__init__(KERB_PROTOCOL_MESSAGE_TYPE.KerbQueryTicketCacheExMessage.value, logonid)
+		super(KERB_QUERY_TKT_CACHE_REQUEST, self).__init__(KERB_PROTOCOL_MESSAGE_TYPE.KerbQueryTicketCacheMessage.value, logonid)
+
+class KERB_QUERY_TKT_CACHE_RESPONSE_SIZE(Structure):
+	_fields_ = [
+		("MessageType", DWORD),
+		("CountOfTickets", ULONG),
+	]
+class KERB_QUERY_TKT_CACHE_RESPONSE(Structure):
+	_fields_ = [
+		("MessageType", DWORD),
+		("CountOfTickets", ULONG),
+		("Tickets", KERB_TICKET_CACHE_INFO) #array of tickets!!
+	]
+
+class KERB_RETRIEVE_TKT_REQUEST(Structure):
+	_fields_ = [
+		("MessageType",       DWORD),
+		("LogonId",           LUID),
+		("TargetName",        LSA_UNICODE_STRING),        
+		("TicketFlags",       ULONG),
+		("CacheOptions",      ULONG),
+		("EncryptionType",    LONG),
+		("CredentialsHandle", PVOID), #SecHandle
+	]
+
+	def __init__(self, targetname, ticketflags = 0x0, cacheoptions = 0x8, encryptiontype = 0x0, logonid = 0):
+		if isinstance(logonid, int):
+			logonid = LUID.from_int(logonid)
+		
+		super(KERB_RETRIEVE_TKT_REQUEST, self).__init__(
+			KERB_PROTOCOL_MESSAGE_TYPE.KerbRetrieveEncodedTicketMessage.value, 
+			logonid,
+			LSA_UNICODE_STRING.from_string(targetname),
+			ticketflags,
+			cacheoptions,
+			encryptiontype,
+			None,
+		)
+
+def retrieve_tkt_helper(targetname, logonid = 0, ticketflags = 0x0, cacheoptions = 0x8, encryptiontype = 0x0, temp_offset = 0):
+	#targetname = targetname.encode('utf-16-le')
+	if isinstance(logonid, int):
+		logonid = LUID.from_int(logonid)
+	
+	targetname_len_alloc = len(targetname)*2 + 2
+	class KERB_RETRIEVE_TKT_REQUEST(Structure):
+		_fields_ = [
+			("MessageType",       DWORD),
+			("LogonId",           LUID),
+			("TargetName",        LSA_UNICODE_STRING),        
+			("TicketFlags",       ULONG),
+			("CacheOptions",      ULONG),
+			("EncryptionType",    LONG),
+			("CredentialsHandle", PVOID), #SecHandle
+			("TargetNameData",    (c_byte * targetname_len_alloc)), 
+		]
+	
+	req = KERB_RETRIEVE_TKT_REQUEST()
+	req.MessageType = KERB_PROTOCOL_MESSAGE_TYPE.KerbRetrieveEncodedTicketMessage.value
+	req.LogonId = logonid
+	req.TicketFlags = ticketflags
+	req.CacheOptions = cacheoptions
+	req.EncryptionType = encryptiontype
+	req.CredentialsHandle = None
+	x = targetname.encode('utf-16-le') + b'\x00\x00'
+	req.TargetNameData = (c_byte * len(x))(*x) 
+
+	targetname_enc = targetname.encode('utf-16-le')
+	struct_end = addressof(req) + sizeof(req)
+	targetname_start = struct_end - targetname_len_alloc
+	targetname_start_padded = targetname_start - (targetname_start % sizeof(c_void_p))
+
+	#lsa_target = LSA_UNICODE_STRING.from_string(targetname)
+	lsa_target = LSA_UNICODE_STRING()
+	lsa_target.Length = len(targetname_enc)#targetname_len
+	lsa_target.MaximumLength = targetname_len_alloc
+	lsa_target.Buffer = cast(targetname_start_padded,  POINTER(c_char))
+
+	req.TargetName = lsa_target
+
+
+
+	print(targetname_start_padded)
+	print(lsa_target.Buffer.contents)
+	print(lsa_target.to_string())
+	print(string_at(targetname_start_padded, lsa_target.MaximumLength))
+
+	#print(struct_end)
+	#print(targetname_start_padded)
+	#print(string_at(targetname_start_padded, len(targetname_enc)))
+	#print()
+	#print(bytes(req))
+	
+	return req
+
+class KERB_RETRIEVE_TKT_RESPONSE(Structure):
+	_fields_ = [
+		("Ticket",       KERB_EXTERNAL_TICKET),
+	]
 
 # Invalid handle value is -1 casted to void pointer.
 try:
@@ -236,27 +549,94 @@ def LsaCallAuthenticationPackage(lsa_handle, package_id, message):
 	_LsaCallAuthenticationPackage.restype = DWORD
 	_LsaCallAuthenticationPackage.errcheck = LsaRaiseIfNotErrorSuccess
 	
-	message = bytes(message)
+	if not isinstance(message, Structure):
+		message = bytes(message)
+		message_len = len(message)
+	else:
+		message_len = len(bytes(message))
+
 	return_msg_p = c_void_p()
 	return_msg_len = ULONG(0)
 	return_status = NTSTATUS(INVALID_HANDLE_VALUE)
-	_LsaCallAuthenticationPackage(lsa_handle, package_id, message, len(message), return_msg_p,  byref(return_msg_len), byref(return_status))
+	_LsaCallAuthenticationPackage(lsa_handle, package_id, byref(message), message_len, byref(return_msg_p),  byref(return_msg_len), byref(return_status))
 
-	#print(return_msg_p)
-	return_msg = string_at(return_msg_p, return_msg_len.value)
-	# TODOTODODOTOAORGAFAF
-	#LsaFreeReturnBuffer(return_msg_p)
-	#print(return_msg)
-	#print(return_status)
+	return_msg = b''
+	free_ptr = None #please free this pointer when the parsing is finished on the upper levels using LsaFreeReturnBuffer. Problem is that if we call LsaFreeReturnBuffer here then the parsing will fail if the message has nested structures with pointers involved because by the time of parsing those pointers will be freed. sad.
+	if return_msg_len.value > 0:
+		return_msg = string_at(return_msg_p, return_msg_len.value)
+		free_ptr = return_msg_p
+		#LsaFreeReturnBuffer(return_msg_p)
 
-	return return_msg, return_status
+
+	return return_msg, return_status.value, free_ptr
+
+# https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-lsaenumeratelogonsessions
+def LsaEnumerateLogonSessions():
+	#logon_process_name == This string must not exceed 127 bytes.
+	_LsaEnumerateLogonSessions = windll.Secur32.LsaEnumerateLogonSessions
+	_LsaEnumerateLogonSessions.argtypes = [PULONG , PVOID] #PLUID
+	_LsaEnumerateLogonSessions.restype = NTSTATUS
+	_LsaEnumerateLogonSessions.errcheck = LsaRaiseIfNotErrorSuccess
+
+	LogonSessionCount = ULONG(0)
+	start_luid = c_void_p()
+	_LsaEnumerateLogonSessions(byref(LogonSessionCount), byref(start_luid))
+
+	class LUIDList(Structure):
+		_fields_ = [
+			("LogonIds",     LUID*LogonSessionCount.value),
+		]
+	PLUIDList = POINTER(LUIDList)
+	
+	res_luids = []
+	pluids = cast(start_luid, PLUIDList)
+	for luid in pluids.contents.LogonIds:
+		res_luids.append(luid.to_int())
+
+	LsaFreeReturnBuffer(start_luid)
+
+	return res_luids
+
+# https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-lsagetlogonsessiondata
+def LsaGetLogonSessionData(luid):
+	#logon_process_name == This string must not exceed 127 bytes.
+	_LsaGetLogonSessionData = windll.Secur32.LsaGetLogonSessionData
+	_LsaGetLogonSessionData.argtypes = [PLUID, PVOID] #PSECURITY_LOGON_SESSION_DATA
+	_LsaGetLogonSessionData.restype = NTSTATUS
+	_LsaGetLogonSessionData.errcheck = LsaRaiseIfNotErrorSuccess
+
+	if isinstance(luid, int):
+		luid = LUID.from_int(luid)
+	
+	ppsessiondata = c_void_p()
+	_LsaGetLogonSessionData(byref(luid), byref(ppsessiondata))
+	
+	psessiondata = cast(ppsessiondata, PSECURITY_LOGON_SESSION_DATA)
+	sessiondata = psessiondata.contents.to_dict()
+	LsaFreeReturnBuffer(ppsessiondata)
+
+	return sessiondata
+
+
 
 if __name__ == '__main__':
+	
+	#luids = LsaEnumerateLogonSessions()
+	#for luid in luids:
+	#	try:
+	#		session_info = LsaGetLogonSessionData(luid)
+	#		print(session_info)
+	#	except Exception as e:
+	#		import traceback
+	#		traceback.print_exc()
+	#		print(e)
 	from pypykatz.commons.readers.local.common.privileges import RtlAdjustPrivilege
 	from pypykatz.commons.winapi.processmanipulator import ProcessManipulator
 	pm = ProcessManipulator()
 	
-	lsa_handle = LsaConnectUntrusted()
+
+
+	#lsa_handle = LsaConnectUntrusted()
 	
 	#package_id = LsaLookupAuthenticationPackage(lsa_handle, 'kerberos')
 	#print(package_id)
@@ -264,10 +644,72 @@ if __name__ == '__main__':
 	#LsaCallAuthenticationPackage(lsa_handle, package_id, message)
 	#LsaDeregisterLogonProcess(lsa_handle)
 
-	pm.getsystem()
-	lsa_handle_2 = LsaRegisterLogonProcess('HELLOOO')
-	pm.dropsystem()
+	import sys
 
-	print(lsa_handle_2)
-	LsaDeregisterLogonProcess(lsa_handle_2)
+	#retrieve_tkt_helper('almaaaaasaaaa')
+
+	#sys.exit()
+
+	pm.getsystem()
+	lsa_handle = LsaRegisterLogonProcess('HELLOOO')
+	pm.dropsystem()
+	package_id = LsaLookupAuthenticationPackage(lsa_handle, 'kerberos')
+	
+	luids = LsaEnumerateLogonSessions()
+	for luid in luids:
+		message = KERB_QUERY_TKT_CACHE_REQUEST(luid)
+		ret_msg, ret_status, free_prt = LsaCallAuthenticationPackage(lsa_handle, package_id, message)
+
+		#print('ret_msg %s' % ret_msg)
+		#print('ret_status %s' % ret_status)
+		input()
+
+		if ret_status == 0:
+			x = KERB_QUERY_TKT_CACHE_RESPONSE_SIZE.from_buffer_copy(ret_msg)
+			print(x.CountOfTickets)
+
+			class KERB_QUERY_TKT_CACHE_RESPONSE_ARRAY(Structure):
+				_fields_ = [
+					("MessageType", DWORD),
+					("CountOfTickets", ULONG),
+					("Tickets", KERB_TICKET_CACHE_INFO * x.CountOfTickets)
+				]
+			
+			response = KERB_QUERY_TKT_CACHE_RESPONSE_ARRAY.from_buffer_copy(ret_msg)
+			for ticket in response.Tickets:
+				ticket_data = ticket.to_dict()
+				print(ticket_data)
+
+				if ticket_data['ServerName'].find('krbt') == -1:
+					#target = '%s@%s' % (ticket_data['ServerName'], ticket_data['RealmName'])
+					target = ticket_data['ServerName']
+					#target = 'victim@test.corp'
+					#msg_ret_ticket = KERB_RETRIEVE_TKT_REQUEST(target, logonid=luid)
+					msg_ret_ticket = retrieve_tkt_helper(target, logonid=luid) #KERB_RETRIEVE_TKT_REQUEST(target)
+
+
+					ret_msg2, ret_status2, free_prt2 = LsaCallAuthenticationPackage(lsa_handle, package_id, msg_ret_ticket)
+
+					print('ret_msg2 %s' % ret_msg2)
+					print('ret_status3 %s' % ret_status2)
+					if ret_status2 != 0:
+						print(WinError(LsaNtStatusToWinError(ret_status2)))
+						continue
+						raise WinError(LsaNtStatusToWinError(ret_status2))
+					if len(ret_msg2) > 0:
+						
+						aaa = KERB_QUERY_TKT_CACHE_RESPONSE_SIZE.from_buffer_copy(ret_msg2)
+						print(aaa.to_dict())
+
+
+						LsaFreeReturnBuffer(free_prt2)
+
+			LsaFreeReturnBuffer(free_prt)
+
+
+	
+	#
+
+	#print(lsa_handle_2)
+	#LsaDeregisterLogonProcess(lsa_handle_2)
 	

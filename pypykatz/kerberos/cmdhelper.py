@@ -4,6 +4,7 @@
 #  Tamas Jos (@skelsec)
 #
 
+import platform
 import argparse
 import asyncio
 from pypykatz import logger
@@ -12,8 +13,9 @@ import traceback
 from pypykatz.commons.common import geterr
 from pypykatz.kerberos.kerberos import get_TGS, get_TGT, generate_targets, \
 	brute, asreproast, spnroast, s4u, process_keytab, list_ccache, \
-	del_ccache, roast_ccache, ccache_to_kirbi, kirbi_to_ccache, parse_kirbi, \
-	purge
+	del_ccache, roast_ccache, ccache_to_kirbi, kirbi_to_ccache, parse_kirbi
+
+
 
 """
 Kerberos is not part of pypykatz directly. 
@@ -40,6 +42,8 @@ class KerberosCMDHelper:
 
 		live_purge_parser = live_kerberos_subparsers.add_parser('purge', help = 'Purge all tickets for the current user OR for a given luid')
 		live_purge_parser.add_argument('--luid', default = '0', help='LUID of the user whose tickets to be purged. Use "0x" if you specify a hex value!')
+
+		live_sessions_parser = live_kerberos_subparsers.add_parser('sessions', help = 'List user sessions. Needs elevated privileges.')
 
 		live_parser.add_parser('kerberos', help = 'Kerberos related commands', parents=[live_subcommand_parser])
 
@@ -135,14 +139,11 @@ class KerberosCMDHelper:
 			
 			
 	def run_live(self, args):
-		from winsspi.sspi import KerberoastSSPI
-		from minikerberos.common.utils import TGSTicket2hashcat, TGTTicket2hashcat
-		from minikerberos.security import APREPRoast
-		from minikerberos.network.clientsocket import KerberosClientSocket
-		from minikerberos.common.target import KerberosTarget
-		from pypykatz.commons.winapi.machine import LiveMachine
-		from pypykatz.kerberos.kerberos import live_roast
-
+		if platform.system() != 'Windows':
+			print('[-]This command only works on Windows!')
+			return
+		
+		from pypykatz.kerberos.kerberoslive import live_roast, purge, list_sessions #get_tgt, get_tgs
 		if args.live_kerberos_module == 'roast':
 			res, errors, err = asyncio.run(live_roast(args.out_file))
 			if err is not None:
@@ -165,6 +166,9 @@ class KerberosCMDHelper:
 
 			purge(luid)
 			print('Tickets purged!')
+
+		elif args.live_kerberos_module == 'sessions':
+			list_sessions()
 		
 	def run(self, args):
 		#raise NotImplementedError('Platform independent kerberos not implemented!')
