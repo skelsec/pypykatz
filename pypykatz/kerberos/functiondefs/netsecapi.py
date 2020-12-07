@@ -1,6 +1,7 @@
 import enum
 import io
 from ctypes import c_byte, c_wchar, c_char_p, addressof, c_ubyte, c_int16, c_longlong, cast, byref, Structure, c_char, c_buffer, string_at, windll, c_void_p, c_uint32, POINTER, c_wchar_p, WinError, sizeof, c_int32, c_uint16, create_string_buffer
+from pypykatz.commons.common import hexdump
 
 BYTE        = c_ubyte
 UCHAR       = BYTE
@@ -176,7 +177,7 @@ class SECURITY_LOGON_SESSION_DATA(Structure):
 		("AuthenticationPackage", LSA_UNICODE_STRING),
 		("LogonType",             ULONG),
 		("Session",               ULONG),
-		("Sid",                   PVOID), # PSID
+		("Sid",                   PVOID),
 		("LogonTime",             LARGE_INTEGER),
 		("LogonServer",           LSA_UNICODE_STRING),
 		("DnsDomainName",         LSA_UNICODE_STRING),
@@ -305,7 +306,7 @@ class KERB_EXTERNAL_TICKET(Structure):
 
 	def get_data(self):
 		return {
-			'Key' : self.Key.to_dict(),
+			'Key' : self.SessionKey.to_dict(),
 			'Ticket' : string_at(self.EncodedTicket, self.EncodedTicketSize)
 		}
 
@@ -335,6 +336,65 @@ class KERB_QUERY_TKT_CACHE_RESPONSE(Structure):
 		("Tickets", KERB_TICKET_CACHE_INFO) #array of tickets!!
 	]
 
+class KERB_SUBMIT_TKT_REQUEST(Structure):
+	_fields_ = [
+		("MessageType",     DWORD),
+		("LogonId",         LUID),
+		("TicketFlags",     ULONG),
+		("Key",             KERB_CRYPTO_KEY),
+		("KerbCredSize",    ULONG),
+		("KerbCredOffset" , ULONG)
+	]
+
+KERB_SUBMIT_TKT_REQUEST_OFFSET = sizeof(KERB_SUBMIT_TKT_REQUEST())
+
+def submit_tkt_helper(ticket_data, logonid=0):
+	print(ticket_data[:0x10])
+	offset = KERB_SUBMIT_TKT_REQUEST_OFFSET - 4
+	if isinstance(logonid, int):
+		logonid = LUID.from_int(logonid)
+
+	class KERB_SUBMIT_TKT_REQUEST(Structure):
+		_pack_ = 4
+		_fields_ = [
+			("MessageType",     DWORD),
+			("LogonId",         LUID),
+			("TicketFlags",     ULONG),
+			#("KeyType", LONG),
+			("Length",  ULONG),
+			("Value",   PVOID), #PUCHAR
+			("KerbCredSize",    ULONG),
+			("KerbCredOffset" , ULONG),
+			("TicketData"     , c_byte * len(ticket_data))
+		]
+
+	req = KERB_SUBMIT_TKT_REQUEST()
+	req.MessageType = KERB_PROTOCOL_MESSAGE_TYPE.KerbSubmitTicketMessage.value
+	req.LogonId = logonid
+	req.TicketFlags = 0
+	req.Key = KERB_CRYPTO_KEY() #empty key
+	req.KerbCredSize = len(ticket_data)
+	#req.KerbCredOffset = 
+	req.TicketData = (c_byte * len(ticket_data))(*ticket_data)
+
+
+	struct_end = addressof(req) + sizeof(req)
+	print('struct_end %s' % hex(struct_end))
+	ticketdata_start = struct_end - len(ticket_data)
+	targetname_start_padded = ticketdata_start - (ticketdata_start % sizeof(c_void_p))
+	print('targetname_start_padded %s' % hex(targetname_start_padded))
+	print('offset %s' % offset)
+	print('len(ticket_data) %s' % len(ticket_data))
+	req.KerbCredOffset = offset #targetname_start_padded
+
+	print(hexdump(string_at(addressof(req), sizeof(req)), start = addressof(req)))
+	print()
+	print(hexdump(string_at(addressof(req) + req.KerbCredOffset, 10 )))
+	if string_at(addressof(req) + req.KerbCredOffset, req.KerbCredSize) != ticket_data:
+		print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+
+	return req
+
 class KERB_RETRIEVE_TKT_REQUEST(Structure):
 	_fields_ = [
 		("MessageType",       DWORD),
@@ -361,11 +421,19 @@ class KERB_RETRIEVE_TKT_REQUEST(Structure):
 		)
 
 def retrieve_tkt_helper(targetname, logonid = 0, ticketflags = 0x0, cacheoptions = 0x8, encryptiontype = 0x0, temp_offset = 0):
-	#targetname = targetname.encode('utf-16-le')
+	# Rubeus helped me here with the info that the "targetname" structure's internal pointer 
+	# must be pointing to the bottom of the actual KERB_RETRIEVE_TKT_REQUEST otherwise you will get a generic error
+	# Sadly that wasn't completely enough because <insert vauge reasons here>. So I introduced an extra pointer to serve
+	# as a platform-independent padding between the oringinal structure and the actual targetname bytes.
+	#
+	# For reference:
+	# https://github.com/GhostPack/Rubeus/blob/master/Rubeus/lib/LSA.cs
+
 	if isinstance(logonid, int):
 		logonid = LUID.from_int(logonid)
 	
-	targetname_len_alloc = len(targetname)*2 + 2
+	targetname_enc = targetname.encode('utf-16-le') + b'\x00\x00'
+	targetname_len_alloc = len(targetname_enc)
 	class KERB_RETRIEVE_TKT_REQUEST(Structure):
 		_fields_ = [
 			("MessageType",       DWORD),
@@ -375,6 +443,7 @@ def retrieve_tkt_helper(targetname, logonid = 0, ticketflags = 0x0, cacheoptions
 			("CacheOptions",      ULONG),
 			("EncryptionType",    LONG),
 			("CredentialsHandle", PVOID), #SecHandle
+			("UNK",               PVOID), #I put this here otherwise there is an error "Invalid parameter". Probably padding issue but  I dunno
 			("TargetNameData",    (c_byte * targetname_len_alloc)), 
 		]
 	
@@ -384,35 +453,27 @@ def retrieve_tkt_helper(targetname, logonid = 0, ticketflags = 0x0, cacheoptions
 	req.TicketFlags = ticketflags
 	req.CacheOptions = cacheoptions
 	req.EncryptionType = encryptiontype
-	req.CredentialsHandle = None
-	x = targetname.encode('utf-16-le') + b'\x00\x00'
-	req.TargetNameData = (c_byte * len(x))(*x) 
+	req.TargetNameData = (c_byte * len(targetname_enc))(*targetname_enc) 
 
-	targetname_enc = targetname.encode('utf-16-le')
 	struct_end = addressof(req) + sizeof(req)
 	targetname_start = struct_end - targetname_len_alloc
 	targetname_start_padded = targetname_start - (targetname_start % sizeof(c_void_p))
 
-	#lsa_target = LSA_UNICODE_STRING.from_string(targetname)
 	lsa_target = LSA_UNICODE_STRING()
-	lsa_target.Length = len(targetname_enc)#targetname_len
+	lsa_target.Length = len(targetname.encode('utf-16-le'))
 	lsa_target.MaximumLength = targetname_len_alloc
 	lsa_target.Buffer = cast(targetname_start_padded,  POINTER(c_char))
 
 	req.TargetName = lsa_target
 
-
-
-	print(targetname_start_padded)
-	print(lsa_target.Buffer.contents)
-	print(lsa_target.to_string())
-	print(string_at(targetname_start_padded, lsa_target.MaximumLength))
-
-	#print(struct_end)
 	#print(targetname_start_padded)
-	#print(string_at(targetname_start_padded, len(targetname_enc)))
-	#print()
-	#print(bytes(req))
+	#print(lsa_target.Buffer.contents)
+	##print(lsa_target.to_string())
+	#print(string_at(targetname_start_padded, lsa_target.MaximumLength))
+	#print('a %s' % addressof(req))
+	#print('s %s' % sizeof(req))
+	#hd = hexdump(string_at(addressof(req), sizeof(req)), start = addressof(req))
+	#print(hd)
 	
 	return req
 
@@ -431,6 +492,9 @@ except TypeError:
 		INVALID_HANDLE_VALUE = 0xFFFFFFFFFFFFFFFF
 	else:
 		raise
+
+def get_lsa_error(ret_status):
+	return WinError(LsaNtStatusToWinError(ret_status))
 
 def RaiseIfZero(result, func = None, arguments = ()):
 	"""
@@ -618,6 +682,48 @@ def LsaGetLogonSessionData(luid):
 	return sessiondata
 
 
+def get_ticket_cache_info_helper(lsa_handle, package_id, luid, throw = True):
+	result = []
+	message = KERB_QUERY_TKT_CACHE_REQUEST(luid)
+	ret_msg, ret_status, free_prt = LsaCallAuthenticationPackage(lsa_handle, package_id, message)
+
+	if ret_status != 0:
+		if throw is True:
+			raise WinError(LsaNtStatusToWinError(ret_status))
+		return result
+
+	response_preparse = KERB_QUERY_TKT_CACHE_RESPONSE_SIZE.from_buffer_copy(ret_msg)
+	if response_preparse.CountOfTickets > 0:
+		#new class
+		class KERB_QUERY_TKT_CACHE_RESPONSE_ARRAY(Structure):
+			_fields_ = [
+				("MessageType", DWORD),
+				("CountOfTickets", ULONG),
+				("Tickets", KERB_TICKET_CACHE_INFO * response_preparse.CountOfTickets)
+			]
+				
+		response = KERB_QUERY_TKT_CACHE_RESPONSE_ARRAY.from_buffer_copy(ret_msg)
+		for ticket in response.Tickets:
+			result.append(ticket.to_dict())
+	
+		LsaFreeReturnBuffer(free_prt)
+	
+	return result
+
+def extract_ticket(lsa_handle, package_id, luid, target_name):
+	message = retrieve_tkt_helper(target_name, logonid=luid)
+	ret_msg, ret_status, free_ptr = LsaCallAuthenticationPackage(lsa_handle, package_id, message)
+
+	ticket = {}
+	if ret_status != 0:
+		raise WinError(LsaNtStatusToWinError(ret_status))
+	if len(ret_msg) > 0:					
+		resp = KERB_RETRIEVE_TKT_RESPONSE.from_buffer_copy(ret_msg)
+		ticket = resp.Ticket.get_data()
+		LsaFreeReturnBuffer(free_ptr)
+
+	return ticket
+
 
 if __name__ == '__main__':
 	
@@ -646,6 +752,7 @@ if __name__ == '__main__':
 
 	import sys
 
+	#print(LsaGetLogonSessionData(0))
 	#retrieve_tkt_helper('almaaaaasaaaa')
 
 	#sys.exit()
@@ -655,59 +762,16 @@ if __name__ == '__main__':
 	pm.dropsystem()
 	package_id = LsaLookupAuthenticationPackage(lsa_handle, 'kerberos')
 	
-	luids = LsaEnumerateLogonSessions()
-	for luid in luids:
-		message = KERB_QUERY_TKT_CACHE_REQUEST(luid)
-		ret_msg, ret_status, free_prt = LsaCallAuthenticationPackage(lsa_handle, package_id, message)
+	with open('test_9.kirbi', 'rb') as f:
+		ticket_data = f.read()
 
-		#print('ret_msg %s' % ret_msg)
-		#print('ret_status %s' % ret_status)
-		input()
-
-		if ret_status == 0:
-			x = KERB_QUERY_TKT_CACHE_RESPONSE_SIZE.from_buffer_copy(ret_msg)
-			print(x.CountOfTickets)
-
-			class KERB_QUERY_TKT_CACHE_RESPONSE_ARRAY(Structure):
-				_fields_ = [
-					("MessageType", DWORD),
-					("CountOfTickets", ULONG),
-					("Tickets", KERB_TICKET_CACHE_INFO * x.CountOfTickets)
-				]
-			
-			response = KERB_QUERY_TKT_CACHE_RESPONSE_ARRAY.from_buffer_copy(ret_msg)
-			for ticket in response.Tickets:
-				ticket_data = ticket.to_dict()
-				print(ticket_data)
-
-				if ticket_data['ServerName'].find('krbt') == -1:
-					#target = '%s@%s' % (ticket_data['ServerName'], ticket_data['RealmName'])
-					target = ticket_data['ServerName']
-					#target = 'victim@test.corp'
-					#msg_ret_ticket = KERB_RETRIEVE_TKT_REQUEST(target, logonid=luid)
-					msg_ret_ticket = retrieve_tkt_helper(target, logonid=luid) #KERB_RETRIEVE_TKT_REQUEST(target)
-
-
-					ret_msg2, ret_status2, free_prt2 = LsaCallAuthenticationPackage(lsa_handle, package_id, msg_ret_ticket)
-
-					print('ret_msg2 %s' % ret_msg2)
-					print('ret_status3 %s' % ret_status2)
-					if ret_status2 != 0:
-						print(WinError(LsaNtStatusToWinError(ret_status2)))
-						continue
-						raise WinError(LsaNtStatusToWinError(ret_status2))
-					if len(ret_msg2) > 0:
-						
-						aaa = KERB_QUERY_TKT_CACHE_RESPONSE_SIZE.from_buffer_copy(ret_msg2)
-						print(aaa.to_dict())
-
-
-						LsaFreeReturnBuffer(free_prt2)
-
-			LsaFreeReturnBuffer(free_prt)
-
-
+	luid = 0
+	message = submit_tkt_helper(ticket_data, logonid=luid)
+	ret_msg, ret_status, free_ptr = LsaCallAuthenticationPackage(lsa_handle, package_id, message)
 	
+	print(get_lsa_error(ret_status))
+	print(ret_msg)
+
 	#
 
 	#print(lsa_handle_2)
