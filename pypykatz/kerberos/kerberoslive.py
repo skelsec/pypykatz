@@ -7,7 +7,6 @@ from minikerberos.security import APREPRoast
 from minikerberos.network.clientsocket import KerberosClientSocket
 from minikerberos.common.target import KerberosTarget
 from winsspi.sspi import KerberoastSSPI, SSPI, SSPIModule, SSPIResult
-from winsspi.common.function_defs import SECPKG_CRED, ISC_REQ
 from winsspi.common.gssapi.asn1_structs  import InitialContextToken
 from winacl.functions.highlevel import get_logon_info
 
@@ -34,7 +33,8 @@ from pypykatz.kerberos.functiondefs.netsecapi import LsaConnectUntrusted, \
 	LsaLookupAuthenticationPackage, KERB_PURGE_TKT_CACHE_REQUEST, LsaCallAuthenticationPackage, \
 	LsaDeregisterLogonProcess, LsaRegisterLogonProcess, LsaEnumerateLogonSessions, \
 	LsaGetLogonSessionData, LsaFreeReturnBuffer, retrieve_tkt_helper, KERB_RETRIEVE_TKT_RESPONSE, \
-	get_lsa_error, get_ticket_cache_info_helper, extract_ticket, submit_tkt_helper
+	get_lsa_error, get_ticket_cache_info_helper, extract_ticket, submit_tkt_helper, \
+	AcquireCredentialsHandle, InitializeSecurityContext, SECPKG_CRED, ISC_REQ, SEC_E
 
 from pypykatz.kerberos.functiondefs.advapi32 import OpenProcessToken,  GetTokenInformation_tokenstatistics
 from pypykatz.kerberos.functiondefs.kernel32 import GetCurrentProcessId, OpenProcess, CloseHandle, MAXIMUM_ALLOWED
@@ -220,32 +220,41 @@ def get_tgt():
 
 def get_tgs(target):
 	#target = ''
-	sspi = SSPI(SSPIModule.KERBEROS)
-	sspi._get_credentials(None, target, flags = SECPKG_CRED.BOTH)
-	res, data = sspi._init_ctx(target, flags = ISC_REQ.DELEGATE | ISC_REQ.MUTUAL_AUTH)
-	if res == SSPIResult.OK or res == SSPIResult.CONTINUE:
+	ctx = AcquireCredentialsHandle(None, 'kerberos', target, SECPKG_CRED.OUTBOUND)
+	res, ctx, data, outputflags, expiry = InitializeSecurityContext(
+		ctx, 
+		target, 
+		token = None, 
+		ctx = ctx, 
+		flags = ISC_REQ.DELEGATE | ISC_REQ.MUTUAL_AUTH | ISC_REQ.ALLOCATE_MEMORY
+	)
+	
+	
+	if res == SEC_E.OK or res == SEC_E.CONTINUE_NEEDED:
 		#key_data = sspi._get_session_key()
 		kl = KerberosLive()
 		raw_ticket = kl.export_ticketdata_target(0, target)
 		key = Key(raw_ticket['Key']['KeyType'], raw_ticket['Key']['Key'])
 		import pprint
 		token = InitialContextToken.load(data[0][1])
+		#print(token)
 		ticket = AP_REQ(token.native['innerContextToken']).native
-		
+		#pprint.pprint(ticket)
 		cipher = _enctype_table[ticket['authenticator']['etype']]
 		dec_authenticator = cipher.decrypt(key, 11, ticket['authenticator']['cipher'])
 		authenticator = Authenticator.load(dec_authenticator).native
 		if authenticator['cksum']['cksumtype'] != 0x8003:
 			raise Exception('Checksum not good :(')
 		
-		print(authenticator)
+		#print(authenticator)
 		checksum_data = AuthenticatorChecksum.from_bytes(authenticator['cksum']['checksum'])
 		if ChecksumFlags.GSS_C_DELEG_FLAG not in checksum_data.flags:
 			raise Exception('delegation flag not set!')
 
-		print(authenticator['cksum']) #==0x8003
-		print(authenticator['authorization-data'][0]['ad-data'])
-		AS_REP.load()
+		#print(checksum_data.delegation_data)
+		cred = KRB_CRED.load(checksum_data.delegation_data)
+		#print(cred.native)
+		pprint.pprint(cred.native)
 		#pprint.pprint(ticket['authenticator'])
 		
 	
