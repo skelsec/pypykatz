@@ -349,7 +349,6 @@ class KERB_SUBMIT_TKT_REQUEST(Structure):
 KERB_SUBMIT_TKT_REQUEST_OFFSET = sizeof(KERB_SUBMIT_TKT_REQUEST())
 
 def submit_tkt_helper(ticket_data, logonid=0):
-	print(ticket_data[:0x10])
 	offset = KERB_SUBMIT_TKT_REQUEST_OFFSET - 4
 	if isinstance(logonid, int):
 		logonid = LUID.from_int(logonid)
@@ -378,20 +377,20 @@ def submit_tkt_helper(ticket_data, logonid=0):
 	req.TicketData = (c_byte * len(ticket_data))(*ticket_data)
 
 
-	struct_end = addressof(req) + sizeof(req)
-	print('struct_end %s' % hex(struct_end))
-	ticketdata_start = struct_end - len(ticket_data)
-	targetname_start_padded = ticketdata_start - (ticketdata_start % sizeof(c_void_p))
-	print('targetname_start_padded %s' % hex(targetname_start_padded))
-	print('offset %s' % offset)
-	print('len(ticket_data) %s' % len(ticket_data))
+	#struct_end = addressof(req) + sizeof(req)
+	#print('struct_end %s' % hex(struct_end))
+	#ticketdata_start = struct_end - len(ticket_data)
+	#targetname_start_padded = ticketdata_start - (ticketdata_start % sizeof(c_void_p))
+	#print('targetname_start_padded %s' % hex(targetname_start_padded))
+	#print('offset %s' % offset)
+	#print('len(ticket_data) %s' % len(ticket_data))
 	req.KerbCredOffset = offset #targetname_start_padded
 
-	print(hexdump(string_at(addressof(req), sizeof(req)), start = addressof(req)))
-	print()
-	print(hexdump(string_at(addressof(req) + req.KerbCredOffset, 10 )))
-	if string_at(addressof(req) + req.KerbCredOffset, req.KerbCredSize) != ticket_data:
-		print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+	#print(hexdump(string_at(addressof(req), sizeof(req)), start = addressof(req)))
+	#print()
+	#print(hexdump(string_at(addressof(req) + req.KerbCredOffset, 10 )))
+	#if string_at(addressof(req) + req.KerbCredOffset, req.KerbCredSize) != ticket_data:
+	#	print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
 	return req
 
