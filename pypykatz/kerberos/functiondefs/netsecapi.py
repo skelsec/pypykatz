@@ -945,6 +945,23 @@ def AcquireCredentialsHandle(client_name, package_name, tragetspn, cred_usage, p
 	_AcquireCredentialsHandle(cn, pn, cred_usage, pluid, authdata, None, None, byref(creds), byref(ts))
 	return creds
 
+# https://docs.microsoft.com/en-us/windows/desktop/api/sspi/nf-sspi-querycontextattributesa
+def QueryContextAttributes(ctx, attr, sec_struct):
+	#attr = SECPKG_ATTR enum
+	def errc(result, func, arguments):
+		if SEC_E(result) == SEC_E.OK:
+			return SEC_E(result)
+		raise Exception('%s failed with error code %s (%s)' % ('QueryContextAttributes', result, SEC_E(result)))
+		
+	_QueryContextAttributes = windll.Secur32.QueryContextAttributesW
+	_QueryContextAttributes.argtypes = [PCtxtHandle, ULONG, PVOID]
+	_QueryContextAttributes.restype  = DWORD
+	_QueryContextAttributes.errcheck  = errc
+	
+	res = _QueryContextAttributes(byref(ctx), attr.value, byref(sec_struct))
+	
+	return
+
 
 # https://msdn.microsoft.com/en-us/library/windows/desktop/aa375507(v=vs.85).aspx
 def InitializeSecurityContext(creds, target, ctx = None, flags = ISC_REQ.INTEGRITY | ISC_REQ.CONFIDENTIALITY | ISC_REQ.SEQUENCE_DETECT | ISC_REQ.REPLAY_DETECT, TargetDataRep  = 0, token = None):

@@ -45,7 +45,11 @@ class KerberosCMDHelper:
 		live_roast_parser = live_kerberos_subparsers.add_parser('roast', help = 'Automatically run spnroast and asreproast')
 		live_roast_parser.add_argument('-o','--out-file', help='Output file to store hashcat formatted tickets in')
 
-		live_tgs_parser = live_kerberos_subparsers.add_parser('tgs', help = 'Request a TGS ticket for a given service')
+		live_tgs_parser = live_kerberos_subparsers.add_parser('tgt', help = 'Request a TGT ticket. It may work better specifying the target as cifs/<domain.corp>')
+		live_tgs_parser.add_argument('--target', help='SPN string of the service to request the ticket for')
+		live_tgs_parser.add_argument('-o','--out-file', help='Output ccache file name')
+
+		live_tgs_parser = live_kerberos_subparsers.add_parser('apreq', help = 'Request a APREQ ticket for a given service')
 		live_tgs_parser.add_argument('target', help='SPN string of the service to request the ticket for')
 		live_tgs_parser.add_argument('-o','--out-file', help='Output ccache file name')
 
@@ -54,7 +58,7 @@ class KerberosCMDHelper:
 
 		live_sessions_parser = live_kerberos_subparsers.add_parser('sessions', help = 'List user sessions. Needs elevated privileges.')
 
-		live_export_parser = live_kerberos_subparsers.add_parser('export', help = 'Fetches tickets for a given session or all sessions from memory and prints or exports them as .kirbi files')
+		live_export_parser = live_kerberos_subparsers.add_parser('dump', help = 'Fetches tickets for a given session or all sessions from memory and prints or exports them as .kirbi files')
 		live_export_parser.add_argument('--luid', help='LUID of the user whose tickets to be exported. Use "0x" if you specify a hex value!')
 		live_export_parser.add_argument('--outdir', help='path to kirbi directory')
 
@@ -144,7 +148,7 @@ class KerberosCMDHelper:
 		keytab_parser = kerberos_subparsers.add_parser('keytab', help = 'Parse keytab file, list secret key(s)')
 		keytab_parser.add_argument('keytabfile', help='user credentials in URL format')
 
-		ccache_parser = kerberos_subparsers.add_parser('ccache', help = 'Parse ccache file', parents=[ccache_subcommand_parser])
+		ccache_parser = kerberos_subparsers.add_parser('ccache', help = 'Parse/Edit ccache file', parents=[ccache_subcommand_parser])
 		
 		
 	def execute(self, args):
@@ -160,7 +164,7 @@ class KerberosCMDHelper:
 			print('[-]This command only works on Windows!')
 			return
 		
-		from pypykatz.kerberos.kerberoslive import KerberosLive, live_roast, get_tgs # , purge, list_sessions #get_tgt, get_tgs
+		from pypykatz.kerberos.kerberoslive import KerberosLive, live_roast # , purge, list_sessions #get_tgt, get_tgs
 		kl = KerberosLive()
 
 		if args.live_kerberos_module == 'roast':
@@ -172,9 +176,15 @@ class KerberosCMDHelper:
 				for r in res:
 					print(r)
 
-		elif args.live_kerberos_module == 'tgs':
-			ticket = get_tgs(args.target)
+		elif args.live_kerberos_module == 'tgt':
+			ticket = kl.get_tgt(args.target)
 			print(ticket)
+
+		elif args.live_kerberos_module == 'apreq':
+			apreq, sessionkey = kl.get_apreq(args.target)
+			print(apreq)
+			print(sessionkey)
+			
 
 		elif args.live_kerberos_module == 'purge':
 			luid = None

