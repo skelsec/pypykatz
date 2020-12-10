@@ -16,13 +16,13 @@ from pypykatz.commons.filetime import filetime_to_dt
 from pypykatz.commons.common import geterr
 from pypykatz.kerberos.kerberos import get_TGS, get_TGT, generate_targets, \
 	brute, asreproast, spnroast, s4u, process_keytab, list_ccache, \
-	del_ccache, roast_ccache, ccache_to_kirbi, kirbi_to_ccache, parse_kirbi
+	del_ccache, roast_ccache, ccache_to_kirbi, kirbi_to_ccache
 
-
+from pypykatz.kerberos.kirbiutils import parse_kirbi, format_kirbi, print_kirbi
 
 """
 Kerberos is not part of pypykatz directly. 
-This is a wrapper for minikerberos and winsspi packages
+This is a wrapper for minikerberos
 """
 
 class KerberosCMDHelper:
@@ -42,6 +42,8 @@ class KerberosCMDHelper:
 		live_kerberos_subparsers.required = True
 		live_kerberos_subparsers.dest = 'live_kerberos_module'
 		
+		live_luid_parser = live_kerberos_subparsers.add_parser('currentluid', help = 'Prints out the LUID of the current user')
+
 		live_roast_parser = live_kerberos_subparsers.add_parser('roast', help = 'Automatically run spnroast and asreproast')
 		live_roast_parser.add_argument('-o','--out-file', help='Output file to store hashcat formatted tickets in')
 
@@ -60,7 +62,7 @@ class KerberosCMDHelper:
 
 		live_export_parser = live_kerberos_subparsers.add_parser('dump', help = 'Fetches tickets for a given session or all sessions from memory and prints or exports them as .kirbi files')
 		live_export_parser.add_argument('--luid', help='LUID of the user whose tickets to be exported. Use "0x" if you specify a hex value!')
-		live_export_parser.add_argument('--outdir', help='path to kirbi directory')
+		live_export_parser.add_argument('-o', '--outdir', help='path to kirbi directory')
 
 		live_triage_parser = live_kerberos_subparsers.add_parser('triage', help = 'List tickets  for a given session or all sessions')
 		live_triage_parser.add_argument('--luid', help='LUID of the user whose tickets to be exported. Use "0x" if you specify a hex value!')
@@ -149,7 +151,7 @@ class KerberosCMDHelper:
 		keytab_parser.add_argument('keytabfile', help='user credentials in URL format')
 
 		ccache_parser = kerberos_subparsers.add_parser('ccache', help = 'Parse/Edit ccache file', parents=[ccache_subcommand_parser])
-		
+		kirbi_parser = kerberos_subparsers.add_parser('kirbi', help = 'Parse/Edit kirbi file', parents=[kirbi_subcommand_parser])
 		
 	def execute(self, args):
 		if len(self.keywords) > 0 and args.command in self.keywords:
@@ -178,13 +180,22 @@ class KerberosCMDHelper:
 
 		elif args.live_kerberos_module == 'tgt':
 			ticket = kl.get_tgt(args.target)
-			print(ticket)
+			if args.out_file is None:
+				print_kirbi(ticket)
+				return
+			
+			with open(args.out_file, 'wb') as f:
+				f.write(ticket)
 
 		elif args.live_kerberos_module == 'apreq':
 			apreq, sessionkey = kl.get_apreq(args.target)
-			print(apreq)
-			print(sessionkey)
-			
+			print('APREQ b64: ')
+			print(format_kirbi(apreq.dump()))
+			print('Sessionkey b64: %s' % base64.b64encode(sessionkey).decode())		
+
+		
+		elif args.live_kerberos_module == 'currentluid':
+			print(hex(kl.get_current_luid()))
 
 		elif args.live_kerberos_module == 'purge':
 			luid = None
@@ -212,10 +223,7 @@ class KerberosCMDHelper:
 				if len(ticketinfos[luid]) == 0:
 					continue
 				
-				#print('')
-				#print('LUID @%s' % )
 				for ticket in ticketinfos[luid]:
-					#print(ticket)
 					table.append([
 						hex(luid), 
 						ticket['ServerName'], 
@@ -230,7 +238,7 @@ class KerberosCMDHelper:
 			print_table(table)
 			
 		
-		elif args.live_kerberos_module == 'export':
+		elif args.live_kerberos_module == 'dump':
 			if args.luid is None:
 				tickets = kl.export_all_ticketdata()
 			else:
@@ -240,49 +248,43 @@ class KerberosCMDHelper:
 			if args.outdir is not None:
 				for luid in tickets:
 					for ticket in tickets[luid]:
-						print(ticket)
-						#with open(args.outdir + 'ticket_%s.kirbi' % 'a') as f:
-						#	f.write(tickets[luid])
+						with open(args.outdir + 'ticket_%s.kirbi' % 'a', 'wb') as f:
+							f.write(ticket['Ticket'])
 			else:
-				from minikerberos.protocol.asn1_structs import KRB_CRED
 				for luid in tickets:
 					if len(tickets[luid]) == 0:
 						continue
 
 					print('LUID @%s' % hex(luid))
 					for ticket in tickets[luid]:
-
-						print(base64.b64encode(ticket['Ticket']))
-
-						cred = KRB_CRED.load(ticket['Ticket']).native
-						print(cred.keys())
-						print(cred['msg-type'])
-						for t in cred['tickets']:
-							print(t.keys())
-							input()
-							print('/'.join(t['sname']['name-string']))
-							print(t['realm'])
-						print(cred.keys())
+						print_kirbi(ticket['Ticket'])
 		
 
 	def run(self, args):
 		#raise NotImplementedError('Platform independent kerberos not implemented!')
 
 		if args.kerberos_module == 'tgt':
-			tgt, encpart, err = asyncio.run(get_TGT(args.url, args.out_file))
+			kirbi, filename, err = asyncio.run(get_TGT(args.url))
 			if err is not None:
 				print('[KERBEROS][TGT] Failed to fetch TGT! Reason: %s' % err)
 				return
-			if args.out_file is None:
-				print(tgt)
-				print(encpart)
+			
+			if args.out_file is not None:
+				with open(args.out_file, 'wb') as f:
+					f.write(kirbi.dump())
+			else:
+				print_kirbi(kirbi)
 
 		elif args.kerberos_module == 'tgs':
-			tgs, encTGSRepPart, key, err = asyncio.run(get_TGS(args.url, args.spn, args.out_file))
+			tgs, encTGSRepPart, key, err = asyncio.run(get_TGS(args.url, args.spn))
 			if err is not None:
 				print('[KERBEROS][TGS] Failed to fetch TGS! Reason: %s' % err)
 				return
-			if args.out_file is None:
+
+
+			if args.out_file is not None:
+				pass
+			else:
 				print(tgs)
 				print(encTGSRepPart)
 				print(key)

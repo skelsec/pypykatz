@@ -9,7 +9,7 @@ import asyncio
 
 """
 LDAP is not part of pypykatz directly. 
-This is a wrapper for msldap, ldap3 and winsspi packages
+This is a wrapper for msldap
 """
 
 class LDAPCMDArgs:

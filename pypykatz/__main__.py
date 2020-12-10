@@ -4,16 +4,8 @@
 #  Tamas Jos (@skelsec)
 #
 
-import io
 import os
-import re
-import struct
 import logging
-import traceback
-import json
-import ntpath
-
-from pypykatz.commons.common import UniversalEncoder, hexdump
 
 def main():
 	import argparse
@@ -28,8 +20,13 @@ def main():
 	from pypykatz.dpapi.cmdhelper import DPAPICMDHelper
 	from pypykatz.smb.cmdhelper import SMBCMDHelper
 	
-	cmdhelpers = [LSACMDHelper(), RegistryCMDHelper(), CryptoCMDHelper(), KerberosCMDHelper(), RemoteCMDHelper(), DPAPICMDHelper(), LDAPCMDHelper(), SMBCMDHelper()]
+	cmdhelpers = [LSACMDHelper(), RegistryCMDHelper(), CryptoCMDHelper(), KerberosCMDHelper(), RemoteCMDHelper(), DPAPICMDHelper(), LDAPCMDHelper()]
 	
+	try:
+		from pypykatz.smb.cmdhelper import SMBCMDHelper
+		cmdhelpers.append(SMBCMDHelper())
+	except:
+		pass
 
 	parser = argparse.ArgumentParser(description='Pure Python implementation of Mimikatz --and more--')
 	parser.add_argument('-v', '--verbose', action='count', default=0)

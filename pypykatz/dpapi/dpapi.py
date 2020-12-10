@@ -12,6 +12,7 @@ import hashlib
 import glob
 import sqlite3
 import base64
+import platform
 from hashlib import sha1, pbkdf2_hmac
 import xml.etree.ElementTree as ET
 
@@ -27,6 +28,9 @@ from pypykatz.crypto.unified.aes import AES
 from pypykatz.crypto.unified.aesgcm import AES_GCM
 from pypykatz.crypto.unified.common import SYMMETRIC_MODE
 from pypykatz.commons.common import UniversalEncoder
+
+if platform.system().lower() == 'windows':
+	from pypykatz.commons.winapi.processmanipulator import ProcessManipulator
 
 """
 So! DPAPI...
@@ -728,23 +732,26 @@ class DPAPI:
 		return self.masterkeys, self.backupkeys
 	
 	@staticmethod
+	def parse_wifi_config_file(filepath):
+		wifi = {}
+		tree = ET.parse(filepath)
+		root = tree.getroot()
+
+		for child in root:
+			if child.tag.endswith('}name'):
+				wifi['name'] = child.text
+			elif child.tag.endswith('}MSM'):
+				for pc in child.iter():
+					if pc.tag.endswith('}keyMaterial'):
+						wifi['enckey'] = pc.text
+		return wifi
+
+	@staticmethod
 	def get_all_wifi_settings_offline(system_drive_letter):
 		wifis = []
 		for filename in glob.glob('c:\\ProgramData\\Microsoft\\Wlansvc\\Profiles\\Interfaces\\**', recursive=True):
 			if filename.endswith('.xml'):
-				wifi = {}
-				tree = ET.parse(filename)
-				root = tree.getroot()
-
-				for child in root:
-					if child.tag.endswith('}name'):
-						wifi['name'] = child.text
-					elif child.tag.endswith('}MSM'):
-						for pc in child.iter():
-							if pc.tag.endswith('}keyMaterial'):
-								wifi['enckey'] = pc.text
-						
-					
+				wifi = DPAPI.parse_wifi_config_file(filename)
 				wifis.append(wifi)
 		return wifis
 
@@ -754,11 +761,20 @@ class DPAPI:
 
 	def decrypt_wifi_live(self):
 		# key is encrypted as system!!!
-		for wificonfig in DPAPI.get_all_wifi_settings_live():
-			print(wificonfig)
-			if 'enckey' in wificonfig and wificonfig['enckey'] != '':
-				wificonfig['key'] = self.decrypt_securestring_hex(wificonfig['enckey'])
-				print(wificonfig['key'])
+		pm = ProcessManipulator()
+		try:
+			try:
+				pm.getsystem()
+			except Exception as e:
+				raise Exception('Failed to obtain SYSTEM privileges! Are you admin? Error: %s' % e)
+			
+			for wificonfig in DPAPI.get_all_wifi_settings_live():
+				if 'enckey' in wificonfig and wificonfig['enckey'] != '':
+					wificonfig['key'] = self.decrypt_securestring_hex(wificonfig['enckey'])
+					yield wificonfig
+
+		finally:
+			pm.dropsystem()
 
 # arpparse helper
 def prepare_dpapi_live(methods = [], mkf = None, pkf = None):

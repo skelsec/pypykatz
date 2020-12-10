@@ -2,6 +2,7 @@ from pypykatz.commons.common import UniversalEncoder, hexdump
 import argparse
 import platform
 
+
 class DPAPICMDHelper:
 	def __init__(self):
 		self.live_keywords = ['dpapi']
@@ -10,42 +11,43 @@ class DPAPICMDHelper:
 	def add_args(self, parser, live_parser):
 
 		live_subcommand_parser = argparse.ArgumentParser(add_help=False)                                                                                                  
-		live_kerberos_subparsers = live_subcommand_parser.add_subparsers(help = 'livedpapicommand')
-		live_kerberos_subparsers.required = True
-		live_kerberos_subparsers.dest = 'livedpapicommand'
+		live_dpapi_subparsers = live_subcommand_parser.add_subparsers(help = 'LIVE DPAPI commands work under the current user context. Except: keys, wifi, chrome')
+		live_dpapi_subparsers.required = True
+		live_dpapi_subparsers.dest = 'livedpapicommand'
 		
-		live_keys_parser = live_kerberos_subparsers.add_parser('keys', help = 'Dump all DPAPI related keys. Aggressively. This takes a while!')
+		live_keys_parser = live_dpapi_subparsers.add_parser('keys', help = '[ADMIN ONLY]  Dump all local DPAPI related keys. Aggressively. Recommended: use file output. !This takes a while!')
 		live_keys_parser.add_argument('--method', choices = ['lsass', 'registry', 'all'], default = 'all', help= 'Where to look for the keys')
 		live_keys_parser.add_argument('-o', '--outfile', help= 'Output file base name')
 
-		live_vpol_parser = live_kerberos_subparsers.add_parser('vpol', help = 'Decrypting VPOL file with current user context')
+		live_vpol_parser = live_dpapi_subparsers.add_parser('vpol', help = 'Decrypting VPOL file with current user context')
 		live_vpol_parser.add_argument('vpolfile', help= 'VPOL file to decrypt')
 
-		live_vcred_parser = live_kerberos_subparsers.add_parser('vcred', help = '')
+		live_vcred_parser = live_dpapi_subparsers.add_parser('vcred', help = 'Decrypt VCRED')
 		live_vcred_parser.add_argument('vpolfile', help= 'VPOL file to use to decrypt the VCRED file')
 		live_vcred_parser.add_argument('vcredfile', help= 'VCRED file to decrypt')
 		
-		live_cred_parser = live_kerberos_subparsers.add_parser('cred', help = '')
+		live_cred_parser = live_dpapi_subparsers.add_parser('cred', help = 'Decrypt CRED file')
 		live_cred_parser.add_argument('credfile', help= 'CRED file to decrypt')
 
 		
-		live_blob_parser = live_kerberos_subparsers.add_parser('blob', help = '')
+		live_blob_parser = live_dpapi_subparsers.add_parser('blob', help = 'Decrypt raw dpapi blob hex')
 		live_blob_parser.add_argument('blob', help= 'blob string in hex format')
 		
-		live_securestring_parser = live_kerberos_subparsers.add_parser('securestring', help = '')
+		live_securestring_parser = live_dpapi_subparsers.add_parser('securestring', help = 'Decrypt securestring hex')
 		live_securestring_parser.add_argument('securestring', help= 'securestring in hex format')
 		
-		live_chrome_parser = live_kerberos_subparsers.add_parser('chrome', help = '')
+		live_blobfile_parser = live_dpapi_subparsers.add_parser('blobfile', help = '')
+		live_blobfile_parser.add_argument('blobfile', help= 'Decrypt raw dpapi blob in file')
 		
-		live_blobfile_parser = live_kerberos_subparsers.add_parser('blobfile', help = '')
-		live_blobfile_parser.add_argument('blobfile', help= 'blob file')
-		
-		live_securestringfile_parser = live_kerberos_subparsers.add_parser('securestringfile', help = '')
-		live_securestringfile_parser.add_argument('securestringfile', help= 'securestring file')
+		live_securestringfile_parser = live_dpapi_subparsers.add_parser('securestringfile', help = '')
+		live_securestringfile_parser.add_argument('securestringfile', help= 'Decrypt securestring from file')
 
-		live_wifi_parser = live_kerberos_subparsers.add_parser('wifi', help = '')
+		live_wifi_parser = live_dpapi_subparsers.add_parser('wifi', help = '[ADMIN ONLY] Decrypt stored WIFI passwords')
+		live_chrome_parser = live_dpapi_subparsers.add_parser('chrome', help = '[ADMIN ONLY] !TAKES SUPER-LONG! Decrypt all chrome passwords for all users (admin) or for the current user.')
+
 
 		live_parser.add_parser('dpapi', help='DPAPI (live) related commands. This will use winAPI to decrypt secrets using the current user context.', parents=[live_subcommand_parser])
+		
 
 		#offline
 		prekey_subcommand_parser = argparse.ArgumentParser(add_help=False)
@@ -300,4 +302,5 @@ class DPAPICMDHelper:
 				print('file: %s host_key: %s name: %s path: %s value: %s' % (file_path, host_key, name, path, value))
 
 		elif args.livedpapicommand == 'wifi':
-			dpapi.decrypt_wifi_live()
+			for wificonfig in dpapi.decrypt_wifi_live():
+				print('%s : %s' % (wificonfig['name'], wificonfig['key']))

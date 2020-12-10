@@ -1,4 +1,5 @@
 
+from pypykatz.kerberos.kirbiutils import parse_kirbi, print_kirbi
 from pypykatz import logger
 import os
 import ntpath
@@ -18,10 +19,9 @@ from minikerberos.common.target import KerberosTarget
 from minikerberos.common.keytab import Keytab
 from minikerberos.aioclient import AIOKerberosClient
 from minikerberos.common.utils import TGSTicket2hashcat
-from minikerberos.protocol.asn1_structs import AP_REQ, TGS_REQ
+from minikerberos.protocol.asn1_structs import AP_REQ, TGS_REQ, EncryptedData, KrbCredInfo, KRB_CRED, EncKDCRepPart
 from minikerberos.common.utils import print_table
 from minikerberos.common.ccache import CCACHE, Credential
-from minikerberos.protocol.asn1_structs import KRBCRED
 
 
 def process_target_line(target, realm = None, to_spn = True):
@@ -131,13 +131,6 @@ def kirbi_to_ccache(ccachefile, kirbi):
 	
 	cc.to_file(ccachefile)
 
-def parse_kirbi(kirbifile):
-	with open(kirbifile) as f:
-		kirbi = KRBCRED.load(f.read())
-
-	pp = pprint.PrettyPrinter(indent=4)
-	pp.pprint(kirbi.native)
-
 async def get_TGS(url, spn, out_file = None):
 	try:
 		logger.debug('[KERBEROS][TGS] started')
@@ -160,7 +153,7 @@ async def get_TGS(url, spn, out_file = None):
 	except Exception as e:
 		return None, None, None, e
 
-async def get_TGT(url, out_file = None):
+async def get_TGT(url):
 	try:
 		logger.debug('[KERBEROS][TGT] started')
 		ku = KerberosClientURL.from_url(url)
@@ -173,12 +166,11 @@ async def get_TGT(url, out_file = None):
 		kcomm = AIOKerberosClient(cred, target)
 		logger.debug('[KERBEROS][TGT] fetching TGT')
 		await kcomm.get_TGT()
+
+		cred = kcomm.ccache.credentials[0]
+		kirbi, filename = cred.to_kirbi()
 		
-		if out_file is not None:
-			kcomm.ccache.to_file(out_file)
-			logger.debug('[KERBEROS][TGT] Done! TGT stored in CCACHE file')
-		
-		return kcomm.kerberos_TGT, kcomm.kerberos_TGT_encpart, None
+		return kirbi, filename, None
 	except Exception as e:
 		return None, None, e
 

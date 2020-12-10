@@ -18,7 +18,7 @@ pip3 install pypykatz
 ### Via Github
 Install prerequirements
 ```
-pip3 install minidump minikerberos aiowinreg msldap winsspi
+pip3 install minidump minikerberos aiowinreg msldap winacl
 ```
 Clone this repo
 ```
