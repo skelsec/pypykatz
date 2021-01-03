@@ -73,11 +73,11 @@ class SECURITY:
 		return self.lsa_key
 			
 		
-	def get_lsa_key(self):
+	async def get_lsa_key(self):
 		logger.debug('[SECURITY] Fetching LSA key...')
-		value = self.hive.get_value('Policy\\PolEKList\\default', False)
+		value = await self.hive.get_value('Policy\\PolEKList\\default', False)
 		if value is None:
-			value = self.hive.get_value('Policy\\PolSecretEncryptionKey\\default', False)
+			value = await self.hive.get_value('Policy\\PolSecretEncryptionKey\\default', False)
 			if not value:
 				logger.debug('[SECURITY] LSA key not found!')
 				return None
@@ -106,12 +106,12 @@ class SECURITY:
 		secret = LSA_SECRET_XP.from_bytes(dec_blob)
 		return secret.secret
 		
-	def get_NKLM_key(self):
+	async def get_NKLM_key(self):
 		logger.debug('[SECURITY] Fetching NK$LM key...')
 		if self.lsa_key is None:
-			self.get_lsa_key()
+			await self.get_lsa_key()
 			
-		value = self.hive.get_value('Policy\\Secrets\\NL$KM\\CurrVal\\default')
+		value = await self.hive.get_value('Policy\\Secrets\\NL$KM\\CurrVal\\default')
 		if value is None:
 			logger.error('[SECURITY] Could not find NL$KM in registry')
 			raise Exception('Could not find NL$KM in registry :(')
@@ -139,13 +139,13 @@ class SECURITY:
 		else:
 			return data
 		
-	def dump_dcc(self):
+	async def dump_dcc(self):
 		logger.debug('[SECURITY] dump_dcc invoked')
-		cache_reg = self.hive.find_key('Cache', False)
+		cache_reg = await self.hive.find_key('Cache', False)
 		if cache_reg is None:
 			logger.debug('[SECURITY] No DCC secrets found')
 			return
-		values = self.hive.list_values(cache_reg)
+		values = await self.hive.list_values(cache_reg)
 		
 		if values == []:
 			logger.debug('[SECURITY] No DCC secrets found')
@@ -157,19 +157,21 @@ class SECURITY:
 		if b'NL$IterationCount' in values:
 			logger.debug('[SECURITY] DCC Setting iteration count')
 			values.remove(b'NL$IterationCount')
-			record = self.hive.get_value('Cache\\NL$IterationCount')[1]
+			record = await self.hive.get_value('Cache\\NL$IterationCount')
+			record = record[1]
 			if record > 10240:
 				self.dcc_iteration_count = record & 0xfffffc00
 			else:
 				self.dcc_iteration_count = record * 1024
 				
 		
-		self.get_lsa_key()
-		self.get_NKLM_key()
+		await self.get_lsa_key()
+		await self.get_NKLM_key()
 		
 		for value in values:
 			logger.debug('[SECURITY] DCC Checking value: %s' % value)
-			record_data = self.hive.get_value('Cache\\%s' % value.decode())[1]
+			record_data = await self.hive.get_value('Cache\\%s' % value.decode())
+			record_data = record_data[1]
 			record = NL_RECORD.from_bytes(record_data)
 			
 			if record.IV != b'\x00'*16:
@@ -208,14 +210,14 @@ class SECURITY:
 				
 		return self.dcc_hashes	
 				
-	def get_secrets(self):
+	async def get_secrets(self):
 		logger.debug('[SECURITY] get_secrets')
-		self.get_lsa_key()
+		await self.get_lsa_key()
 		
-		self.dump_dcc()
+		await self.dump_dcc()
 		
 		# Let's first see if there are cached entries
-		keys = self.hive.enum_key('Policy\\Secrets')
+		keys = await self.hive.enum_key('Policy\\Secrets')
 		if keys is None:
 			logger.debug('[SECURITY] No cached secrets found in hive')
 			return
@@ -227,7 +229,7 @@ class SECURITY:
 			for vl in ['CurrVal', 'OldVal']:
 				key_path = 'Policy\\Secrets\\{}\\{}\\default'.format(key_name,vl)
 				logger.debug('[SECURITY] Parsing secrets in %s' % key_path)
-				v = self.hive.get_value(key_path, False)
+				v = await self.hive.get_value(key_path, False)
 				if v and v[1] != 0:
 					logger.log(1, '[SECURITY] Key %s Value %s' % (key_path, v[1]))
 					if self.lsa_secret_key_vista_type is True:
