@@ -54,7 +54,7 @@ def QueryDosDevice(drive_letter):
     buf = ctypes.create_unicode_buffer(buffer_length)
     status = windll.kernel32.QueryDosDeviceW(drive_letter, buf, buffer_length)
     if status == 0:
-        raise WinErrorFromNtStatus(status)
+        raise ctypes.WinError()
     return buf.value
 
 
