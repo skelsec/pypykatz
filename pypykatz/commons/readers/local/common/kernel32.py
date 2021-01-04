@@ -609,3 +609,16 @@ class STARTUPINFOEXW(Structure):
         ('lpAttributeList', PPROC_THREAD_ATTRIBUTE_LIST),
     ]
 LPSTARTUPINFOEXW = POINTER(STARTUPINFOEXW)
+
+
+class SYSTEM_PROCESS_ID_INFORMATION(Structure):
+    _fields_ = (('ProcessId', HANDLE),
+                ('ImageName', UNICODE_STRING),
+                )
+
+class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):
+    def __repr__(self):
+        return '%s(%s)' % (type(self).__name__, self.value)
+
+
+SystemProcessIdInformation = SYSTEM_INFORMATION_CLASS(88)
