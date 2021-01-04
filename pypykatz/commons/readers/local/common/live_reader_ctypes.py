@@ -80,7 +80,8 @@ DEVICE_PREFIXES = get_device_prefixes()
 PROCESS_QUERY_INFORMATION = 0x0400
 PROCESS_VM_READ = 0x0010
 MAXIMUM_ALLOWED = 33554432
-STATUS_INFO_LENGTH_MISMATCH = 0xC0000004
+STATUS_INFO_LENGTH_MISMATCH = -1073741820
+MAX_PATH_UNICODE = 1 << 15
 
 # Get full normalized image path of a process using NtQuerySystemInformation
 # It doesn't need any special privileges
