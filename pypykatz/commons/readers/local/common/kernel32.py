@@ -621,4 +621,51 @@ class SYSTEM_INFORMATION_CLASS(ctypes.c_ulong):
         return '%s(%s)' % (type(self).__name__, self.value)
 
 
+ProcessBasicInformation = SYSTEM_INFORMATION_CLASS(0)
+ProcessProtectionInformation = SYSTEM_INFORMATION_CLASS(61)
+SystemExtendedHandleInformation = SYSTEM_INFORMATION_CLASS(64)
 SystemProcessIdInformation = SYSTEM_INFORMATION_CLASS(88)
+
+class PROCESS_BASIC_INFORMATION(Structure):
+    _fields_ = (('Reserved1', PVOID),
+                ('PebBaseAddress', PVOID),
+                ('Reserved2', PVOID * 2),
+                ('UniqueProcessId', ULONG_PTR),
+                ('Reserved3', PVOID))
+
+class _PROCESS_EXTENDED_BASIC_INFORMATION_UNION1(Structure):
+    _fields_ = (('IsProtectedProcess', ULONG, 1),
+                ('IsWow64Process', ULONG, 1),
+                ('IsProcessDeleting', ULONG, 1),
+                ('IsCrossSessionCreate', ULONG, 1),
+                ('IsFrozen', ULONG, 1),
+                ('IsBackground', ULONG, 1),
+                ('IsStronglyNamed', ULONG, 1),
+                ('IsSecureProcess', ULONG, 1),
+                ('IsSubsystemProcess', ULONG, 1),
+                ('SpareBits', ULONG,23))
+
+class _PROCESS_EXTENDED_BASIC_INFORMATION_UNION(Union):
+    _anonymous_ = ('obj',)
+    _fields_ = (('Flags', ULONG),
+                ('obj', _PROCESS_EXTENDED_BASIC_INFORMATION_UNION1))
+
+
+class PROCESS_EXTENDED_BASIC_INFORMATION(Structure):
+    _anonymous_ = ('obj',)
+    _fields_ = (('Size', SIZE_T),
+                ('BasicInfo', PROCESS_BASIC_INFORMATION),
+                ('obj', _PROCESS_EXTENDED_BASIC_INFORMATION_UNION))
+
+
+class UNION_PS_PROTECTION(Structure):
+    _fields_ = (('Type', UCHAR, 3),
+                ('Audit', BOOLEAN, 1),
+                ('Signer', UCHAR, 4),
+                )
+
+class PS_PROTECTION(Union):
+    _anonymous_ = ('obj',)
+    _fields_ = (('Level', UCHAR),
+                ('obj', UNION_PS_PROTECTION),
+                )
