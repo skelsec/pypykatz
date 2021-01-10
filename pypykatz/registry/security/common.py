@@ -3,7 +3,8 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import hashlib
+
+from pypykatz.crypto.MD4 import MD4
 from pypykatz.dpapi.structures.system import DPAPI_SYSTEM
 from pypykatz.commons.common import hexdump
 
@@ -156,8 +157,8 @@ class LSASecretMachineAccount(LSASecret):
 	
 	def process_secret(self):
 		#only the NT hash is calculated here
-		ctx = hashlib.new('md4')
-		ctx.update(self.raw_secret)
+		ctx = MD4(self.raw_secret)#hashlib.new('md4')
+		#ctx.update(self.raw_secret)
 		self.secret = ctx.digest()
 		
 		#thx dirkjan
