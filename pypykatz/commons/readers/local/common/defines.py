@@ -701,7 +701,7 @@ class UNICODE_STRING(Structure):
     _fields_ = [
         ("Length",          USHORT),
         ("MaximumLength",   USHORT),
-        ("Buffer",          PVOID),
+        ("Buffer",          PWSTR),
     ]
 
 # From MSDN:
