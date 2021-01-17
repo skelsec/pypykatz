@@ -589,6 +589,10 @@ class DPAPI:
 	@staticmethod
 	def get_windows_dir_live():
 		return os.environ.get('SystemRoot')
+
+	@staticmethod
+	def get_windows_drive_live():
+		return os.environ.get('SystemDrive')[0]
 	
 	@staticmethod
 	def find_chrome_database_file_live():
@@ -690,11 +694,8 @@ class DPAPI:
 						nonce = encrypted_value[3:3+12]
 						ciphertext = encrypted_value[3+12:-16]
 						tag = encrypted_value[-16:]
-						#input(localstate_dec.hex())
 						cipher = AES_GCM(localstate_dec)
-						#cipher = PAES.new(localstate_dec, PAES.MODE_GCM, nonce=nonce)
 						dec_val = cipher.decrypt(nonce, ciphertext, tag, auth_data=b'') 
-						#input(dec_val)
 						results['cookies'].append((dbpaths[username]['cookies'], host_key, name, path, dec_val ))
 					else:
 						dec_val = self.decrypt_blob_bytes(encrypted_value)
@@ -749,7 +750,7 @@ class DPAPI:
 	@staticmethod
 	def get_all_wifi_settings_offline(system_drive_letter):
 		wifis = []
-		for filename in glob.glob('c:\\ProgramData\\Microsoft\\Wlansvc\\Profiles\\Interfaces\\**', recursive=True):
+		for filename in glob.glob(system_drive_letter+':\\ProgramData\\Microsoft\\Wlansvc\\Profiles\\Interfaces\\**', recursive=True):
 			if filename.endswith('.xml'):
 				wifi = DPAPI.parse_wifi_config_file(filename)
 				wifis.append(wifi)
@@ -757,7 +758,7 @@ class DPAPI:
 
 	@staticmethod
 	def get_all_wifi_settings_live():
-		return DPAPI.get_all_wifi_settings_offline(DPAPI.get_windows_dir_live())
+		return DPAPI.get_all_wifi_settings_offline(DPAPI.get_windows_drive_live())
 
 	def decrypt_wifi_live(self):
 		# key is encrypted as system!!!

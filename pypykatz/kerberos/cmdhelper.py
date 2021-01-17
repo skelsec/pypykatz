@@ -55,8 +55,8 @@ class KerberosCMDHelper:
 		live_tgs_parser.add_argument('target', help='SPN string of the service to request the ticket for')
 		live_tgs_parser.add_argument('-o','--out-file', help='Output ccache file name')
 
-		live_purge_parser = live_kerberos_subparsers.add_parser('purge', help = 'Purge all tickets for the current user OR for a given luid')
-		live_purge_parser.add_argument('--luid', default = '0', help='LUID of the user whose tickets to be purged. Use "0x" if you specify a hex value!')
+		live_purge_parser = live_kerberos_subparsers.add_parser('purge', help = 'Purge all tickets. For the current user use --luid 0')
+		live_purge_parser.add_argument('--luid', help='LUID of the user whose tickets to be purged. Use "0x" if you specify a hex value!')
 
 		live_sessions_parser = live_kerberos_subparsers.add_parser('sessions', help = 'List user sessions. Needs elevated privileges.')
 
@@ -64,7 +64,7 @@ class KerberosCMDHelper:
 		live_export_parser.add_argument('--luid', help='LUID of the user whose tickets to be exported. Use "0x" if you specify a hex value!')
 		live_export_parser.add_argument('-o', '--outdir', help='path to kirbi directory')
 
-		live_triage_parser = live_kerberos_subparsers.add_parser('triage', help = 'List tickets  for a given session or all sessions')
+		live_triage_parser = live_kerberos_subparsers.add_parser('triage', help = 'List tickets for a given session or all sessions')
 		live_triage_parser.add_argument('--luid', help='LUID of the user whose tickets to be exported. Use "0x" if you specify a hex value!')
 		
 		live_parser.add_parser('kerberos', help = 'Kerberos related commands', parents=[live_subcommand_parser])
@@ -204,7 +204,7 @@ class KerberosCMDHelper:
 				if luid.startswith('0x') is True:
 					luid = int(luid, 16)
 				luid=int(luid)
-
+			
 			kl.purge(luid)
 			print('Tickets purged!')
 
