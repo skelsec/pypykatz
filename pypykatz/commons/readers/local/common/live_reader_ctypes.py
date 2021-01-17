@@ -76,8 +76,9 @@ def get_device_prefixes():
 
 DEVICE_PREFIXES = get_device_prefixes()
 
-
+WINDOWS_BUILD_NUMBER = getWindowsBuild()
 PROCESS_QUERY_INFORMATION = 0x0400
+PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 PROCESS_VM_READ = 0x0010
 MAXIMUM_ALLOWED = 33554432
 STATUS_INFO_LENGTH_MISMATCH = -1073741820
@@ -117,6 +118,11 @@ def get_process_full_imagename(pid):
         image_filename = 'N/A'
     return image_filename
 
+PS_PROTECTED_TYPE_STRINGS = [None,"Light","Full"]
+PS_PROTECTED_SIGNER_STRINGS = [None, "Authenticode", "CodeGen", "Antimalware", "Lsa", 
+                            "Windows", "WinTcb", "WinSystem", "StoreApp"]
+PS_PROTECTED_TYPE_OLD_OS_STRINGS = [None,"System protected process"]
+
 #https://msdn.microsoft.com/en-us/library/windows/desktop/ms683217(v=vs.85).aspx
 def enum_process_names():
 	pid_to_fullname = {}
@@ -124,8 +130,53 @@ def enum_process_names():
 	for pid in EnumProcesses():
 		if pid == 0:
 			continue
+
 		pid_to_fullname[pid] = get_process_full_imagename(pid)
 	return pid_to_fullname
+
+def get_process_extended_basic_information(pid,process_handle=None):
+    process_basic_info = PROCESS_EXTENDED_BASIC_INFORMATION()
+    process_basic_info.Size = sizeof(PROCESS_EXTENDED_BASIC_INFORMATION)
+    _NtQueryInformationProcess = windll.ntdll.NtQueryInformationProcess
+    if process_handle == None:
+        process_handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+
+    status = _NtQueryInformationProcess(process_handle,
+                                       ProcessBasicInformation,
+                                       byref(process_basic_info),
+                                       process_basic_info.Size,
+                                       None)
+    if status < 0:
+        raise ctypes.WinError()
+    CloseHandle(process_handle)
+    return process_basic_info
+
+
+def get_protected_process_infos(pid,process_handle=None):
+    process_protection_infos = None
+    _NtQueryInformationProcess = windll.ntdll.NtQueryInformationProcess
+    if process_handle == None:
+        process_handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+    if WINDOWS_BUILD_NUMBER >= WindowsMinBuild.WIN_8.value:
+        protection_info = PS_PROTECTION()
+        status = _NtQueryInformationProcess(process_handle,
+                                           ProcessProtectionInformation,
+                                           byref(protection_info),
+                                           sizeof(protection_info),
+                                           None)
+        if status < 0:
+            raise ctypes.WinError()
+        if protection_info.Type > 0:
+            process_protection_infos = {"level": protection_info.Level,
+                                        "type": PS_PROTECTED_TYPE_STRINGS[protection_info.Type],
+                                        "signer": PS_PROTECTED_SIGNER_STRINGS[protection_info.Signer],
+                                        "audit": protection_info.Audit}
+    else:
+        _ps_extended_basic_information = get_process_extended_basic_information(pid,process_handle)
+        if _ps_extended_basic_information.IsProtectedProcess:
+            process_protection_infos = {"type": 'System protected process'}
+    CloseHandle(process_handle)
+    return process_protection_infos
 	
 def get_lsass_pid():
 	pid_to_name = enum_process_names()

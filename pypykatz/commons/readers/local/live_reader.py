@@ -343,6 +343,15 @@ class LiveReader:
 			logging.log(1, 'Searching for lsass.exe')
 			pid = get_lsass_pid()
 			logging.log(1, 'Lsass.exe found at PID %d' % pid)
+			logging.log(1, 'Checking Lsass.exe protection status')
+			proc_protection_info = get_protected_process_infos(pid)
+			protection_msg = "Protection Status: No protection"
+			if proc_protection_info:
+				protection_msg = f"Protection Status: {proc_protection_info['type']}"
+				if 'signer' in proc_protection_info:
+					protection_msg += f" ({proc_protection_info['signer']})"
+				raise Exception('Failed to open lsass.exe Reason: %s' % protection_msg)
+			logging.log(1, protection_msg)
 			logging.log(1, 'Opening lsass.exe')
 			self.lsass_process_handle = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
 			if self.lsass_process_handle is None:
