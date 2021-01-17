@@ -57,10 +57,6 @@ def main():
 	live_subparser_token_group.add_argument('-f','--force', action='store_true', help= 'Tries to list as many tokens as possible without SE_DEBUG privilege')
 	live_subparser_users_group = live_subparsers.add_parser('users', help='User creating/manipulation commands')
 	live_subparser_users_group.add_argument('cmd', choices=['list','whoami'])
-	
-	live_subparser_dpapikeys_group = live_subparsers.add_parser('dpapikeys', help='Dump all DPAPI related keys. Aggressively. This takes a while!')
-	live_subparser_dpapikeys_group.add_argument('--method', choices = ['lsass', 'registry', 'all'], default = 'all', help= 'Where to look for the keys')
-	live_subparser_dpapikeys_group.add_argument('-o', '--outfile', help= 'Output file base name')
 
 	version_group = subparsers.add_parser('version', help='version')
 	banner_group = subparsers.add_parser('banner', help='banner')

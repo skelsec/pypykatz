@@ -189,16 +189,18 @@ class KerberosLive:
 	def purge(self, luid = None):
 		luids = []
 		if luid is None:
-			self.open_lsa_handle(None, req_elevated=True)
+			self.open_lsa_handle(0, req_elevated=True)
 			luids += self.list_luids()
 		else:
 			luids.append(luid)
 			self.open_lsa_handle(luid)
-
+		
 		for luid_current in luids:
 			message = KERB_PURGE_TKT_CACHE_REQUEST(luid_current)
 			message_ret, status_ret, free_ptr = LsaCallAuthenticationPackage(self.__lsa_handle, self.kerberos_package_id, message)
 			if status_ret != 0:
+				if len(luids) > 1:
+					continue
 				raise get_lsa_error(status_ret)
 			if len(message_ret) > 0:
 				LsaFreeReturnBuffer(free_ptr)
