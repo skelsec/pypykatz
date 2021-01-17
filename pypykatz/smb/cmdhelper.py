@@ -11,7 +11,7 @@ import asyncio
 
 """
 LDAP is not part of pypykatz directly.
-This is a wrapper for msldap
+This is a wrapper for aiosmb
 """
 
 class SMBCMDArgs:
