@@ -3205,7 +3205,7 @@ def EnumServicesStatusW(hSCManager, dwServiceType = SERVICE_DRIVER | SERVICE_WIN
 		if sizeof(ServicesBuffer) < (sizeof(ENUM_SERVICE_STATUSW) * ServicesReturned.value):
 			raise ctypes.WinError()
 		lpServicesArray = ctypes.cast(ctypes.cast(ctypes.pointer(ServicesBuffer), ctypes.c_void_p), LPENUM_SERVICE_STATUSW)
-		for index in xrange(0, ServicesReturned.value):
+		for index in range(0, ServicesReturned.value):
 			Services.append( ServiceStatusEntry(lpServicesArray[index]) )
 		if success: break
 	if not success:
@@ -3319,7 +3319,13 @@ def SetThreadToken(token_handle, thread_handle = None):
 
 	_SetThreadToken(thread_handle, token_handle)
 	
+def RevertToSelf():
+	_RevertToSelf = windll.advapi32.RevertToSelf
+	_RevertToSelf.argtypes = []
+	_RevertToSelf.restype  = bool
+	_RevertToSelf.errcheck = RaiseIfZero
 
+	_RevertToSelf()
 
 #==============================================================================
 # This calculates the list of exported symbols.

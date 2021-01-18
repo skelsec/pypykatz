@@ -212,6 +212,16 @@ class GUID:
 			hex(int.from_bytes(self.Data4[:2], byteorder = 'big', signed = False))[2:].zfill(4),
 			hex(int.from_bytes(self.Data4[2:], byteorder = 'big', signed = False))[2:].zfill(12)
 		])
+	
+	@staticmethod
+	def from_string(str):
+		guid = GUID()
+		guid.Data1 = bytes.fromhex(str.split('-')[0])
+		guid.Data2 = bytes.fromhex(str.split('-')[1])
+		guid.Data3 = bytes.fromhex(str.split('-')[2])
+		guid.Data4 = bytes.fromhex(str.split('-')[3])
+		guid.Data4 += bytes.fromhex(str.split('-')[4])
+		return guid			
 
 class PLIST_ENTRY(POINTER):
 	def __init__(self, reader):

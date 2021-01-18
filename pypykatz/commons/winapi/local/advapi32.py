@@ -1,7 +1,7 @@
 
 import ctypes
 from pypykatz.commons.winapi.constants import *
-from pypykatz.commons.winapi.local.function_defs.advapi32 import LookupPrivilegeValueW, OpenProcessToken, GetTokenInformation_sid, LookupAccountSidW, ConvertSidToStringSidA, DuplicateTokenEx, CreateProcessWithTokenW, SetThreadToken, ConvertStringSidToSidA, LOGON_NETCREDENTIALS_ONLY
+from pypykatz.commons.winapi.local.function_defs.advapi32 import RevertToSelf, LookupPrivilegeValueW, OpenProcessToken, GetTokenInformation_sid, LookupAccountSidW, ConvertSidToStringSidA, DuplicateTokenEx, CreateProcessWithTokenW, SetThreadToken, ConvertStringSidToSidA, LOGON_NETCREDENTIALS_ONLY
 from pypykatz.commons.winapi.local.function_defs.kernel32 import STARTUPINFOW
 
 
@@ -73,4 +73,8 @@ class ADVAPI32:
 	@staticmethod
 	def SetThreadToken(token_handle, thread_handle = None):
 		return SetThreadToken(token_handle, thread_handle = thread_handle)
+	
+	@staticmethod
+	def RevertToSelf():
+		return RevertToSelf()
 		

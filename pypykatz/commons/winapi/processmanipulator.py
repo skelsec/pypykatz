@@ -203,6 +203,12 @@ class ProcessManipulator:
 			else:
 				logger.debug('[ProcessManipulator] Sucsessfully created process!')
 				break
+
+	def getsystem(self):
+		self.assign_token_thread_sid('S-1-5-18')
+
+	def dropsystem(self):
+		self.api.advapi32.RevertToSelf()
 		
 if __name__ == '__main__':
 	pm = ProcessManipulator()
