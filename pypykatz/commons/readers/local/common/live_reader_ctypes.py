@@ -124,15 +124,30 @@ PS_PROTECTED_SIGNER_STRINGS = [None, "Authenticode", "CodeGen", "Antimalware", "
 PS_PROTECTED_TYPE_OLD_OS_STRINGS = [None,"System protected process"]
 
 #https://msdn.microsoft.com/en-us/library/windows/desktop/ms683217(v=vs.85).aspx
+#def enum_process_names():
+#	pid_to_fullname = {}
+#	
+#	for pid in EnumProcesses():
+#		if pid == 0:
+#			continue
+#
+#		pid_to_fullname[pid] = get_process_full_imagename(pid)
+#	return pid_to_fullname
+
 def enum_process_names():
-	pid_to_fullname = {}
+	pid_to_name = {}
 	
 	for pid in EnumProcesses():
 		if pid == 0:
 			continue
-
-		pid_to_fullname[pid] = get_process_full_imagename(pid)
-	return pid_to_fullname
+		pid_to_name[pid] = 'Not found'
+		try:
+			process_handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
+		except Exception as e:
+			continue
+			
+		pid_to_name[pid] = QueryFullProcessImageNameW(process_handle)
+	return pid_to_name
 
 def get_process_extended_basic_information(pid,process_handle=None):
     process_basic_info = PROCESS_EXTENDED_BASIC_INFORMATION()
@@ -181,7 +196,7 @@ def get_protected_process_infos(pid,process_handle=None):
 def get_lsass_pid():
 	pid_to_name = enum_process_names()
 	for pid in pid_to_name:
-		if pid_to_name[pid].lower().endswith(':\\windows\\system32\\lsass.exe'):
+		if pid_to_name[pid].lower().endswith('lsass.exe'):
 			return pid
 			
 	raise Exception('Failed to find lsass.exe')
