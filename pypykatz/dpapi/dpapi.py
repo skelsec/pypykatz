@@ -16,8 +16,6 @@ import platform
 from hashlib import sha1, pbkdf2_hmac
 import xml.etree.ElementTree as ET
 
-from Cryptodome.Cipher import AES as PAES
-
 from pypykatz import logger
 from pypykatz.dpapi.structures.masterkeyfile import MasterKeyFile
 from pypykatz.dpapi.structures.credentialfile import CredentialFile, CREDENTIAL_BLOB
