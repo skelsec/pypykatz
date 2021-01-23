@@ -29,7 +29,7 @@ class LSACMDHelper:
 		live_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 		live_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
 		live_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
-		live_group.add_argument('--method', choices = ['procopen', 'handledup'], default = 'procopen', help = 'Print credentials in greppable format')
+		live_group.add_argument('--method', choices = ['procopen', 'handledup'], default = 'procopen', help = 'LSASS process access method')
 		
 		group = parser.add_parser('lsa', help='Get secrets from memory dump')
 		group.add_argument('cmd', choices=['minidump','rekall'])

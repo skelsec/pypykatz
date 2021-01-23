@@ -112,7 +112,7 @@ class KerberosCMDHelper:
 		kerberos_subparsers.dest = 'kerberos_module'
 
 		tgt_parser = kerberos_subparsers.add_parser('tgt', help = 'Fetches a TGT for a given user')
-		tgt_parser.add_argument('url', help='user credentials in URL format')
+		tgt_parser.add_argument('url', help='user credentials in URL format. Example: "kerberos+password://TEST\\victim:Passw0rd!1@10.10.10.2"')
 		tgt_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
 
 		tgs_parser = kerberos_subparsers.add_parser('tgs', help = 'Fetches a TGS for a given service/user')
