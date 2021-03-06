@@ -309,7 +309,12 @@ class MsvDecryptor(PackageDecryptor):
 		
 		if credman_credential_entry.cbEncPassword and credman_credential_entry.cbEncPassword != 0:
 			enc_data = credman_credential_entry.encPassword.read_raw(self.reader, credman_credential_entry.cbEncPassword)
-			c.password = self.decrypt_password(enc_data)
+			if c.username.endswith('$') is True:
+				c.password = self.decrypt_password(enc_data, bytes_expected=True)
+				if c.password is not None:
+					c.password = c.password.hex()
+			else:
+				c.password = self.decrypt_password(enc_data)
 		
 		c.luid = self.current_logonsession.luid
 			

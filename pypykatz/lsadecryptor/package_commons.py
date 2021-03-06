@@ -111,23 +111,20 @@ class PackageDecryptor:
 		bytes_expected: bool :indication that the result of decryption is bytes, no need for encoding
 		trim_zeroes: bool: if a text is expected then this variable tells wether we should trim the trailing zeroes after decryption
 		"""
-		dec_password = None
-		if len(enc_password) % 8 == 0: # checking if encrypted password is of correct blocksize
-			temp = self.lsa_decryptor.decrypt(enc_password)
-			if temp and len(temp) > 0:
-				if bytes_expected == False:
-					try: # normal password
-						dec_password = temp.decode('utf-16-le')
-					except: # machine password
-						dec_password = temp.hex()
-					else: # if not machine password, then check if we should trim it
-						if trim_zeroes == True:
-							dec_password = dec_password.rstrip('\x00')
-				else:
-					dec_password = temp
 		
-		else: # special case for (unusable/plaintext?) orphaned credentials
-			dec_password = enc_password
+		dec_password = None
+		temp = self.lsa_decryptor.decrypt(enc_password)
+		if temp and len(temp) > 0:
+			if bytes_expected == False:
+				try: # normal password
+					dec_password = temp.decode('utf-16-le')
+				except: # machine password
+					dec_password = temp.hex()
+				else: # if not machine password, then check if we should trim it
+					if trim_zeroes == True:
+						dec_password = dec_password.rstrip('\x00')
+			else:
+				dec_password = temp
 		
 		return dec_password
 		

@@ -9,7 +9,7 @@ import enum
 import logging
 from minidump.win_datatypes import DWORD, LONG, LONGLONG, \
 	POINTER, UINT8, ULONG, PWSTR, USHORT, PCHAR, SHORT, \
-	BYTE, PVOID, WORD
+	BYTE, PVOID, WORD, DWORD64
 #from pypykatz.commons.common import *
 
 class LARGE_INTEGER:

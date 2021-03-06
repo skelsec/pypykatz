@@ -8,7 +8,7 @@
 from pypykatz import logger
 from pypykatz.commons.common import hexdump
 from pypykatz.crypto.des import triple_des, CBC
-from pypykatz.crypto.aes import AESModeOfOperationCBC
+from pypykatz.crypto.aes import AESModeOfOperationCFB
 from pypykatz.lsadecryptor.package_commons import PackageDecryptor
 
 class LsaDecryptor_NT6(PackageDecryptor):
@@ -88,14 +88,11 @@ class LsaDecryptor_NT6(PackageDecryptor):
 			if size % 8:
 				if not self.aes_key or not self.iv:
 					return cleartext
-				cipher = AESModeOfOperationCBC(self.aes_key, iv = self.iv)
-				n = 16
-				for block in [encrypted[i:i+n] for i in range(0, len(encrypted), n)]:  #terrible, terrible workaround
-					cleartext += cipher.decrypt(block)
+				cipher = AESModeOfOperationCFB(self.aes_key, iv = self.iv)
+				cleartext = cipher.decrypt(encrypted)
 			else:
 				if not self.des_key or not self.iv:
 					return cleartext
-				#cipher = DES3.new(self.des_key, DES3.MODE_CBC, self.iv[:8])
 				cipher = triple_des(self.des_key, CBC, self.iv[:8])
 				cleartext = cipher.decrypt(encrypted)
 		return cleartext
