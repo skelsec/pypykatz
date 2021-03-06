@@ -5,6 +5,7 @@
 #
 import io
 import json
+import base64
 from pypykatz.commons.common import WindowsMinBuild, KatzSystemArchitecture, GenericReader, UniversalEncoder, hexdump
 from pypykatz.commons.filetime import filetime_to_dt
 #from pypykatz.commons.win_datatypes import *
@@ -19,6 +20,8 @@ class MsvCredential:
 		self.NThash = None
 		self.LMHash = None
 		self.SHAHash = None
+		self.DPAPI = None
+		self.isoProt = None
 		
 		
 	def to_dict(self):
@@ -28,6 +31,7 @@ class MsvCredential:
 		t['NThash'] = self.NThash
 		t['LMHash'] = self.LMHash
 		t['SHAHash'] = self.SHAHash
+		t['DPAPI'] = self.DPAPI
 		return t
 		
 	def to_json(self):
@@ -40,6 +44,7 @@ class MsvCredential:
 		t += '\t\tLM: %s\n' % (self.LMHash.hex() if self.LMHash else 'NA')
 		t += '\t\tNT: %s\n' % (self.NThash.hex() if self.NThash else 'NA')
 		t += '\t\tSHA1: %s\n' % (self.SHAHash.hex() if self.SHAHash else 'NA')
+		t += '\t\tDPAPI: %s\n' % (self.DPAPI.hex() if self.DPAPI else 'NA')
 		return t
 		
 class CredmanCredential:
@@ -92,6 +97,7 @@ class LogonSession:
 		self.kerberos_creds = []
 		self.credman_creds = []
 		self.tspkg_creds = []
+		self.cloudap_creds = []
 	
 	@staticmethod
 	def parse(entry, reader):
@@ -233,15 +239,31 @@ class LogonSession:
 				''
 			]
 		
-		for package in [self.wdigest_creds, self.ssp_creds, self.livessp_creds, self.kerberos_creds, self.credman_creds, self.tspkg_creds]:
+		for package in [self.wdigest_creds, self.ssp_creds, self.livessp_creds, self.credman_creds, self.tspkg_creds]:
 			for cred in package:
 				t = cred.to_dict()
 				if t['password'] is not None:
 					yield [str(t['credtype']), str(t['domainname']), str(t['username']), '', '', '', '', '', '', str(t['password'])]
 
+		for cred in self.kerberos_creds:
+			t = cred.to_dict()
+			if t['password'] is not None or t['pin'] is not None:
+				pin = ''
+				if t['pin'] is not None:
+					pin = '[PIN]%s' % t['pin']
+					yield [str(t['credtype']), str(t['domainname']), str(t['username']), '', '', '', '', '', '', pin]
+				if t['password'] is not None:
+					yield [str(t['credtype']), str(t['domainname']), str(t['username']), '', '', '', '', '', '', str(t['password'])]
+		
 		for cred in self.dpapi_creds:
 			t = cred.to_dict()
 			yield [str(t['credtype']), '', '', '', '', '', str(t['masterkey']), str(t['sha1_masterkey']), str(t['key_guid']), '']
+		
+		for cred in self.cloudap_creds:
+			t = cred.to_dict()
+			#print(t)
+			yield [str(t['credtype']), '', '', '', '', '', str(t['dpapi_key']), str(t['dpapi_key_sha1']), str(t['key_guid']), base64.b64encode(str(t['PRT']).encode()).decode()]
+
 
 
 		
@@ -352,12 +374,31 @@ class MsvDecryptor(PackageDecryptor):
 				cred.domainname = creds_struct.LogonDomainName.read_string(struct_reader)
 			except Exception as e:
 				self.log('Failed to get domainname, reason : %s' % str(e))
-				
-		cred.NThash = creds_struct.NtOwfPassword
+
 		
+		if hasattr(creds_struct, 'DPAPIProtected') and creds_struct.DPAPIProtected != b'\x00'*16:
+			cred.DPAPI = creds_struct.DPAPIProtected
+		
+		if hasattr(creds_struct, 'isIso'):
+			cred.isoProt = bool(creds_struct.isIso[0])
+		#	
+		#	if cred.isoProt is True:
+		#		cred.NThash = None
+		#		cred.LMHash = None
+		#		cred.SHAHash = None
+		#
+		#else:
+		#	cred.NThash = creds_struct.NtOwfPassword
+		#	
+		#	if creds_struct.LmOwfPassword and creds_struct.LmOwfPassword != b'\x00'*16:
+		#		cred.LMHash = creds_struct.LmOwfPassword
+		#	cred.SHAHash = creds_struct.ShaOwPassword
+
+		cred.NThash = creds_struct.NtOwfPassword
+			
 		if creds_struct.LmOwfPassword and creds_struct.LmOwfPassword != b'\x00'*16:
 			cred.LMHash = creds_struct.LmOwfPassword
-		cred.SHAHash = creds_struct.ShaOwPassword		
+		cred.SHAHash = creds_struct.ShaOwPassword
 		
 		self.current_logonsession.msv_creds.append(cred)
 	

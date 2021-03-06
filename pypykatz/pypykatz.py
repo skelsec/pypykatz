@@ -325,7 +325,7 @@ class pypykatz:
 		cloudap_dec.start()
 		for cred in cloudap_dec.credentials:
 			if cred.luid in self.logon_sessions:
-				self.logon_sessions[cred.luid].dpapi_creds.append(cred)
+				self.logon_sessions[cred.luid].cloudap_creds.append(cred)
 			else:
 				self.orphaned_creds.append(cred)
 

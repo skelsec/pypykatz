@@ -52,7 +52,7 @@ class CloudapDecryptor(PackageDecryptor):
 		cred.luid = cloudap_entry.LocallyUniqueIdentifier
 
 		cache = cloudap_entry.cacheEntry.read(self.reader)
-		cred.cachedir = cache.toname.decode('utf-16-le')
+		cred.cachedir = cache.toname.decode('utf-16-le').replace('\x00','')
 		if cache.cbPRT != 0 and cache.PRT.value != 0:
 			temp = self.decrypt_password(cache.PRT.read_raw(self.reader, cache.cbPRT), bytes_expected=True)
 			try:
