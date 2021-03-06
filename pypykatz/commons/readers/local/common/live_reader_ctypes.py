@@ -190,6 +190,7 @@ def get_protected_process_infos(pid,process_handle=None):
         _ps_extended_basic_information = get_process_extended_basic_information(pid,process_handle)
         if _ps_extended_basic_information.IsProtectedProcess:
             process_protection_infos = {"type": 'System protected process'}
+	print(process_handle)
     CloseHandle(process_handle)
     return process_protection_infos
 	
