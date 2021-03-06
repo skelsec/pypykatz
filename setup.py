@@ -52,10 +52,10 @@ setup(
 	),
 	install_requires=[
 		'minidump>=0.0.13',
-		'minikerberos>=0.2.8',
+		'minikerberos>=0.2.9',
 		'aiowinreg>=0.0.4',
-		'msldap>=0.3.24',
-		'winacl>=0.1.0',
+		'msldap>=0.3.27',
+		'winacl>=0.1.1',
 	],
 	
 	# No more conveinent .exe entry point thanks to some idiot who 

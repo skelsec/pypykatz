@@ -12,7 +12,8 @@ from pypykatz.lsadecryptor import CredmanTemplate, MsvTemplate, \
 	MsvDecryptor, WdigestTemplate, LsaTemplate, WdigestDecryptor, \
 	LiveSspTemplate, LiveSspDecryptor, SspDecryptor, SspTemplate, \
 	TspkgDecryptor, TspkgTemplate, KerberosTemplate, KerberosDecryptor, \
-	DpapiTemplate, DpapiDecryptor, LsaDecryptor
+	DpapiTemplate, DpapiDecryptor, LsaDecryptor,CloudapTemplate,\
+	CloudapDecryptor
 
 from pypykatz.lsadecryptor.packages.msv.decryptor import LogonSession
 from pypykatz import logger
@@ -305,7 +306,7 @@ class pypykatz:
 	def get_kerberos(self):
 		dec_template = KerberosTemplate.get_template(self.sysinfo)
 		dec = KerberosDecryptor(self.reader, dec_template, self.lsa_decryptor, self.sysinfo)
-		dec.start()	
+		dec.start()
 		for cred in dec.credentials:
 			for ticket in cred.tickets:
 				for fn in ticket.kirbi_data:
@@ -316,6 +317,18 @@ class pypykatz:
 			else:
 				self.orphaned_creds.append(cred)
 	
+	def get_cloudap(self):
+		cloudap_dec_template = CloudapTemplate.get_template(self.sysinfo)
+		if cloudap_dec_template is None:
+			return
+		cloudap_dec = CloudapDecryptor(self.reader, cloudap_dec_template, self.lsa_decryptor, self.sysinfo)
+		cloudap_dec.start()
+		for cred in cloudap_dec.credentials:
+			if cred.luid in self.logon_sessions:
+				self.logon_sessions[cred.luid].cloudap_creds.append(cred)
+			else:
+				self.orphaned_creds.append(cred)
+
 	def start(self):
 		#self.log_basic_info()
 		#input()
@@ -327,3 +340,4 @@ class pypykatz:
 		self.get_ssp()
 		self.get_livessp()
 		self.get_dpapi()
+		self.get_cloudap()

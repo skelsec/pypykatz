@@ -34,7 +34,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_51
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_5
 				template.hash_password_struct = KERB_HASHPASSWORD_5
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_5
 				
 				
 			elif WindowsMinBuild.WIN_2K3.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_VISTA.value:
@@ -44,7 +44,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_52
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_5
 				template.hash_password_struct = KERB_HASHPASSWORD_5
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_5
 				
 			elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_7.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
@@ -53,7 +53,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_60
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_60
 				
 			elif WindowsMinBuild.WIN_7.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
@@ -62,7 +62,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_60
 			
 			elif WindowsMinBuild.WIN_8.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
@@ -71,7 +71,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_62
 				
 			elif WindowsBuild.WIN_10_1507.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1511.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
@@ -80,7 +80,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 				
 			elif WindowsBuild.WIN_10_1511.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1607.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
@@ -89,7 +89,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_10
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 				
 
 			elif sysinfo.buildnumber >= WindowsBuild.WIN_10_1607.value:
@@ -99,7 +99,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_10_1607
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 			
 			else:
 				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (sysinfo.architecture, sysinfo.buildnumber))
@@ -113,7 +113,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_51
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_5
 				template.hash_password_struct = KERB_HASHPASSWORD_5
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_5
 				
 				
 			elif WindowsMinBuild.WIN_2K3.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_VISTA.value:
@@ -123,7 +123,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_52
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_5
 				template.hash_password_struct = KERB_HASHPASSWORD_5
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_5
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_5
 				
 			elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_7.value:
 				template.signature = b'\x53\x8b\x18\x50\x56'
@@ -132,7 +132,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_60
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_60
 				
 			elif WindowsMinBuild.WIN_7.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
 				template.signature = b'\x53\x8b\x18\x50\x56'
@@ -141,7 +141,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_60
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_60
 				
 			elif WindowsMinBuild.WIN_8.value <= sysinfo.buildnumber < WindowsBuild.WIN_BLUE.value:
 				template.signature = b'\x57\x8b\x38\x50\x68'
@@ -150,7 +150,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_62
 				
 			elif WindowsMinBuild.WIN_BLUE.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value:
 				template.signature = b'\x56\x8b\x30\x50\x57'
@@ -159,7 +159,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_62
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_62
 			
 			####DOUBLE CHECK THE STRUCTURES BELOW THIS LINE!!!!
 			#### kerbHelper[N] -> KerberosReferences... {-15,7}}, here N= 7
@@ -171,7 +171,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_6
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 				
 				
 			elif WindowsBuild.WIN_10_1511.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1903.value:
@@ -181,7 +181,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_10_1607
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 				
 				
 			elif WindowsBuild.WIN_10_1903.value <= sysinfo.buildnumber:
@@ -191,7 +191,7 @@ class KerberosTemplate(PackageTemplate):
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_10_1607
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
-				template.csp_info_struct = PKIWI_KERBEROS_CSP_INFOS_10
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 		
 		
 		else:
@@ -206,14 +206,45 @@ class PKERB_SMARTCARD_CSP_INFO_5(POINTER):
 		
 
 class KERB_SMARTCARD_CSP_INFO_5:
-	def __init__(self, reader):
-		self.dwCspInfoLen = DWORD(reader).value
+	def __init__(self, reader, size):
+		pos = reader.tell()
+		#self.dwCspInfoLen = DWORD(reader).value
 		self.ContextInformation = PVOID(reader).value
 		self.nCardNameOffset = ULONG(reader).value
 		self.nReaderNameOffset = ULONG(reader).value
 		self.nContainerNameOffset = ULONG(reader).value
 		self.nCSPNameOffset = ULONG(reader).value
-		self.bBuffer = WCHAR(reader).value
+		diff = reader.tell() - pos
+		data = reader.read(size - diff + 4)
+		self.bBuffer = io.BytesIO(data)
+
+	def read_wcharnull(self, buffer, tpos):
+		pos = buffer.tell()
+		buffer.seek(tpos, 0)
+		data = b''
+		i=0
+		nc = 0
+		while i < 255:
+			if nc == 3:
+				break
+			c = buffer.read(1)
+			if c == b'\x00':
+				nc += 1
+			else:
+				nc = 0
+			data += c
+			i += 1
+		buffer.seek(pos, 0)
+		return data.decode('utf-16-le').replace('\x00', '')
+
+	def get_infos(self):
+		t = {}
+		t['CardName'] = self.read_wcharnull(self.bBuffer, self.nCardNameOffset)
+		t['ReaderName'] = self.read_wcharnull(self.bBuffer, self.nReaderNameOffset)
+		t['ContainerName'] = self.read_wcharnull(self.bBuffer, self.nContainerNameOffset)
+		t['CSPName'] = self.read_wcharnull(self.bBuffer, self.nCSPNameOffset)
+
+		return t
 
 class PKERB_SMARTCARD_CSP_INFO(POINTER):
 	def __init__(self, reader):
@@ -221,18 +252,49 @@ class PKERB_SMARTCARD_CSP_INFO(POINTER):
 		
 		
 class KERB_SMARTCARD_CSP_INFO:
-	def __init__(self, reader):
-		self.dwCspInfoLen = DWORD(reader).value
+	def __init__(self, reader, size):
+		pos = reader.tell()
+		#self.dwCspInfoLen = DWORD(reader).value
 		self.MessageType = DWORD(reader).value
 		self.ContextInformation = PVOID(reader).value #U
 		self.SpaceHolderForWow64 = ULONG64(reader).value #U
 		self.flags = DWORD(reader).value
 		self.KeySpec = DWORD(reader).value
-		self.nCardNameOffset = ULONG(reader).value
-		self.nReaderNameOffset = ULONG(reader).value
-		self.nContainerNameOffset = ULONG(reader).value
-		self.nCSPNameOffset = ULONG(reader).value
-		self.bBuffer[ANYSIZE_ARRAY] = WCHAR(reader).value
+		self.nCardNameOffset = ULONG(reader).value * 2
+		self.nReaderNameOffset = ULONG(reader).value * 2
+		self.nContainerNameOffset = ULONG(reader).value * 2
+		self.nCSPNameOffset = ULONG(reader).value * 2
+		diff = reader.tell() - pos
+		data = reader.read(size - diff + 4)
+		self.bBuffer = io.BytesIO(data)
+
+	def read_wcharnull(self, buffer, tpos):
+		pos = buffer.tell()
+		buffer.seek(tpos, 0)
+		data = b''
+		i=0
+		nc = 0
+		while i < 255:
+			if nc == 3:
+				break
+			c = buffer.read(1)
+			if c == b'\x00':
+				nc += 1
+			else:
+				nc = 0
+			data += c
+			i += 1
+		buffer.seek(pos, 0)
+		return data.decode('utf-16-le').replace('\x00', '')
+
+	def get_infos(self):
+		t = {}
+		t['CardName'] = self.read_wcharnull(self.bBuffer, self.nCardNameOffset)
+		t['ReaderName'] = self.read_wcharnull(self.bBuffer, self.nReaderNameOffset)
+		t['ContainerName'] = self.read_wcharnull(self.bBuffer, self.nContainerNameOffset)
+		t['CSPName'] = self.read_wcharnull(self.bBuffer, self.nCSPNameOffset)
+
+		return t
 		
 class PKIWI_KERBEROS_CSP_INFOS_5(POINTER):
 	def __init__(self, reader):
@@ -241,13 +303,13 @@ class PKIWI_KERBEROS_CSP_INFOS_5(POINTER):
 class KIWI_KERBEROS_CSP_INFOS_5:
 	def __init__(self, reader):	
 		self.PinCode = LSA_UNICODE_STRING(reader)
-		self.unk0 = PVOID(reader).value
-		self.unk1 = PVOID(reader).value
-		self.CertificateInfos = PVOID(reader).value
-		self.unkData = PVOID(reader).value                #	// 0 = CspData
+		self.unk0 = PVOID(reader)
+		self.unk1 = PVOID(reader)
+		self.CertificateInfos = PVOID(reader)
+		self.unkData = PVOID(reader)                      #	// 0 = CspData
 		self.Flags = DWORD(reader).value                  #	// 1 = CspData (not 0x21)(reader).value
 		self.CspDataLength = DWORD(reader).value
-		self.CspData = KERB_SMARTCARD_CSP_INFO_5(reader).value
+		self.CspData = KERB_SMARTCARD_CSP_INFO_5(reader, size = self.CspDataLength)
 	 
 class PKIWI_KERBEROS_CSP_INFOS_60(POINTER):
 	def __init__(self, reader):
@@ -264,7 +326,7 @@ class KIWI_KERBEROS_CSP_INFOS_60:
 		self.Flags = DWORD(reader).value	            #// 0 = CspData(reader).value
 		self.unkFlags = DWORD(reader).value      	#// 0x141(reader).value
 		self.CspDataLength = DWORD(reader).value
-		self.CspData = KERB_SMARTCARD_CSP_INFO(reader).value
+		self.CspData = KERB_SMARTCARD_CSP_INFO(reader, size = self.CspDataLength)
 
 class PKIWI_KERBEROS_CSP_INFOS_62(POINTER):
 	def __init__(self, reader):
@@ -282,7 +344,7 @@ class KIWI_KERBEROS_CSP_INFOS_62:
 		self.Flags = DWORD(reader).value	             #// 0 = CspData(reader).value
 		self.unkFlags = DWORD(reader).value	            #// 0x141 (not 0x61)
 		self.CspDataLength = DWORD(reader).value
-		self.CspData = KERB_SMARTCARD_CSP_INFO(reader).value
+		self.CspData = KERB_SMARTCARD_CSP_INFO(reader, size = self.CspDataLength)
 		
 class PKIWI_KERBEROS_CSP_INFOS_10(POINTER):
 	def __init__(self, reader):
@@ -300,7 +362,7 @@ class KIWI_KERBEROS_CSP_INFOS_10:
 		self.unkFlags = DWORD(reader).value	        #// 0x141 (not 0x61)(reader).value
 		self.unk3 = PVOID(reader).value
 		self.CspDataLength = DWORD(reader).value
-		self.CspData = KERB_SMARTCARD_CSP_INFO(reader).value
+		self.CspData = KERB_SMARTCARD_CSP_INFO(reader, size = self.CspDataLength)
 
 class PKIWI_KERBEROS_LOGON_SESSION_51(POINTER):
 	def __init__(self, reader):
@@ -341,7 +403,7 @@ class KIWI_KERBEROS_LOGON_SESSION_51:
 		self.Tickets_1 = LIST_ENTRY(reader)
 		self.Tickets_2 = LIST_ENTRY(reader)
 		self.Tickets_3 = LIST_ENTRY(reader)
-		self.SmartcardInfos = PVOID(reader).value
+		self.SmartcardInfos = PVOID(reader)
 
 		
 class PKIWI_KERBEROS_LOGON_SESSION(POINTER):
@@ -387,7 +449,7 @@ class KIWI_KERBEROS_LOGON_SESSION:
 		self.unk25 = FILETIME(reader).value
 		self.Tickets_3 = LIST_ENTRY(reader)
 		self.unk26 = FILETIME(reader).value
-		self.SmartcardInfos = PVOID(reader).value
+		self.SmartcardInfos = PVOID(reader)
 
 class PKIWI_KERBEROS_10_PRIMARY_CREDENTIAL(POINTER):
 	def __init__(self, reader):
@@ -458,7 +520,7 @@ class KIWI_KERBEROS_LOGON_SESSION_10_X86:
 		self.unk28 = FILETIME(reader).value
 		self.Tickets_3 = LIST_ENTRY(reader)
 		self.unk29 = FILETIME(reader).value
-		self.SmartcardInfos = PVOID(reader).value
+		self.SmartcardInfos = PVOID(reader)
 		
 class KIWI_KERBEROS_LOGON_SESSION_10:
 	def __init__(self, reader):	
@@ -502,7 +564,7 @@ class KIWI_KERBEROS_LOGON_SESSION_10:
 		self.unk28 = FILETIME(reader).value
 		self.Tickets_3 = LIST_ENTRY(reader)
 		self.unk29 = FILETIME(reader).value
-		self.SmartcardInfos = PVOID(reader).value
+		self.SmartcardInfos = PVOID(reader)
 
 class PKIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607_ISO(POINTER):
 	def __init__(self, reader):
@@ -581,7 +643,7 @@ class KIWI_KERBEROS_LOGON_SESSION_10_1607:
 		self.unk28 = FILETIME(reader).value
 		self.Tickets_3 = LIST_ENTRY(reader)
 		self.unk29 = FILETIME(reader).value
-		self.SmartcardInfos = PVOID(reader).value
+		self.SmartcardInfos = PVOID(reader)
 		
 		
 class KIWI_KERBEROS_LOGON_SESSION_10_1607_X86:
@@ -633,7 +695,7 @@ class KIWI_KERBEROS_LOGON_SESSION_10_1607_X86:
 		self.unk28 = FILETIME(reader).value
 		self.Tickets_3 = LIST_ENTRY(reader)
 		self.unk29 = FILETIME(reader).value
-		self.SmartcardInfos = PVOID(reader).value
+		self.SmartcardInfos = PVOID(reader)
 
 class PKIWI_KERBEROS_INTERNAL_TICKET_51(POINTER):
 	def __init__(self, reader):

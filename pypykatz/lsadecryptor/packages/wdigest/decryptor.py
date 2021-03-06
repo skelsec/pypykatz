@@ -64,7 +64,12 @@ class WdigestDecryptor(PackageDecryptor):
 		wc.username = UserName.read_string(self.reader)
 		wc.domainname = DomainName.read_string(self.reader)
 		wc.encrypted_password = Password.read_maxdata(self.reader)
-		wc.password = self.decrypt_password(wc.encrypted_password)
+		if wc.username.endswith('$') is True:
+			wc.password = self.decrypt_password(wc.encrypted_password, bytes_expected=True)
+			if wc.password is not None:
+				wc.password = wc.password.hex()
+		else:
+			wc.password = self.decrypt_password(wc.encrypted_password)
 
 		
 		self.credentials.append(wc)

@@ -50,11 +50,15 @@ class SspDecryptor(PackageDecryptor):
 	def add_entry(self, ssp_entry):
 		c = SspCredential()
 		c.luid = ssp_entry.LogonId
-		c.username = ssp_entry.credentials.UserName.read_string(self.reader)
-		c.domainname = ssp_entry.credentials.Domaine.read_string(self.reader)
+		c.username = ssp_entry.credentials.Domaine.read_string(self.reader)
+		c.domainname = ssp_entry.credentials.UserName.read_string(self.reader)
 		if ssp_entry.credentials.Password.Length != 0:
-			c.password = self.decrypt_password(ssp_entry.credentials.Password.read_maxdata(self.reader))
-					
+			if c.username.endswith('$') is True or c.domainname.endswith('$') is True:
+				c.password = self.decrypt_password(ssp_entry.credentials.Password.read_data(self.reader), bytes_expected=True)
+				if c.password is not None:
+					c.password = c.password.hex()
+			else:
+				c.password = self.decrypt_password(ssp_entry.credentials.Password.read_data(self.reader))
 		self.credentials.append(c)
 	
 	def start(self):

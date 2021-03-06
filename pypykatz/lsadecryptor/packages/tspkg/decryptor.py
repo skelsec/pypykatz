@@ -81,6 +81,11 @@ class TspkgDecryptor(PackageDecryptor):
 				
 				if primary_credential.credentials.Password.Length != 0:
 					enc_data = primary_credential.credentials.Password.read_maxdata(self.reader)
-					c.password = self.decrypt_password(enc_data)					
+					if c.username.endswith('$') is True:
+						c.password = self.decrypt_password(enc_data, bytes_expected=True)
+						if c.password is not None:
+							c.password = c.password.hex()
+					else:
+						c.password = self.decrypt_password(enc_data)					
 				
 				self.credentials.append(c)
