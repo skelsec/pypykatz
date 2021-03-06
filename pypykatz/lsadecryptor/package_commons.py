@@ -117,9 +117,15 @@ class PackageDecryptor:
 		if temp and len(temp) > 0:
 			if bytes_expected == False:
 				try: # normal password
-					dec_password = temp.decode('utf-16-le')
+					dec_password = temp.decode('ascii')
 				except: # machine password
-					dec_password = temp.hex()
+					try:
+						dec_password = temp.decode('utf-8')
+					except:
+						try:
+							dec_password = temp.decode('utf-16-le')
+						except:
+							dec_password = temp.hex()
 				else: # if not machine password, then check if we should trim it
 					if trim_zeroes == True:
 						dec_password = dec_password.rstrip('\x00')
