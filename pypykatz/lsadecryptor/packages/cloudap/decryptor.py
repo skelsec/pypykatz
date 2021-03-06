@@ -64,9 +64,10 @@ class CloudapDecryptor(PackageDecryptor):
 			
 		if cache.toDetermine != 0:
 			unk = cache.toDetermine.read(self.reader)
-			cred.key_guid = unk.guid.value
-			cred.dpapi_key = self.decrypt_password(unk.unk)
-			cred.dpapi_key_sha1 = hashlib.sha1(bytes.fromhex(cred.dpapi_key)).hexdigest()
+			if unk is not None:
+				cred.key_guid = unk.guid.value
+				cred.dpapi_key = self.decrypt_password(unk.unk)
+				cred.dpapi_key_sha1 = hashlib.sha1(bytes.fromhex(cred.dpapi_key)).hexdigest()
 	
 		self.credentials.append(cred)
 	
