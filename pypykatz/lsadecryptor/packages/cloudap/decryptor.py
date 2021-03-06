@@ -68,7 +68,9 @@ class CloudapDecryptor(PackageDecryptor):
 				cred.key_guid = unk.guid.value
 				cred.dpapi_key = self.decrypt_password(unk.unk)
 				cred.dpapi_key_sha1 = hashlib.sha1(bytes.fromhex(cred.dpapi_key)).hexdigest()
-	
+
+		if cred.PRT is None and cred.key_guid is None:
+			return
 		self.credentials.append(cred)
 	
 	def start(self):
