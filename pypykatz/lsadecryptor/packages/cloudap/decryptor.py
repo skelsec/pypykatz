@@ -48,30 +48,36 @@ class CloudapDecryptor(PackageDecryptor):
 		return ptr_entry, ptr_entry_loc
 
 	def add_entry(self, cloudap_entry):
-		cred = CloudapCredential()
-		cred.luid = cloudap_entry.LocallyUniqueIdentifier
+		try:
+			cred = CloudapCredential()
+			cred.luid = cloudap_entry.LocallyUniqueIdentifier
 
-		cache = cloudap_entry.cacheEntry.read(self.reader)
-		cred.cachedir = cache.toname.decode('utf-16-le').replace('\x00','')
-		if cache.cbPRT != 0 and cache.PRT.value != 0:
-			temp = self.decrypt_password(cache.PRT.read_raw(self.reader, cache.cbPRT), bytes_expected=True)
-			try:
-				temp = temp.decode()
-			except:
-				pass
-			
-			cred.PRT = temp
-			
-		if cache.toDetermine != 0:
-			unk = cache.toDetermine.read(self.reader)
-			if unk is not None:
-				cred.key_guid = unk.guid.value
-				cred.dpapi_key = self.decrypt_password(unk.unk)
-				cred.dpapi_key_sha1 = hashlib.sha1(bytes.fromhex(cred.dpapi_key)).hexdigest()
+			if cloudap_entry.cacheEntry is None or cloudap_entry.cacheEntry.value == 0:
+				return
+			cache = cloudap_entry.cacheEntry.read(self.reader)
+			cred.cachedir = cache.toname.decode('utf-16-le').replace('\x00','')
+			if cache.cbPRT != 0 and cache.PRT.value != 0:
+				temp = self.decrypt_password(cache.PRT.read_raw(self.reader, cache.cbPRT), bytes_expected=True)
+				try:
+					temp = temp.decode()
+				except:
+					pass
+				
+				cred.PRT = temp
+				
+			if cache.toDetermine != 0:
+				unk = cache.toDetermine.read(self.reader)
+				if unk is not None:
+					cred.key_guid = unk.guid.value
+					cred.dpapi_key = self.decrypt_password(unk.unk)
+					cred.dpapi_key_sha1 = hashlib.sha1(bytes.fromhex(cred.dpapi_key)).hexdigest()
 
-		if cred.PRT is None and cred.key_guid is None:
-			return
-		self.credentials.append(cred)
+			if cred.PRT is None and cred.key_guid is None:
+				return
+			self.credentials.append(cred)
+		except Exception as e:
+			self.log('CloudAP entry parsing error! Reason %s' % e)
+			
 	
 	def start(self):
 		try:
