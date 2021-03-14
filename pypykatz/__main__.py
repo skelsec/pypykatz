@@ -24,7 +24,8 @@ def main():
 	try:
 		from pypykatz.smb.cmdhelper import SMBCMDHelper
 		cmdhelpers.append(SMBCMDHelper())
-	except:
+	except Exception as e:
+		print(e)
 		pass
 
 	parser = argparse.ArgumentParser(description='Pure Python implementation of Mimikatz --and more--')
