@@ -54,6 +54,41 @@ class SMBCMDHelper:
 		smb_lsassfile_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
 		smb_lsassfile_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
 
+		smb_lsassdump_group = smb_subparsers.add_parser('lsassdump', help='Yes.')
+		smb_lsassdump_group.add_argument('url', help="SMB connection string Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102'")
+		smb_lsassdump_group.add_argument('-m','--method', choices=['taskexec'] , default = 'taskexec', help = 'Print credentials in JSON format')
+		smb_lsassdump_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+		smb_lsassdump_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		smb_lsassdump_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
+		smb_lsassdump_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
+
+
+		smb_regfile_group = smb_subparsers.add_parser('regfile', help='Parse a remote registry hive dumps')
+		smb_regfile_group.add_argument('url', help="SMB connection string with folder in path field. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/C$/Users/victim/Desktop/'")
+		smb_regfile_group.add_argument('system', help='path to the SYSTEM registry hive')
+		smb_regfile_group.add_argument('--sam', help='path to the SAM registry hive')
+		smb_regfile_group.add_argument('--security', help='path to the SECURITY registry hive')
+		smb_regfile_group.add_argument('--software', help='path to the SOFTWARE registry hive')
+		smb_regfile_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		smb_regfile_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+		
+		smb_regsec_group = smb_subparsers.add_parser('regdump', help='Regsecrets')
+		smb_regsec_group.add_argument('url', help="SMB connection string. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102'")
+		smb_regsec_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		smb_regsec_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+
+		smb_dcsync_group = smb_subparsers.add_parser('dcsync', help='DcSync')
+		smb_dcsync_group.add_argument('url', help="SMB connection string with folder in path field. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/'")
+		smb_dcsync_group.add_argument('-u', '--username', help='taget username')
+		smb_dcsync_group.add_argument('-o', '--outfile', help = 'Save results to file')
+
+		smb_secretsdump_group = smb_subparsers.add_parser('secretsdump', help='secretsdump')
+		smb_secretsdump_group.add_argument('url', help="SMB connection string with folder in path field. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/'")
+		smb_secretsdump_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+		smb_secretsdump_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		smb_secretsdump_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
+		smb_secretsdump_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
+
 
 		live_subcommand_parser = argparse.ArgumentParser(add_help=False)                                                                                                  
 		live_smb_subparsers = live_subcommand_parser.add_subparsers(help = 'LIVE DPAPI commands work under the current user context. Except: keys, wifi, chrome')
@@ -107,26 +142,90 @@ class SMBCMDHelper:
 	async def run(self, args):
 		
 		if args.smb_module == 'lsassfile':
-			from aiosmb.commons.connection.url import SMBConnectionURL
-			from pypykatz.alsadecryptor.asbmfile import SMBFileReader
-			from pypykatz.apypykatz import apypykatz
+			from pypykatz.smb.lsassutils import lsassfile
+			mimi = await lsassfile(args.url)
+			self.process_results({'smbfile':mimi}, [], args)
 
-			smburl = SMBConnectionURL(args.url)
-			connection = smburl.get_connection()
-			smbfile = smburl.get_file()
+		elif args.smb_module == 'lsassdump':
+			from pypykatz.smb.lsassutils import lsassdump
+			mimi = await lsassdump(args.url)
+			self.process_results({'smbfile':mimi}, [], args)
 
-			async with connection:
-				_, err = await connection.login()
-				if err is not None:
-					raise err
-				
-				_, err = await smbfile.open(connection)
-				if err is not None:
-					raise err
+		elif args.smb_module == 'secretsdump':
+			from pypykatz.smb.lsassutils import lsassdump
+			from pypykatz.smb.regutils import regdump
+			from pypykatz.smb.dcsync import dcsync
 
-				mimi = await apypykatz.parse_minidump_external(SMBFileReader(smbfile))
-				self.process_results({'smbfile':mimi}, [], args)
+			mimi = await lsassdump(args.url)
+			self.process_results({'smbfile':mimi}, [], args)
+
+			
+			po = await regdump(args.url)
+
+			if po is not None:
+				if args.outfile:
+					po.to_file(args.outfile, args.json)
+				else:
+					if args.json:
+						print(json.dumps(po.to_dict(), cls = UniversalEncoder, indent=4, sort_keys=True))
+					else:
+						print(str(po))
+
+			
+			if args.outfile is not None:
+				outfile = open(args.outfile, 'w', newline = '')
+
+			async for secret in dcsync(args.url):
+				if args.outfile is not None:
+					outfile.write(str(secret))
+				else:
+					print(str(secret))
+
+			if args.outfile is not None:
+				outfile.close()
+
 		
+		elif args.smb_module == 'dcsync':
+			from pypykatz.smb.dcsync import dcsync
+			
+			if args.outfile is not None:
+				outfile = open(args.outfile, 'w', newline = '')
+
+			async for secret in dcsync(args.url, args.username):
+				if args.outfile is not None:
+					outfile.write(str(secret))
+				else:
+					print(str(secret))
+
+			if args.outfile is not None:
+				outfile.close()
+		
+		elif args.smb_module == 'regdump':
+			from pypykatz.smb.regutils import regdump
+			po = await regdump(args.url)
+
+			if po is not None:
+				if args.outfile:
+					po.to_file(args.outfile, args.json)
+				else:
+					if args.json:
+						print(json.dumps(po.to_dict(), cls = UniversalEncoder, indent=4, sort_keys=True))
+					else:
+						print(str(po))
+		
+		elif args.smb_module == 'regfile':
+			from pypykatz.smb.regutils import regfile
+			po = await regfile(args.url, args.system, sam = args.sam, security = args.security, software = args.software)
+
+			if po is not None:
+				if args.outfile:
+					po.to_file(args.outfile, args.json)
+				else:
+					if args.json:
+						print(json.dumps(po.to_dict(), cls = UniversalEncoder, indent=4, sort_keys=True))
+					else:
+						print(str(po))
+
 		elif args.smb_module == 'console':
 			from aiosmb.examples.smbclient import amain
 			la = SMBCMDArgs()

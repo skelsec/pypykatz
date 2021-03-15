@@ -9,11 +9,12 @@ import json
 import glob
 import ntpath
 import traceback
+import asyncio
 
 from pypykatz import logging
-from pypykatz.pypykatz import pypykatz
+from pypykatz.apypykatz import apypykatz
 from pypykatz.commons.common import UniversalEncoder
-from pypykatz.lsadecryptor.packages.msv.decryptor import LogonSession
+from pypykatz.alsadecryptor.packages.msv.decryptor import LogonSession
 
 
 
@@ -45,7 +46,7 @@ class LSACMDHelper:
 		
 	def execute(self, args):
 		if len(self.keywords) > 0 and args.command in self.keywords:
-			self.run(args)
+			asyncio.run(self.run(args))
 		
 		if len(self.live_keywords) > 0 and args.command == 'live' and args.module in self.live_keywords:
 			self.run_live(args)
@@ -140,39 +141,13 @@ class LSACMDHelper:
 							ticket.to_kirbi(dir)
 		
 	def run_live(self, args):
-		files_with_error = []
-		results = {}
-		if args.module == 'lsa':
-			filename = 'live'
-			try:
-				if args.method == 'procopen':
-					mimi = pypykatz.go_live()
-				elif args.method == 'handledup':
-					mimi = pypykatz.go_handledup()
-					if mimi is None:
-						raise Exception('HANDLEDUP failed to bring any results!')
-				results['live'] = mimi
-			except Exception as e:
-				files_with_error.append(filename)
-				if args.halt_on_error == True:
-					raise e
-				else:
-					print('Exception while dumping LSA credentials from memory.')
-					traceback.print_exc()
-					pass
-					
-			self.process_results(results, files_with_error,args)
+		return
 			
-	def run(self, args):
+	async def run(self, args):
 		files_with_error = []
 		results = {}
-		###### Rekall
-		if args.cmd == 'rekall':
-			mimi = pypykatz.parse_memory_dump_rekall(args.memoryfile, args.timestamp_override)
-			results['rekall'] = mimi
-	
 		###### Minidump
-		elif args.cmd == 'minidump':
+		if args.cmd == 'minidump':
 			if args.directory:
 				dir_fullpath = os.path.abspath(args.memoryfile)
 				file_pattern = '*.dmp'
@@ -185,7 +160,8 @@ class LSACMDHelper:
 				for filename in glob.glob(globdata, recursive=args.recursive):
 					logging.info('Parsing file %s' % filename)
 					try:
-						mimi = pypykatz.parse_minidump_file(filename)
+						print('await')
+						mimi = await apypykatz.parse_minidump_file(filename)
 						results[filename] = mimi
 					except Exception as e:
 						files_with_error.append(filename)
@@ -198,7 +174,7 @@ class LSACMDHelper:
 			else:
 				logging.info('Parsing file %s' % args.memoryfile)
 				try:
-					mimi = pypykatz.parse_minidump_file(args.memoryfile)
+					mimi = await apypykatz.parse_minidump_file(args.memoryfile)
 					results[args.memoryfile] = mimi
 				except Exception as e:
 					logging.exception('Error while parsing file %s' % args.memoryfile)

@@ -4,12 +4,11 @@
 #  Tamas Jos (@skelsec)
 #
 import io
-from minidump.win_datatypes import ULONG64, FILETIME, PCWSTR, SIZE_T, BOOL  #WCHAR, ANYSIZE_ARRAY
 from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild, WindowsBuild
-from pypykatz.commons.win_datatypes import POINTER, PVOID, ULONG, LIST_ENTRY, \
+from pypykatz.alsadecryptor.win_datatypes import POINTER, PVOID, ULONG, LIST_ENTRY, \
 	DWORD, LSA_UNICODE_STRING, PKERB_EXTERNAL_NAME, KIWI_GENERIC_PRIMARY_CREDENTIAL, \
-	LUID, PLSAISO_DATA_BLOB
-from pypykatz.lsadecryptor.package_commons import PackageTemplate
+	LUID, PLSAISO_DATA_BLOB, ULONG64, FILETIME, PCWSTR, SIZE_T, BOOL
+from pypykatz.alsadecryptor.package_commons import PackageTemplate
 
 class KerberosTemplate(PackageTemplate):
 	def __init__(self, sysinfo):

@@ -69,7 +69,7 @@ class KIWI_CREDMAN_LIST_ENTRY_5_X86:
 		self.user = LSA_UNICODE_STRING(reader)
 		self.unk8 = ULONG(reader).value
 		reader.align()
-		self.server2 = LSA_UNICODE_STRING
+		self.server2 = LSA_UNICODE_STRING(reader)
 	
 class PKIWI_CREDMAN_LIST_ENTRY_60_X86(POINTER):
 	def __init__(self, reader):

@@ -1,4 +1,5 @@
 
+import math
 
 class FileSection:
 	def __init__(self, startpos, data):
@@ -17,11 +18,15 @@ class FileSection:
 class SMBFileReader:
 	def __init__(self, smbfile):
 		self.smbfile = smbfile
-		self.maxreadsize = smbfile.maxreadsize
 		self.cache = []
 		self.curpos = 0
 
+	async def open(self, connection, mode = 'r'):
+		return await self.smbfile.open(connection, mode=mode)
+		 
+
 	async def read(self, n = -1):
+		#print('read %s' % n)
 		if n == 0:
 			return b''
 
@@ -35,27 +40,37 @@ class SMBFileReader:
 					return data
 
 		#print('CACHE MISS!')
+		# requested data not found in cache, this case we will read a larger chunk than requested and store it in memory
+		# since reading more data skews the current position we will need to reset the position by calling seek with the correct pos
 
-		data, err = await self.smbfile.read(self.maxreadsize)
-		if err is not None:
-			raise err
+		readsize = min(self.smbfile.maxreadsize, self.smbfile.size)
+		buffer = b''
+
+		# this is needed bc sometimes the readsize is smaller than the requested amount
+		for _ in range(int(math.ceil(n/readsize))):
+			data, err = await self.smbfile.read(readsize)
+			if err is not None:
+				raise err
+			buffer += data
 		
-		section = FileSection(self.curpos, data)
+		section = FileSection(self.curpos, buffer)
 		self.cache.append(section)
 		
 		data = section.read(self.curpos, n)
-		#print(n)
-		#print(data)
-		await self.seek(n, 1)
+		await self.seek(self.curpos + n, 0)
 		return data
 	
 	async def close(self):
-		await self.smbfile.close()
+		return await self.smbfile.close()
+	
+	async def delete(self):
+		return await self.smbfile.delete()
 	
 	def tell(self):
 		return self.curpos
 	
 	async def seek(self, n, whence = 0):
+		#print('seek %s %s' % (whence, n))
 		_, err = await self.smbfile.seek(n, whence)
 		if err is not None:
 			raise err

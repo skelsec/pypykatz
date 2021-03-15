@@ -12,10 +12,10 @@ from pypykatz.commons.common import KatzSystemInfo
 from pypykatz.alsadecryptor import CredmanTemplate, MsvTemplate, \
 	MsvDecryptor, WdigestTemplate, LsaTemplate, WdigestDecryptor, \
 	LiveSspTemplate, LiveSspDecryptor, SspDecryptor, SspTemplate, \
-	TspkgDecryptor, TspkgTemplate, KerberosTemplate, KerberosDecryptor, \
+	TspkgDecryptor, TspkgTemplate, \
 	DpapiTemplate, DpapiDecryptor, LsaDecryptor,CloudapTemplate,\
 	CloudapDecryptor
-
+#KerberosTemplate, KerberosDecryptor, 
 from pypykatz.alsadecryptor.packages.msv.decryptor import LogonSession
 from pypykatz import logger
 from pypykatz.commons.common import UniversalEncoder

@@ -4,7 +4,7 @@
 #  Tamas Jos (@skelsec)
 #
 
-from minidump.win_datatypes import POINTER
+from pypykatz.alsadecryptor.win_datatypes import POINTER
 from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild
 from pypykatz.alsadecryptor.package_commons import PackageTemplate
 
