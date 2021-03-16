@@ -72,7 +72,7 @@ async def lsassdump(url, method = 'taskexec', remote_base_path = 'C:\\Windows\\T
 					raise err
 				
 				logging.debug('[LSASSDUMP] Sleeping a bit to let the remote host finish dumping')
-				await asyncio.sleep(5)
+				await asyncio.sleep(10)
 			
 			else:
 				raise Exception('Unknown execution method %s' % method)

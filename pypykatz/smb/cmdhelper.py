@@ -117,6 +117,16 @@ class SMBCMDHelper:
 		if platform.system().lower() != 'windows':
 			raise Exception('Live commands only work on Windows!')
 
+		from aiosmb import logger as smblog
+
+		if args.verbose == 0:
+			smblog.setLevel(100)
+		elif args.verbose == 1:
+			smblog.setLevel(level=logging.INFO)
+		else:
+			level = 5 - args.verbose
+			smblog.setLevel(level=level)
+
 		if args.livesmbcommand == 'console':
 			from aiosmb.examples.smbclient import amain
 			from winacl.functions.highlevel import get_logon_info
@@ -124,7 +134,6 @@ class SMBCMDHelper:
 			la = SMBCMDArgs()
 			la.smb_url = 'smb%s+sspi-%s://%s\\%s@%s' % (args.protocol_version, args.authmethod, info['domain'], info['username'], args.host)
 			la.verbose = args.verbose
-			#print(la.smb_url)
 
 			if args.commands is not None and len(args.commands) > 0:
 				la.commands = []
@@ -140,6 +149,16 @@ class SMBCMDHelper:
 			await amain(la)
 			
 	async def run(self, args):
+
+		from aiosmb import logger as smblog
+
+		if args.verbose == 0:
+			smblog.setLevel(100)
+		elif args.verbose == 1:
+			smblog.setLevel(level=logging.INFO)
+		else:
+			level = 5 - args.verbose
+			smblog.setLevel(level=level)
 		
 		if args.smb_module == 'lsassfile':
 			from pypykatz.smb.lsassutils import lsassfile
@@ -156,34 +175,42 @@ class SMBCMDHelper:
 			from pypykatz.smb.regutils import regdump
 			from pypykatz.smb.dcsync import dcsync
 
-			mimi = await lsassdump(args.url)
-			self.process_results({'smbfile':mimi}, [], args)
-
+			try:
+				mimi = await lsassdump(args.url)
+				if mimi is not None:
+					self.process_results({'smbfile':mimi}, [], args, file_prefix='_lsass.txt')
+			except Exception as e:
+				logging.exception('[SECRETSDUMP] Failed to get LSASS secrets')
 			
-			po = await regdump(args.url)
-
-			if po is not None:
-				if args.outfile:
-					po.to_file(args.outfile, args.json)
-				else:
-					if args.json:
-						print(json.dumps(po.to_dict(), cls = UniversalEncoder, indent=4, sort_keys=True))
+			try:
+				po = await regdump(args.url)
+				if po is not None:
+					if args.outfile:
+						po.to_file(args.outfile+'_registry.txt', args.json)
 					else:
-						print(str(po))
-
+						if args.json:
+							print(json.dumps(po.to_dict(), cls = UniversalEncoder, indent=4, sort_keys=True))
+						else:
+							print(str(po))
+			except Exception as e:
+				logging.exception('[SECRETSDUMP] Failed to get registry secrets')
 			
-			if args.outfile is not None:
-				outfile = open(args.outfile, 'w', newline = '')
 
-			async for secret in dcsync(args.url):
+			try:
 				if args.outfile is not None:
-					outfile.write(str(secret))
-				else:
-					print(str(secret))
+					outfile = open(args.outfile+'_dcsync.txt', 'w', newline = '')
 
-			if args.outfile is not None:
-				outfile.close()
+				async for secret in dcsync(args.url):
+					if args.outfile is not None:
+						outfile.write(str(secret))
+					else:
+						print(str(secret))
 
+			except Exception as e:
+				logging.exception('[SECRETSDUMP] Failed to perform DCSYNC')
+			finally:
+				if args.outfile is not None:
+					outfile.close()
 		
 		elif args.smb_module == 'dcsync':
 			from pypykatz.smb.dcsync import dcsync
@@ -244,13 +271,13 @@ class SMBCMDHelper:
 
 			await amain(la)
 
-	def process_results(self, results, files_with_error, args):
+	def process_results(self, results, files_with_error, args, file_prefix = ''):
 		if args.outfile and args.json:
-			with open(args.outfile, 'w') as f:
+			with open(args.outfile+file_prefix, 'w') as f:
 				json.dump(results, f, cls = UniversalEncoder, indent=4, sort_keys=True)
 
 		elif args.outfile and args.grep:
-			with open(args.outfile, 'w', newline = '') as f:
+			with open(args.outfile+file_prefix, 'w', newline = '') as f:
 				f.write(':'.join(LogonSession.grep_header) + '\r\n')
 				for result in results:
 					for luid in results[result].logon_sessions:
@@ -258,7 +285,7 @@ class SMBCMDHelper:
 							f.write(':'.join(row) + '\r\n')
 		
 		elif args.outfile:
-			with open(args.outfile, 'w') as f:
+			with open(args.outfile+file_prefix, 'w') as f:
 				for result in results:
 					f.write('FILE: ======== %s =======\n' % result)
 					
