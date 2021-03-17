@@ -61,7 +61,7 @@ async def regdump(url, hives = ['HKLM\\SAM', 'HKLM\\SYSTEM', 'HKLM\\SECURITY'], 
 				remote_file = SMBFileReader(SMBFile.from_remotepath(connection, remote_sharepath))
 				files[hive.split('\\')[1].upper()] = remote_file
 				
-				logging.debug('[REGDUMP] Dumping reghive %s to (remote) %s' % (hive, remote_path))
+				logging.info('[REGDUMP] Dumping reghive %s to (remote) %s' % (hive, remote_path))
 				_, err = await machine.save_registry_hive(hive, remote_path)
 				if err is not None:
 					raise err
