@@ -30,7 +30,9 @@ class LSACMDHelper:
 		live_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
 		live_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
 		live_group.add_argument('--method', choices = ['procopen', 'handledup'], default = 'procopen', help = 'LSASS process access method')
-		
+		live_group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap', 'kerberos'], nargs="+", default = 'all', help = 'LSASS package to parse')
+
+
 		group = parser.add_parser('lsa', help='Get secrets from memory dump')
 		group.add_argument('cmd', choices=['minidump','rekall'])
 		group.add_argument('memoryfile', help='path to the dump file')
@@ -42,6 +44,7 @@ class LSACMDHelper:
 		group.add_argument('-r', '--recursive', action='store_true', help = 'Recursive parsing')
 		group.add_argument('-d', '--directory', action='store_true', help = 'Parse all dump files in a folder')
 		group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
+		group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap', 'kerberos'], nargs="+", default = 'all', help = 'LSASS package to parse')
 		
 	def execute(self, args):
 		if len(self.keywords) > 0 and args.command in self.keywords:
@@ -146,9 +149,9 @@ class LSACMDHelper:
 			filename = 'live'
 			try:
 				if args.method == 'procopen':
-					mimi = pypykatz.go_live()
+					mimi = pypykatz.go_live(packages=args.packages)
 				elif args.method == 'handledup':
-					mimi = pypykatz.go_handledup()
+					mimi = pypykatz.go_handledup(packages=args.packages)
 					if mimi is None:
 						raise Exception('HANDLEDUP failed to bring any results!')
 				results['live'] = mimi
@@ -168,7 +171,7 @@ class LSACMDHelper:
 		results = {}
 		###### Rekall
 		if args.cmd == 'rekall':
-			mimi = pypykatz.parse_memory_dump_rekall(args.memoryfile, args.timestamp_override)
+			mimi = pypykatz.parse_memory_dump_rekall(args.memoryfile, args.timestamp_override, packages=args.packages)
 			results['rekall'] = mimi
 	
 		###### Minidump
@@ -185,7 +188,7 @@ class LSACMDHelper:
 				for filename in glob.glob(globdata, recursive=args.recursive):
 					logging.info('Parsing file %s' % filename)
 					try:
-						mimi = pypykatz.parse_minidump_file(filename)
+						mimi = pypykatz.parse_minidump_file(filename, packages=args.packages)
 						results[filename] = mimi
 					except Exception as e:
 						files_with_error.append(filename)
@@ -198,7 +201,7 @@ class LSACMDHelper:
 			else:
 				logging.info('Parsing file %s' % args.memoryfile)
 				try:
-					mimi = pypykatz.parse_minidump_file(args.memoryfile)
+					mimi = pypykatz.parse_minidump_file(args.memoryfile, packages=args.packages)
 					results[args.memoryfile] = mimi
 				except Exception as e:
 					logging.exception('Error while parsing file %s' % args.memoryfile)

@@ -82,7 +82,7 @@ class apypykatz:
 		return res
 		
 	@staticmethod
-	async def parse_minidump_file(filename):
+	async def parse_minidump_file(filename, packages = ['all']):
 		try:
 			minidump = await AMinidumpFile.parse(filename)
 			reader = minidump.get_reader().get_buffered_reader()
@@ -92,7 +92,7 @@ class apypykatz:
 			raise e
 		try:
 			mimi = apypykatz(reader, sysinfo)
-			await mimi.start()
+			await mimi.start(packages)
 		except Exception as e:
 			#logger.info('Credentials parsing error!')
 			mimi.log_basic_info()
@@ -100,7 +100,7 @@ class apypykatz:
 		return mimi
 
 	@staticmethod
-	async def parse_minidump_external(handle):
+	async def parse_minidump_external(handle, packages = ['all']):
 		"""
 		Parses LSASS minidump file based on the file object.
 		File object can really be any object as longs as 
@@ -113,7 +113,7 @@ class apypykatz:
 		reader = minidump.get_reader().get_buffered_reader()
 		sysinfo = KatzSystemInfo.from_minidump(minidump)
 		mimi = apypykatz(reader, sysinfo)
-		await mimi.start()
+		await mimi.start(packages)
 		return mimi
 
 		
@@ -243,18 +243,33 @@ class apypykatz:
 			else:
 				self.orphaned_creds.append(cred)
 
-	async def start(self):
+	async def start(self, packages = ['all']):
 		#self.log_basic_info()
 		#input()
 		self.lsa_decryptor = await self.get_lsa()
-		await self.get_logoncreds()
-		await self.get_wdigest()
-		#await self.get_kerberos()
-		await self.get_tspkg()
-		await self.get_ssp()
-		await self.get_livessp()
-		await self.get_dpapi()
-		await self.get_cloudap()
+		if 'msv' in packages or 'all' in packages:
+			await self.get_logoncreds()
+
+		if 'wdigest' in packages or 'all' in packages:	
+			await self.get_wdigest()
+		
+		#if 'kerberos' in packages or 'all' in packages:
+		#	await self.get_kerberos()
+		
+		if 'tspkg' in packages or 'all' in packages:
+			await self.get_tspkg()
+		
+		if 'ssp' in packages or 'all' in packages:
+			await self.get_ssp()
+		
+		if 'livessp' in packages or 'all' in packages:
+			await self.get_livessp()
+		
+		if 'dpapi' in packages or 'all' in packages:
+			await self.get_dpapi()
+		
+		if 'cloudap' in packages or 'all' in packages:
+			await self.get_cloudap()
 
 async def amain():
 	from aiosmb.commons.connection.url import SMBConnectionURL

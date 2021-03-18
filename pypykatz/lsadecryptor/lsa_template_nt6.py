@@ -27,7 +27,9 @@ class LsaTemplate_NT6(PackageTemplate):
 			elif sysinfo.buildnumber <= WindowsMinBuild.WIN_2K3.value:
 				raise Exception('NT 5 is not yet supported!')
 			else:
-				for key in templates['nt6']['x86']:
+				keys = [x for x in templates['nt6']['x86']]
+				keys.sort(reverse = True)
+				for key in keys:
 					yield templates['nt6']['x86'][key]
 
 		elif sysinfo.architecture == KatzSystemArchitecture.X64:
@@ -36,7 +38,9 @@ class LsaTemplate_NT6(PackageTemplate):
 			elif sysinfo.buildnumber <= WindowsMinBuild.WIN_2K3.value:
 				raise Exception('NT 5 is not yet supported!')
 			else:
-				for key in templates['nt6']['x64']:
+				keys = [x for x in templates['nt6']['x64']]
+				keys.sort(reverse = True)
+				for key in keys:
 					yield templates['nt6']['x64'][key]
 		
 		

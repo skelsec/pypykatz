@@ -59,6 +59,10 @@ class SspDecryptor(PackageDecryptor):
 					c.password = c.password.hex()
 			else:
 				c.password = self.decrypt_password(ssp_entry.credentials.Password.read_data(self.reader))
+
+		if c.username == '' and c.domainname == '' and c.password is None:
+			return
+
 		self.credentials.append(c)
 	
 	def start(self):

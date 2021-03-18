@@ -81,18 +81,18 @@ class pypykatz:
 		return res
 
 	@staticmethod
-	def go_live():
+	def go_live(packages = ['all']):
 		if platform.system() != 'Windows':
 			raise Exception('Live parsing will only work on Windows')
 		from pypykatz.commons.readers.local.live_reader import LiveReader
 		reader = LiveReader()
 		sysinfo = KatzSystemInfo.from_live_reader(reader)
 		mimi = pypykatz(reader.get_buffered_reader(), sysinfo)
-		mimi.start()
+		mimi.start(packages)
 		return mimi
 	
 	@staticmethod
-	def go_handledup():
+	def go_handledup(packages = ['all']):
 		if platform.system() != 'Windows':
 			raise Exception('Live parsing will only work on Windows')
 		from pypykatz.commons.winapi.local.function_defs.live_reader_ctypes import enum_lsass_handles
@@ -101,23 +101,23 @@ class pypykatz:
 			raise Exception('No handles found to LSASS!')
 		for pid, lsass_handle in lsass_handles:
 			try:
-				return pypykatz.go_live_phandle(lsass_handle)
+				return pypykatz.go_live_phandle(lsass_handle, packages = ['all'])
 			except Exception as e:
 				print('[-] Failed to parse lsass via handle %s[@%s] Reason: %s' % (pid, lsass_handle, e))
 			
 	@staticmethod
-	def go_live_phandle(lsass_process_handle):
+	def go_live_phandle(lsass_process_handle, packages = ['all']):
 		if platform.system() != 'Windows':
 			raise Exception('Live parsing will only work on Windows')
 		from pypykatz.commons.readers.local.live_reader import LiveReader
 		reader = LiveReader(lsass_process_handle=lsass_process_handle)
 		sysinfo = KatzSystemInfo.from_live_reader(reader)
 		mimi = pypykatz(reader.get_buffered_reader(), sysinfo)
-		mimi.start()
+		mimi.start(packages)
 		return mimi
 		
 	@staticmethod
-	def parse_minidump_file(filename):
+	def parse_minidump_file(filename, packages = ['all']):
 		try:
 			minidump = MinidumpFile.parse(filename)
 			reader = minidump.get_reader().get_buffered_reader()
@@ -127,7 +127,7 @@ class pypykatz:
 			raise e
 		try:
 			mimi = pypykatz(reader, sysinfo)
-			mimi.start()
+			mimi.start(packages)
 		except Exception as e:
 			#logger.info('Credentials parsing error!')
 			mimi.log_basic_info()
@@ -135,7 +135,7 @@ class pypykatz:
 		return mimi
 
 	@staticmethod
-	def parse_minidump_bytes(data):
+	def parse_minidump_bytes(data, packages = ['all']):
 		"""
 		Parses LSASS minidump file bytes.
 		data needs to be bytearray
@@ -144,11 +144,11 @@ class pypykatz:
 		reader = minidump.get_reader().get_buffered_reader()
 		sysinfo = KatzSystemInfo.from_minidump(minidump)
 		mimi = pypykatz(reader, sysinfo)
-		mimi.start()
+		mimi.start(packages)
 		return mimi
 
 	@staticmethod
-	def parse_minidump_external(handle):
+	def parse_minidump_external(handle, packages = ['all']):
 		"""
 		Parses LSASS minidump file based on the file object.
 		File object can really be any object as longs as 
@@ -161,11 +161,11 @@ class pypykatz:
 		reader = minidump.get_reader().get_buffered_reader()
 		sysinfo = KatzSystemInfo.from_minidump(minidump)
 		mimi = pypykatz(reader, sysinfo)
-		mimi.start()
+		mimi.start(packages)
 		return mimi
 	
 	@staticmethod
-	def parse_minidump_buffer(buff):
+	def parse_minidump_buffer(buff, packages = ['all']):
 		"""
 		Parses LSASS minidump file which contents are in a bytes buffer
 		buff: io.BytesIO object
@@ -174,34 +174,34 @@ class pypykatz:
 		reader = minidump.get_reader().get_buffered_reader()
 		sysinfo = KatzSystemInfo.from_minidump(minidump)
 		mimi = pypykatz(reader, sysinfo)
-		mimi.start()
+		mimi.start(packages)
 		return mimi
 
 	@staticmethod
-	def parse_memory_dump_rekall(filename, override_timestamp = None):
+	def parse_memory_dump_rekall(filename, override_timestamp = None, packages = ['all']):
 		from pypykatz.commons.readers.rekall.rekallreader import RekallReader
 		reader = RekallReader.from_memory_file(filename, override_timestamp)
 		sysinfo = KatzSystemInfo.from_rekallreader(reader)
 		mimi = pypykatz(reader, sysinfo)
-		mimi.start()
+		mimi.start(packages)
 		return mimi
 
 	@staticmethod
-	def go_rekall(session, override_timestamp = None, buildnumber = None):
+	def go_rekall(session, override_timestamp = None, buildnumber = None, packages = ['all']):
 		from pypykatz.commons.readers.rekall.rekallreader import RekallReader
 		reader = RekallReader.from_session(session, override_timestamp, buildnumber)
 		sysinfo = KatzSystemInfo.from_rekallreader(reader)
 		mimi = pypykatz(reader, sysinfo)
-		mimi.start()
+		mimi.start(packages)
 		return mimi
 
 	@staticmethod
-	def go_volatility3(vol3_obj):
+	def go_volatility3(vol3_obj, packages = ['all']):
 		from pypykatz.commons.readers.volatility3.volreader import Vol3Reader, vol3_treegrid
 		reader = Vol3Reader(vol3_obj)
 		sysinfo = reader.get_sysinfo()
 		mimi = pypykatz(reader, sysinfo)
-		mimi.start()
+		mimi.start(packages)
 		return vol3_treegrid(mimi)
 
 		
@@ -329,15 +329,30 @@ class pypykatz:
 			else:
 				self.orphaned_creds.append(cred)
 
-	def start(self):
+	def start(self, packages = ['all']):
 		#self.log_basic_info()
 		#input()
 		self.lsa_decryptor = self.get_lsa()
-		self.get_logoncreds()
-		self.get_wdigest()
-		self.get_kerberos()
-		self.get_tspkg()
-		self.get_ssp()
-		self.get_livessp()
-		self.get_dpapi()
-		self.get_cloudap()
+		if 'msv' in packages or 'all' in packages:
+			self.get_logoncreds()
+		
+		if 'wdigest' in packages or 'all' in packages:
+			self.get_wdigest()
+		
+		if 'kerberos' in packages or 'all' in packages:
+			self.get_kerberos()
+		
+		if 'tspkg' in packages or 'all' in packages:
+			self.get_tspkg()
+		
+		if 'ssp' in packages or 'all' in packages:
+			self.get_ssp()
+
+		if 'livessp' in packages or 'all' in packages:
+			self.get_livessp()
+		
+		if 'dpapi' in packages or 'all' in packages:
+			self.get_dpapi()
+
+		if 'cloudap' in packages or 'all' in packages:
+			self.get_cloudap()

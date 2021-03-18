@@ -24,14 +24,6 @@ class LSACMDHelper:
 		self.keywords = ['lsa']
 		
 	def add_args(self, parser, live_parser):
-		live_group = live_parser.add_parser('lsa', help='Get all secrets from LSASS')
-		live_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
-		live_group.add_argument('-e','--halt-on-error', action='store_true',help = 'Stops parsing when a file cannot be parsed')
-		live_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
-		live_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
-		live_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
-		live_group.add_argument('--method', choices = ['procopen', 'handledup'], default = 'procopen', help = 'LSASS process access method')
-		
 		group = parser.add_parser('lsa', help='Get secrets from memory dump')
 		group.add_argument('cmd', choices=['minidump','rekall'])
 		group.add_argument('memoryfile', help='path to the dump file')
@@ -43,6 +35,8 @@ class LSACMDHelper:
 		group.add_argument('-r', '--recursive', action='store_true', help = 'Recursive parsing')
 		group.add_argument('-d', '--directory', action='store_true', help = 'Parse all dump files in a folder')
 		group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
+		group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap'], nargs="+", default = 'all', help = 'LSASS package to parse')
+
 		
 	def execute(self, args):
 		if len(self.keywords) > 0 and args.command in self.keywords:
@@ -161,7 +155,7 @@ class LSACMDHelper:
 					logging.info('Parsing file %s' % filename)
 					try:
 						print('await')
-						mimi = await apypykatz.parse_minidump_file(filename)
+						mimi = await apypykatz.parse_minidump_file(filename, packages = args.packages)
 						results[filename] = mimi
 					except Exception as e:
 						files_with_error.append(filename)
@@ -174,7 +168,7 @@ class LSACMDHelper:
 			else:
 				logging.info('Parsing file %s' % args.memoryfile)
 				try:
-					mimi = await apypykatz.parse_minidump_file(args.memoryfile)
+					mimi = await apypykatz.parse_minidump_file(args.memoryfile, packages = args.packages)
 					results[args.memoryfile] = mimi
 				except Exception as e:
 					logging.exception('Error while parsing file %s' % args.memoryfile)

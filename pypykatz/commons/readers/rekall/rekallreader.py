@@ -206,7 +206,7 @@ class RekallReader:
 				return module
 			
 
-	def find_in_module(self, module_name, pattern):
+	def find_in_module(self, module_name, pattern, find_first = False, reverse_order = False):
 		if module_name.lower() not in self.modules:
 			raise Exception('Module is not in lsass emmory space! %s' % module_name)
 		module = self.modules[module_name.lower()]
