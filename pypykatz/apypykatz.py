@@ -82,10 +82,10 @@ class apypykatz:
 		return res
 		
 	@staticmethod
-	async def parse_minidump_file(filename, packages = ['all']):
+	async def parse_minidump_file(filename, packages = ['all'], chunksize=10*1024):
 		try:
 			minidump = await AMinidumpFile.parse(filename)
-			reader = minidump.get_reader().get_buffered_reader()
+			reader = minidump.get_reader().get_buffered_reader(chunksize)
 			sysinfo = KatzSystemInfo.from_minidump(minidump)
 		except Exception as e:
 			logger.exception('Minidump parsing error!')
@@ -100,7 +100,7 @@ class apypykatz:
 		return mimi
 
 	@staticmethod
-	async def parse_minidump_external(handle, packages = ['all']):
+	async def parse_minidump_external(handle, packages = ['all'], chunksize=10*1024):
 		"""
 		Parses LSASS minidump file based on the file object.
 		File object can really be any object as longs as 
@@ -110,7 +110,7 @@ class apypykatz:
 		handle: file like object
 		"""
 		minidump = await AMinidumpFile.parse_external(handle)
-		reader = minidump.get_reader().get_buffered_reader()
+		reader = minidump.get_reader().get_buffered_reader(chunksize)
 		sysinfo = KatzSystemInfo.from_minidump(minidump)
 		mimi = apypykatz(reader, sysinfo)
 		await mimi.start(packages)
