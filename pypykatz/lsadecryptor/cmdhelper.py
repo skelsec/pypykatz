@@ -9,6 +9,7 @@ import json
 import glob
 import ntpath
 import traceback
+import base64
 
 from pypykatz import logging
 from pypykatz.pypykatz import pypykatz
@@ -103,6 +104,12 @@ class LSACMDHelper:
 						t = cred.to_dict()
 						x = [str(t['credtype']), '', '', '', '', '', str(t['masterkey']), str(t['sha1_masterkey']), str(t['key_guid']), '']
 						print(':'.join(x))
+				
+				for pkg, err in results[result].errors:
+					err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
+					err_str = base64.b64encode(err_str.encode()).decode()
+					x =  [pkg+'_exception_please_report', '', '', '', '', '', '', '', '', err_str]
+					print(':'.join(x) + '\r\n')
 		else:
 			for result in results:
 				print('FILE: ======== %s =======' % result)	
@@ -116,6 +123,13 @@ class LSACMDHelper:
 						print('== Orphaned credentials ==')
 						for cred in results[result].orphaned_creds:
 							print(str(cred))
+					
+					if len(results[result].errors) > 0:
+						print('== Errors ==')
+						for pkg, err in results[result].errors:
+							err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
+							err_str = base64.b64encode(err_str.encode()).decode()
+							print('%s %s' % (pkg+'_exception_please_report',err_str))
 							
 					
 
@@ -155,6 +169,8 @@ class LSACMDHelper:
 					if mimi is None:
 						raise Exception('HANDLEDUP failed to bring any results!')
 				results['live'] = mimi
+				if args.halt_on_error == True and len(mimi.errors) > 0:
+					raise Exception('Error in modules!')
 			except Exception as e:
 				files_with_error.append(filename)
 				if args.halt_on_error == True:
@@ -190,6 +206,8 @@ class LSACMDHelper:
 					try:
 						mimi = pypykatz.parse_minidump_file(filename, packages=args.packages)
 						results[filename] = mimi
+						if args.halt_on_error == True and len(mimi.errors) > 0:
+							raise Exception('Error in modules!')
 					except Exception as e:
 						files_with_error.append(filename)
 						logging.exception('Error parsing file %s ' % filename)
@@ -203,6 +221,8 @@ class LSACMDHelper:
 				try:
 					mimi = pypykatz.parse_minidump_file(args.memoryfile, packages=args.packages)
 					results[args.memoryfile] = mimi
+					if args.halt_on_error == True and len(mimi.errors) > 0:
+						raise Exception('Error in modules!')
 				except Exception as e:
 					logging.exception('Error while parsing file %s' % args.memoryfile)
 					if args.halt_on_error == True:

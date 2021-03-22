@@ -6,6 +6,8 @@
 
 import platform
 import json
+import traceback
+import base64
 
 from pypykatz.commons.common import KatzSystemInfo
 from pypykatz.lsadecryptor import CredmanTemplate, MsvTemplate, \
@@ -34,6 +36,7 @@ class pypykatz:
 		
 		self.logon_sessions = {}
 		self.orphaned_creds = []
+		self.errors = []
 		self.kerberos_ccache = CCACHE()
 		
 	def to_dict(self):
@@ -45,6 +48,13 @@ class pypykatz:
 		t['orphaned_creds'] = []
 		for oc in self.orphaned_creds:
 			t['orphaned_creds'].append(oc.to_dict())
+		
+		t['errors'] = []
+		for pkg, err in self.errors:
+			err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
+			err_str = base64.b64encode(err_str.encode()).decode()
+			t['errors'].append((pkg,err_str))
+
 		return t
 		
 	def to_json(self):
@@ -65,6 +75,12 @@ class pypykatz:
 						t = cred.to_dict()
 						x = [str(t['credtype']), '', '', '', '', '', str(t['masterkey']), str(t['sha1_masterkey']), str(t['key_guid']), '']
 						res += ':'.join(x) + '\r\n'
+				for pkg, err in self.errors:
+					err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
+					err_str = base64.b64encode(err_str.encode()).decode()
+					x =  [pkg+'_exception_please_report', '', '', '', '', '', '', '', err_str]
+					res += ':'.join(x) + '\r\n'
+					
 
 		return res
 
@@ -303,9 +319,9 @@ class pypykatz:
 			else:
 				self.orphaned_creds.append(cred)
 	
-	def get_kerberos(self):
+	def get_kerberos(self, with_tickets = True):
 		dec_template = KerberosTemplate.get_template(self.sysinfo)
-		dec = KerberosDecryptor(self.reader, dec_template, self.lsa_decryptor, self.sysinfo)
+		dec = KerberosDecryptor(self.reader, dec_template, self.lsa_decryptor, self.sysinfo, with_tickets = with_tickets)
 		dec.start()
 		for cred in dec.credentials:
 			for ticket in cred.tickets:
@@ -330,32 +346,59 @@ class pypykatz:
 				self.orphaned_creds.append(cred)
 
 	def start(self, packages = ['all']):
-		#self.log_basic_info()
-		#input()
+		
 		self.lsa_decryptor = self.get_lsa()
+
 		if 'msv' in packages or 'all' in packages:
-			self.get_logoncreds()
-		
+			try:
+				self.get_logoncreds()
+			except Exception as e:
+				self.errors.append(('msv', e))
+
 		if 'wdigest' in packages or 'all' in packages:
-			self.get_wdigest()
+			try:
+				self.get_wdigest()
+			except Exception as e:
+				self.errors.append(('wdigest', e))
 		
-		if 'kerberos' in packages or 'all' in packages:
-			self.get_kerberos()
+		if 'kerberos' in packages or 'ktickets' in packages or 'all' in packages:
+			try:
+				with_tickets = False
+				if 'ktickets' in packages or 'all' in packages:
+					with_tickets = True
+			
+				self.get_kerberos(with_tickets)
+			except Exception as e:
+				self.errors.append(('kerberos', e))
+			
 		
 		if 'tspkg' in packages or 'all' in packages:
-			self.get_tspkg()
-		
+			try:
+				self.get_tspkg()
+			except Exception as e:
+				self.errors.append(('tspkg', e))
+
 		if 'ssp' in packages or 'all' in packages:
-			self.get_ssp()
+			try:
+				self.get_ssp()
+			except Exception as e:
+				self.errors.append(('ssp', e))
 
 		if 'livessp' in packages or 'all' in packages:
-			self.get_livessp()
-		
+			try:
+				self.get_livessp()
+			except Exception as e:
+				self.errors.append(('livessp', e))
+
 		if 'dpapi' in packages or 'all' in packages:
-			self.get_dpapi()
+			try:
+				self.get_dpapi()
+			except Exception as e:
+				self.errors.append(('dpapi', e))
 
 		if 'cloudap' in packages or 'all' in packages:
-			self.get_cloudap()
+			try:
+				self.get_cloudap()
+			except Exception as e:
+				self.errors.append(('cloudap', e))
 
-		#print(str(self.reader))
-		#input()

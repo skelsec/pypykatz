@@ -10,6 +10,7 @@ import glob
 import ntpath
 import traceback
 import asyncio
+import base64
 
 from pypykatz import logging
 from pypykatz.apypykatz import apypykatz
@@ -95,6 +96,13 @@ class LSACMDHelper:
 						t = cred.to_dict()
 						x = [str(t['credtype']), '', '', '', '', '', str(t['masterkey']), str(t['sha1_masterkey']), str(t['key_guid']), '']
 						print(':'.join(x))
+
+				for pkg, err in results[result].errors:
+					err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
+					err_str = base64.b64encode(err_str.encode()).decode()
+					x =  [pkg+'_exception_please_report', '', '', '', '', '', '', '', '', err_str]
+					print(':'.join(x) + '\r\n')
+
 		else:
 			for result in results:
 				print('FILE: ======== %s =======' % result)	
@@ -108,7 +116,13 @@ class LSACMDHelper:
 						print('== Orphaned credentials ==')
 						for cred in results[result].orphaned_creds:
 							print(str(cred))
-							
+					
+					if len(results[result].errors) > 0:
+						print('== Errors ==')
+						for pkg, err in results[result].errors:
+							err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
+							err_str = base64.b64encode(err_str.encode()).decode()
+							print('%s %s' % (pkg+'_exception_please_report',err_str))
 					
 
 			if len(files_with_error) > 0:			
