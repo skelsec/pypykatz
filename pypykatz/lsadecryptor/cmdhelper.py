@@ -162,6 +162,8 @@ class LSACMDHelper:
 		if args.module == 'lsa':
 			filename = 'live'
 			try:
+				if args.kerberos_dir is not None and 'all' not in args.packages:
+					args.packages.append('ktickets')
 				if args.method == 'procopen':
 					mimi = pypykatz.go_live(packages=args.packages)
 				elif args.method == 'handledup':
@@ -187,6 +189,8 @@ class LSACMDHelper:
 		results = {}
 		###### Rekall
 		if args.cmd == 'rekall':
+			if args.kerberos_dir is not None and 'all' not in args.packages:
+				args.packages.append('ktickets')
 			mimi = pypykatz.parse_memory_dump_rekall(args.memoryfile, args.timestamp_override, packages=args.packages)
 			results['rekall'] = mimi
 	
@@ -204,6 +208,8 @@ class LSACMDHelper:
 				for filename in glob.glob(globdata, recursive=args.recursive):
 					logging.info('Parsing file %s' % filename)
 					try:
+						if args.kerberos_dir is not None and 'all' not in args.packages:
+							args.packages.append('ktickets')
 						mimi = pypykatz.parse_minidump_file(filename, packages=args.packages)
 						results[filename] = mimi
 						if args.halt_on_error == True and len(mimi.errors) > 0:
@@ -219,6 +225,8 @@ class LSACMDHelper:
 			else:
 				logging.info('Parsing file %s' % args.memoryfile)
 				try:
+					if args.kerberos_dir is not None and 'all' not in args.packages:
+						args.packages.append('ktickets')
 					mimi = pypykatz.parse_minidump_file(args.memoryfile, packages=args.packages)
 					results[args.memoryfile] = mimi
 					if args.halt_on_error == True and len(mimi.errors) > 0:
