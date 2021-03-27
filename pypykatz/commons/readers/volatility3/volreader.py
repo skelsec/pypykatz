@@ -201,7 +201,7 @@ class Vol3Reader:
 	def peek(self, size):
 		return self.proc_layer.read(self.cur_pos, size)
 
-	def find_in_module(self, module_name, pattern):
+	def find_in_module(self, module_name, pattern, find_first = False, reverse_order = False):
 		if module_name.lower() not in self.modules:
 			raise Exception('Module is not in lsass memory space! %s' % module_name)
 		module = self.modules[module_name.lower()]

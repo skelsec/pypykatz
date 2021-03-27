@@ -71,7 +71,9 @@ class WdigestDecryptor(PackageDecryptor):
 		else:
 			wc.password = self.decrypt_password(wc.encrypted_password)
 
-		
+		if wc.username == '' and wc.domainname == '' and wc.password is None:
+			return
+			
 		self.credentials.append(wc)
 	
 	async def start(self):

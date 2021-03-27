@@ -11,6 +11,8 @@ import json
 import ntpath
 import platform
 import argparse
+import base64
+import traceback
 
 from pypykatz import logging
 from pypykatz.commons.common import UniversalEncoder
@@ -53,6 +55,9 @@ class SMBCMDHelper:
 		smb_lsassfile_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 		smb_lsassfile_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
 		smb_lsassfile_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
+		smb_lsassfile_group.add_argument('--chunksize', type=int, default=64*1024, help = 'Chunksize for file data retrival')
+		smb_lsassfile_group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap'], nargs="+", default = 'all', help = 'LSASS package to parse')
+
 
 		smb_lsassdump_group = smb_subparsers.add_parser('lsassdump', help='Yes.')
 		smb_lsassdump_group.add_argument('url', help="SMB connection string Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102'")
@@ -61,6 +66,9 @@ class SMBCMDHelper:
 		smb_lsassdump_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 		smb_lsassdump_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
 		smb_lsassdump_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
+		smb_lsassdump_group.add_argument('--chunksize', type=int, default=64*1024, help = 'Chunksize for file data retrival')
+		smb_lsassdump_group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap'], nargs="+", default = 'all', help = 'LSASS package to parse')
+
 
 
 		smb_regfile_group = smb_subparsers.add_parser('regfile', help='Parse a remote registry hive dumps')
@@ -88,6 +96,8 @@ class SMBCMDHelper:
 		smb_secretsdump_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 		smb_secretsdump_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
 		smb_secretsdump_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
+		smb_secretsdump_group.add_argument('--chunksize', type=int, default=64*1024, help = 'Chunksize for file data retrival')
+		smb_secretsdump_group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap'], nargs="+", default = 'all', help = 'LSASS package to parse')
 
 
 		live_subcommand_parser = argparse.ArgumentParser(add_help=False)                                                                                                  
@@ -162,12 +172,12 @@ class SMBCMDHelper:
 		
 		if args.smb_module == 'lsassfile':
 			from pypykatz.smb.lsassutils import lsassfile
-			mimi = await lsassfile(args.url)
+			mimi = await lsassfile(args.url, chunksize=args.chunksize, packages=args.packages)
 			self.process_results({'smbfile':mimi}, [], args)
 
 		elif args.smb_module == 'lsassdump':
 			from pypykatz.smb.lsassutils import lsassdump
-			mimi = await lsassdump(args.url)
+			mimi = await lsassdump(args.url, chunksize=args.chunksize, packages=args.packages)
 			self.process_results({'smbfile':mimi}, [], args)
 
 		elif args.smb_module == 'secretsdump':
@@ -176,7 +186,7 @@ class SMBCMDHelper:
 			from pypykatz.smb.dcsync import dcsync
 
 			try:
-				mimi = await lsassdump(args.url)
+				mimi = await lsassdump(args.url, chunksize=args.chunksize, packages=args.packages)
 				if mimi is not None:
 					self.process_results({'smbfile':mimi}, [], args, file_prefix='_lsass.txt')
 			except Exception as e:
@@ -321,6 +331,12 @@ class SMBCMDHelper:
 						t = cred.to_dict()
 						x = [str(t['credtype']), '', '', '', '', '', str(t['masterkey']), str(t['sha1_masterkey']), str(t['key_guid']), '']
 						print(':'.join(x))
+				
+				for pkg, err in results[result].errors:
+					err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
+					err_str = base64.b64encode(err_str.encode()).decode()
+					x =  [pkg+'_exception_please_report', '', '', '', '', '', '', '', '', err_str]
+					print(':'.join(x) + '\r\n')
 		else:
 			for result in results:
 				print('FILE: ======== %s =======' % result)	
@@ -334,6 +350,14 @@ class SMBCMDHelper:
 						print('== Orphaned credentials ==')
 						for cred in results[result].orphaned_creds:
 							print(str(cred))
+					
+					if len(results[result].errors) > 0:
+						print('== Errors ==')
+						for pkg, err in results[result].errors:
+							err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
+							err_str = base64.b64encode(err_str.encode()).decode()
+							print('%s %s' % (pkg+'_exception_please_report',err_str))
+					
 							
 					
 
