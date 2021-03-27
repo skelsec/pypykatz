@@ -93,14 +93,14 @@ async def regdump(url, hives = ['HKLM\\SAM', 'HKLM\\SYSTEM', 'HKLM\\SECURITY'], 
 				rfile = files[rfilename]
 				err = await rfile.close()
 				if err is not None:
-					logging.debug('[REGDUMP] ERR! Failed to close hive dump file! %s' % rfilename)
+					logging.info('[REGDUMP] ERR! Failed to close hive dump file! %s' % rfilename)
 
 				_, err = await rfile.delete()
 				if err is not None:
-					logging.debug('[REGDUMP] ERR! Failed to delete hive dump file! %s' % rfilename)
+					logging.info('[REGDUMP] ERR! Failed to delete hive dump file! %s' % rfilename)
 			
 			if err is None:
-				logging.debug('[REGDUMP] Deleting remote files OK!')
+				logging.info('[REGDUMP] Deleting remote files OK!')
 	return po
 
 			

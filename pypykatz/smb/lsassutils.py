@@ -105,6 +105,6 @@ async def lsassdump(url, method = 'taskexec', remote_base_path = 'C:\\Windows\\T
 		if err is not None:
 			logging.info('[LSASSDUMP] Failed to delete LSASS file! Reason: %s' % err)
 		else:
-			logging.debug('[LSASSDUMP] remote LSASS file deleted OK!')
+			logging.info('[LSASSDUMP] remote LSASS file deleted OK!')
 	
 	return mimi
