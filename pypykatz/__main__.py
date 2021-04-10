@@ -66,7 +66,6 @@ def main():
 	
 	args = parser.parse_args()
 	
-	
 	###### VERBOSITY
 	if args.verbose == 0:
 		logging.basicConfig(level=logging.INFO)
