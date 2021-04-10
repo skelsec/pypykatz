@@ -112,6 +112,24 @@ class SMBCMDHelper:
 		live_console_parser.add_argument('host', help='Target host to connect to')
 		live_console_parser.add_argument('commands', nargs='*', help="!OPTIONAL! Takes a series of commands which will be executed until error encountered. If the command is 'i' is encountered during execution it drops back to interactive shell.")
 
+
+		live_shareenum_parser = live_smb_subparsers.add_parser('shareenum', help = 'SMB (live) share enumerator')
+		live_shareenum_parser.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'ntlm', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		live_shareenum_parser.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
+		live_shareenum_parser.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity, can be stacked')
+		live_shareenum_parser.add_argument('--depth', type=int, default =3, help="Maximum level of folders to enum")
+		live_shareenum_parser.add_argument('--maxitems', type=int, default = None, help="Maximum number of items per forlder to enumerate")
+		live_shareenum_parser.add_argument('--dirsd', action='store_true', help="Fetch Security Descriptors for folders")
+		live_shareenum_parser.add_argument('--filesd', action='store_true', help="Fetch Security Descriptors for files")
+		live_shareenum_parser.add_argument('-w', '--worker-count', type=int, default = 10, help="Number of parallell enum workers. Always one worker/host")
+		live_shareenum_parser.add_argument('--skip-ldap', action='store_true', help="Skip fetching target hosts via LDAP")
+		live_shareenum_parser.add_argument('--progress', action='store_true', help="Progress bar. Please use it with output-file set!")
+		live_shareenum_parser.add_argument('-o','--out-file', help="Output file")
+		live_shareenum_parser.add_argument('--json', action='store_true', help="Output format is JSON")
+		live_shareenum_parser.add_argument('--tsv', action='store_true', help="Output format is TSV")
+		live_shareenum_parser.add_argument('-t', '--target', nargs='*', help="Files/IPs/Hostnames for targets. Can be omitted if LDAP is used")
+		live_shareenum_parser.add_argument('--max-runtime', type=int, default = None, help="Maximum runtime per host (in seconds)")
+
 		live_group = live_parser.add_parser('smb', help='SMB (live) commands', epilog=smb_live_epilog, parents=[live_subcommand_parser])
 		
 		
@@ -157,6 +175,32 @@ class SMBCMDHelper:
 						la.commands.append(command)
 
 			await amain(la)
+
+		elif args.livesmbcommand == 'shareenum':
+			from pypykatz.smb.shareenum import shareenum_live
+
+			output_type = 'str'
+			if args.json is True:
+				output_type = 'json'
+			if args.tsv is True:
+				output_type = 'tsv'
+			
+			await shareenum_live(
+				targets = args.target, 
+				from_ldap = not args.skip_ldap, 
+				smb_worker_count = args.worker_count, 
+				depth = args.depth, 
+				out_file = args.out_file, 
+				progress = args.progress, 
+				max_items = args.maxitems, 
+				dirsd = args.dirsd, 
+				filesd = args.filesd, 
+				authmethod = args.authmethod,
+				protocol_version = args.protocol_version,
+				output_type = output_type,
+				max_runtime = args.max_runtime,
+			)
+
 			
 	async def run(self, args):
 

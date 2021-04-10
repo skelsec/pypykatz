@@ -29,7 +29,7 @@ class LDAPTargetGen:
 	def __init__(self, url):
 		self.url = url
 	
-	async def run(self, target_q):
+	async def generate(self):
 		try:
 			conn_url = MSLDAPURLDecoder(self.url)
 			connection = conn_url.get_client()
@@ -40,7 +40,6 @@ class LDAPTargetGen:
 			adinfo = connection._ldapinfo
 			domain_name = adinfo.distinguishedName.replace('DC','').replace('=','').replace(',','.')
 
-			cnt = 0
 			async for machine, err in connection.get_all_machines(attrs=['sAMAccountName', 'dNSHostName', 'objectSid']):
 				if err is not None:
 					raise err
@@ -49,15 +48,13 @@ class LDAPTargetGen:
 				if dns is None:
 					dns = '%s.%s' % (machine.sAMAccountName[:-1], domain_name)
 				
-				cnt += 1
-				await target_q.put((str(machine.objectSid),str(dns)))
-				await asyncio.sleep(0)
-			return cnt, None
+				yield str(machine.objectSid), str(dns), None
+
 		except Exception as e:
-			return cnt, e
+			yield None, None, e
 	
 
-async def shareenum_live(targets = None, from_ldap = False, smb_worker_count = 10, depth = 3, out_file = None, progress = False, max_items = None, dirsd = False, filesd = False, authmethod = 'ntlm', protocol_version = '2'):
+async def shareenum_live(targets = None, from_ldap = False, smb_worker_count = 10, depth = 3, out_file = None, progress = False, max_items = None, dirsd = False, filesd = False, authmethod = 'ntlm', protocol_version = '2', output_type = 'str', max_runtime = None):
 	from aiosmb.commons.connection.url import SMBConnectionURL
 	from pypykatz.alsadecryptor.asbmfile import SMBFileReader
 	from pypykatz.apypykatz import apypykatz
@@ -74,20 +71,23 @@ async def shareenum_live(targets = None, from_ldap = False, smb_worker_count = 1
 		show_pbar = progress,
 		max_items = max_items,
 		fetch_dir_sd = dirsd,
-		fetch_file_sd = filesd
+		fetch_file_sd = filesd,
+		output_type = output_type,
+		max_runtime = max_runtime,
 	)
 	
 	notfile = []
-	for target in targets:
-		try:
-			f = open(target, 'r')
-			f.close()
-			enumerator.target_gens.append(FileTargetGen(target))
-		except:
-			notfile.append(target)
-	
-	if len(notfile) > 0:
-		enumerator.target_gens.append(ListTargetGen(notfile))
+	if targets is not None:
+		for target in targets:
+			try:
+				f = open(target, 'r')
+				f.close()
+				enumerator.target_gens.append(FileTargetGen(target))
+			except:
+				notfile.append(target)
+		
+		if len(notfile) > 0:
+			enumerator.target_gens.append(ListTargetGen(notfile))
 	
 	if from_ldap is True:
 		ldap_url = get_ldap_url()
