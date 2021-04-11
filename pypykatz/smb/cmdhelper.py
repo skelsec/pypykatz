@@ -100,6 +100,30 @@ class SMBCMDHelper:
 		smb_secretsdump_group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap'], nargs="+", default = 'all', help = 'LSASS package to parse')
 
 
+
+		smb_shareenum_parser = smb_subparsers.add_parser('shareenum', help = 'SMB share enumerator')
+		smb_shareenum_parser.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'ntlm', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		smb_shareenum_parser.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
+		smb_shareenum_parser.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity, can be stacked')
+		smb_shareenum_parser.add_argument('--depth', type=int, default =3, help="Maximum level of folders to enum")
+		smb_shareenum_parser.add_argument('--maxitems', type=int, default = None, help="Maximum number of items per forlder to enumerate")
+		smb_shareenum_parser.add_argument('--dirsd', action='store_true', help="Fetch Security Descriptors for folders")
+		smb_shareenum_parser.add_argument('--filesd', action='store_true', help="Fetch Security Descriptors for files")
+		smb_shareenum_parser.add_argument('-w', '--worker-count', type=int, default = 10, help="Number of parallell enum workers. Always one worker/host")
+		smb_shareenum_parser.add_argument('-l', '--ldap', help="Use LDAP to get a list of machines to enumerate. This will return dns names so be carefule to have a correct DNS server config!")
+		smb_shareenum_parser.add_argument('--progress', action='store_true', help="Progress bar. Please use it with output-file set!")
+		smb_shareenum_parser.add_argument('-o','--out-file', help="Output file")
+		smb_shareenum_parser.add_argument('--json', action='store_true', help="Output format is JSON")
+		smb_shareenum_parser.add_argument('--tsv', action='store_true', help="Output format is TSV")
+		smb_shareenum_parser.add_argument('-t', '--target', nargs='*', help="Files/IPs/Hostnames for targets. Can be omitted if LDAP is used")
+		smb_shareenum_parser.add_argument('--max-runtime', type=int, default = None, help="Maximum runtime per host (in seconds)")
+		smb_shareenum_parser.add_argument('--es', '--exclude-share', nargs='*', help = 'Exclude shares with name specified')
+		smb_shareenum_parser.add_argument('--ed', '--exclude-dir', nargs='*', help = 'Exclude directories with name specified')
+		smb_shareenum_parser.add_argument('smb_url', help = 'SMB connection string. Credentials specified here will be used to perform the enumeration')
+
+
+
+
 		live_subcommand_parser = argparse.ArgumentParser(add_help=False)                                                                                                  
 		live_smb_subparsers = live_subcommand_parser.add_subparsers(help = 'LIVE DPAPI commands work under the current user context. Except: keys, wifi, chrome')
 		live_smb_subparsers.required = True
@@ -113,7 +137,7 @@ class SMBCMDHelper:
 		live_console_parser.add_argument('commands', nargs='*', help="!OPTIONAL! Takes a series of commands which will be executed until error encountered. If the command is 'i' is encountered during execution it drops back to interactive shell.")
 
 
-		live_shareenum_parser = live_smb_subparsers.add_parser('shareenum', help = 'SMB (live) share enumerator')
+		live_shareenum_parser = live_smb_subparsers.add_parser('shareenum', help = 'SMB (live) share enumerator. This will start enumeration using the current user credentials.')
 		live_shareenum_parser.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'ntlm', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		live_shareenum_parser.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 		live_shareenum_parser.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity, can be stacked')
@@ -180,7 +204,7 @@ class SMBCMDHelper:
 			await amain(la)
 
 		elif args.livesmbcommand == 'shareenum':
-			from pypykatz.smb.shareenum import shareenum_live
+			from pypykatz.smb.shareenum import shareenum
 
 			output_type = 'str'
 			if args.json is True:
@@ -195,10 +219,15 @@ class SMBCMDHelper:
 			exclude_dir = []
 			if args.ed is not None:
 				exclude_dir = args.ed
+
+			ldap_url = 'auto'
+			if args.skip_ldap is True:
+				ldap_url = None
 			
-			await shareenum_live(
+			
+			await shareenum(
+				smb_url = 'auto',
 				targets = args.target, 
-				from_ldap = not args.skip_ldap, 
 				smb_worker_count = args.worker_count, 
 				depth = args.depth, 
 				out_file = args.out_file, 
@@ -212,6 +241,7 @@ class SMBCMDHelper:
 				max_runtime = args.max_runtime,
 				exclude_share = exclude_share,
 				exclude_dir = exclude_dir,
+				ldap_url = ldap_url
 			)
 
 			
@@ -319,6 +349,44 @@ class SMBCMDHelper:
 						print(json.dumps(po.to_dict(), cls = UniversalEncoder, indent=4, sort_keys=True))
 					else:
 						print(str(po))
+		
+		elif args.smb_module == 'shareenum':
+			from pypykatz.smb.shareenum import shareenum
+
+
+			output_type = 'str'
+			if args.json is True:
+				output_type = 'json'
+			if args.tsv is True:
+				output_type = 'tsv'
+
+			exclude_share = []
+			if args.es is not None:
+				exclude_share = args.es
+			
+			exclude_dir = []
+			if args.ed is not None:
+				exclude_dir = args.ed
+			
+			await shareenum(
+				args.smb_url,
+				targets = args.target,  
+				smb_worker_count = args.worker_count, 
+				depth = args.depth, 
+				out_file = args.out_file, 
+				progress = args.progress, 
+				max_items = args.maxitems, 
+				dirsd = args.dirsd, 
+				filesd = args.filesd, 
+				authmethod = args.authmethod,
+				protocol_version = args.protocol_version,
+				output_type = output_type,
+				max_runtime = args.max_runtime,
+				exclude_share = exclude_share,
+				exclude_dir = exclude_dir,
+				ldap_url = args.ldap,
+			)
+
 
 		elif args.smb_module == 'console':
 			from aiosmb.examples.smbclient import amain

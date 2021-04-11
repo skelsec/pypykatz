@@ -54,17 +54,20 @@ class LDAPTargetGen:
 			yield None, None, e
 	
 
-async def shareenum_live(targets = None, from_ldap = False, smb_worker_count = 10, depth = 3, out_file = None, progress = False, max_items = None, dirsd = False, filesd = False, authmethod = 'ntlm', protocol_version = '2', output_type = 'str', max_runtime = None, exclude_share = ['print$'], exclude_dir = []):
+async def shareenum(smb_url, ldap_url = None, targets = None, smb_worker_count = 10, depth = 3, out_file = None, progress = False, max_items = None, dirsd = False, filesd = False, authmethod = 'ntlm', protocol_version = '2', output_type = 'str', max_runtime = None, exclude_share = ['print$'], exclude_dir = []):
 	from aiosmb.commons.connection.url import SMBConnectionURL
 	from pypykatz.alsadecryptor.asbmfile import SMBFileReader
 	from pypykatz.apypykatz import apypykatz
 
 
-	if targets is None and from_ldap is None:
+	if targets is None and ldap_url is None:
 		raise Exception('Shareenum needs a list of targets or LDAP connection string')
-
+	
+	if smb_url == 'auto':
+		smb_url = get_smb_url()
+	
 	enumerator = SMBFileEnum(
-		get_smb_url(), 
+		smb_url,
 		worker_count = smb_worker_count, 
 		depth = depth, 
 		out_file = out_file, 
@@ -91,8 +94,9 @@ async def shareenum_live(targets = None, from_ldap = False, smb_worker_count = 1
 		if len(notfile) > 0:
 			enumerator.target_gens.append(ListTargetGen(notfile))
 	
-	if from_ldap is True:
-		ldap_url = get_ldap_url()
+	if ldap_url is not None:
+		if ldap_url == 'auto':
+			ldap_url = get_ldap_url()
 		enumerator.target_gens.append(LDAPTargetGen(ldap_url))
 
 	if len(enumerator.target_gens) == 0:
