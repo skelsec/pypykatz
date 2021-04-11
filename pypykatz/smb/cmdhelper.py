@@ -119,6 +119,7 @@ class SMBCMDHelper:
 		smb_shareenum_parser.add_argument('--max-runtime', type=int, default = None, help="Maximum runtime per host (in seconds)")
 		smb_shareenum_parser.add_argument('--es', '--exclude-share', nargs='*', help = 'Exclude shares with name specified')
 		smb_shareenum_parser.add_argument('--ed', '--exclude-dir', nargs='*', help = 'Exclude directories with name specified')
+		smb_shareenum_parser.add_argument('--et', '--exclude-target', nargs='*', help = 'Exclude hosts from enumeration')
 		smb_shareenum_parser.add_argument('smb_url', help = 'SMB connection string. Credentials specified here will be used to perform the enumeration')
 
 
@@ -155,6 +156,7 @@ class SMBCMDHelper:
 		live_shareenum_parser.add_argument('--max-runtime', type=int, default = None, help="Maximum runtime per host (in seconds)")
 		live_shareenum_parser.add_argument('--es', '--exclude-share', nargs='*', help = 'Exclude shares with name specified')
 		live_shareenum_parser.add_argument('--ed', '--exclude-dir', nargs='*', help = 'Exclude directories with name specified')
+		live_shareenum_parser.add_argument('--et', '--exclude-target', nargs='*', help = 'Exclude hosts from enumeration')
 
 
 		live_group = live_parser.add_parser('smb', help='SMB (live) commands', epilog=smb_live_epilog, parents=[live_subcommand_parser])
@@ -224,6 +226,9 @@ class SMBCMDHelper:
 			if args.skip_ldap is True:
 				ldap_url = None
 			
+			exclude_target = []
+			if args.et is not None:
+				exclude_target = args.et
 			
 			await shareenum(
 				smb_url = 'auto',
@@ -241,7 +246,8 @@ class SMBCMDHelper:
 				max_runtime = args.max_runtime,
 				exclude_share = exclude_share,
 				exclude_dir = exclude_dir,
-				ldap_url = ldap_url
+				ldap_url = ldap_url,
+				exclude_target = exclude_target,
 			)
 
 			
@@ -367,6 +373,11 @@ class SMBCMDHelper:
 			exclude_dir = []
 			if args.ed is not None:
 				exclude_dir = args.ed
+
+			exclude_target = []
+			if args.et is not None:
+				exclude_target = args.et
+
 			
 			await shareenum(
 				args.smb_url,
@@ -385,6 +396,7 @@ class SMBCMDHelper:
 				exclude_share = exclude_share,
 				exclude_dir = exclude_dir,
 				ldap_url = args.ldap,
+				exclude_target = exclude_target,
 			)
 
 

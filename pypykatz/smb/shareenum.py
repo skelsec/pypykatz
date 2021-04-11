@@ -54,7 +54,7 @@ class LDAPTargetGen:
 			yield None, None, e
 	
 
-async def shareenum(smb_url, ldap_url = None, targets = None, smb_worker_count = 10, depth = 3, out_file = None, progress = False, max_items = None, dirsd = False, filesd = False, authmethod = 'ntlm', protocol_version = '2', output_type = 'str', max_runtime = None, exclude_share = ['print$'], exclude_dir = []):
+async def shareenum(smb_url, ldap_url = None, targets = None, smb_worker_count = 10, depth = 3, out_file = None, progress = False, max_items = None, dirsd = False, filesd = False, authmethod = 'ntlm', protocol_version = '2', output_type = 'str', max_runtime = None, exclude_share = ['print$'], exclude_dir = [], exclude_target = []):
 	from aiosmb.commons.connection.url import SMBConnectionURL
 	from pypykatz.alsadecryptor.asbmfile import SMBFileReader
 	from pypykatz.apypykatz import apypykatz
@@ -79,6 +79,7 @@ async def shareenum(smb_url, ldap_url = None, targets = None, smb_worker_count =
 		max_runtime = max_runtime,
 		exclude_share = exclude_share,
 		exclude_dir = exclude_dir,
+		exclude_target = exclude_target
 	)
 	
 	notfile = []
