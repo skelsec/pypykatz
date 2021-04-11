@@ -129,6 +129,9 @@ class SMBCMDHelper:
 		live_shareenum_parser.add_argument('--tsv', action='store_true', help="Output format is TSV")
 		live_shareenum_parser.add_argument('-t', '--target', nargs='*', help="Files/IPs/Hostnames for targets. Can be omitted if LDAP is used")
 		live_shareenum_parser.add_argument('--max-runtime', type=int, default = None, help="Maximum runtime per host (in seconds)")
+		live_shareenum_parser.add_argument('--es', '--exclude-share', nargs='*', help = 'Exclude shares with name specified')
+		live_shareenum_parser.add_argument('--ed', '--exclude-dir', nargs='*', help = 'Exclude directories with name specified')
+
 
 		live_group = live_parser.add_parser('smb', help='SMB (live) commands', epilog=smb_live_epilog, parents=[live_subcommand_parser])
 		
@@ -184,6 +187,14 @@ class SMBCMDHelper:
 				output_type = 'json'
 			if args.tsv is True:
 				output_type = 'tsv'
+
+			exclude_share = []
+			if args.es is not None:
+				exclude_share = args.es
+			
+			exclude_dir = []
+			if args.ed is not None:
+				exclude_dir = args.ed
 			
 			await shareenum_live(
 				targets = args.target, 
@@ -199,6 +210,8 @@ class SMBCMDHelper:
 				protocol_version = args.protocol_version,
 				output_type = output_type,
 				max_runtime = args.max_runtime,
+				exclude_share = exclude_share,
+				exclude_dir = exclude_dir,
 			)
 
 			
