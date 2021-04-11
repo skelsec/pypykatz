@@ -137,7 +137,7 @@ class SMBCMDHelper:
 		live_console_parser.add_argument('commands', nargs='*', help="!OPTIONAL! Takes a series of commands which will be executed until error encountered. If the command is 'i' is encountered during execution it drops back to interactive shell.")
 
 
-		live_shareenum_parser = live_smb_subparsers.add_parser('shareenum', help = 'SMB (live) share enumerator. This will start enumeration using the current user credentials.')
+		live_shareenum_parser = live_smb_subparsers.add_parser('shareenum', help = 'SMB (live) share enumerator. THE DEFAULT SETTINGS ARE OPTIMIZED TO WORK ON DOMAIN-JOINED MACHINES. This will start enumeration using the current user credentials.')
 		live_shareenum_parser.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		live_shareenum_parser.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 		live_shareenum_parser.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity, can be stacked')

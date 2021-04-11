@@ -64,7 +64,7 @@ async def shareenum(smb_url, ldap_url = None, targets = None, smb_worker_count =
 		raise Exception('Shareenum needs a list of targets or LDAP connection string')
 	
 	if smb_url == 'auto':
-		smb_url = get_smb_url()
+		smb_url = get_smb_url(authmethod=authmethod, protocol_version=protocol_version)
 	
 	enumerator = SMBFileEnum(
 		smb_url,
@@ -96,7 +96,7 @@ async def shareenum(smb_url, ldap_url = None, targets = None, smb_worker_count =
 	
 	if ldap_url is not None:
 		if ldap_url == 'auto':
-			ldap_url = get_ldap_url()
+			ldap_url = get_ldap_url(authmethod=authmethod)
 		enumerator.target_gens.append(LDAPTargetGen(ldap_url))
 
 	if len(enumerator.target_gens) == 0:
