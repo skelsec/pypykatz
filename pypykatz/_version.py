@@ -1,5 +1,5 @@
 
-__version__ = "0.4.8"
+__version__ = "0.4.9"
 __banner__ = \
 """
 # pypyKatz %s 
