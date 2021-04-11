@@ -138,7 +138,7 @@ class SMBCMDHelper:
 
 
 		live_shareenum_parser = live_smb_subparsers.add_parser('shareenum', help = 'SMB (live) share enumerator. This will start enumeration using the current user credentials.')
-		live_shareenum_parser.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'ntlm', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		live_shareenum_parser.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		live_shareenum_parser.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 		live_shareenum_parser.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity, can be stacked')
 		live_shareenum_parser.add_argument('--depth', type=int, default =3, help="Maximum level of folders to enum")
