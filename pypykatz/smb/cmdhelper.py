@@ -137,6 +137,7 @@ class SMBCMDHelper:
 		live_client_parser.add_argument('commands', nargs='*', help="!OPTIONAL! Takes a series of commands which will be executed until error encountered. If the command is 'i' is encountered during execution it drops back to interactive shell.")
 
 		live_lsassfile_group = live_smb_subparsers.add_parser('lsassfile', help='Parse a remote LSASS dump file.')
+		live_lsassfile_group.add_argument('host', help='Target host to connect to')
 		live_lsassfile_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		live_lsassfile_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 		live_lsassfile_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
@@ -148,6 +149,7 @@ class SMBCMDHelper:
 
 
 		live_lsassdump_group = live_smb_subparsers.add_parser('lsassdump', help='Yes.')
+		live_lsassdump_group.add_argument('host', help='Target host to connect to')
 		live_lsassdump_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		live_lsassdump_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 		live_lsassdump_group.add_argument('-m','--method', choices=['taskexec'] , default = 'taskexec', help = 'Print credentials in JSON format')
@@ -161,6 +163,7 @@ class SMBCMDHelper:
 
 
 		live_regfile_group = live_smb_subparsers.add_parser('regfile', help='Parse a remote registry hive dumps')
+		live_regfile_group.add_argument('host', help='Target host to connect to')
 		live_regfile_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		live_regfile_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 		live_regfile_group.add_argument('system', help='path to the SYSTEM registry hive')
@@ -171,18 +174,21 @@ class SMBCMDHelper:
 		live_regfile_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
 		
 		live_regsec_group = live_smb_subparsers.add_parser('regdump', help='Regsecrets')
+		live_regsec_group.add_argument('host', help='Target host to connect to')
 		live_regsec_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		live_regsec_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 		live_regsec_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 		live_regsec_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
 
 		live_dcsync_group = live_smb_subparsers.add_parser('dcsync', help='DcSync')
+		live_dcsync_group.add_argument('host', help='Target host to connect to')
 		live_dcsync_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		live_dcsync_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 		live_dcsync_group.add_argument('-u', '--username', help='taget username')
 		live_dcsync_group.add_argument('-o', '--outfile', help = 'Save results to file')
 
 		live_secretsdump_group = live_smb_subparsers.add_parser('secretsdump', help='secretsdump')
+		live_secretsdump_group.add_argument('host', help='Target host to connect to')
 		live_secretsdump_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		live_secretsdump_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 		live_secretsdump_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
@@ -212,6 +218,7 @@ class SMBCMDHelper:
 		live_shareenum_parser.add_argument('--ed', '--exclude-dir', nargs='*', help = 'Exclude directories with name specified')
 		live_shareenum_parser.add_argument('--et', '--exclude-target', nargs='*', help = 'Exclude hosts from enumeration')
 
+
 		live_group = live_parser.add_parser('smb', help='SMB (live) commands', epilog=smb_live_epilog, parents=[live_subcommand_parser])
 		
 		
@@ -231,7 +238,8 @@ class SMBCMDHelper:
 		from winacl.functions.highlevel import get_logon_info
 		
 		info = get_logon_info()
-		smb_url = 'smb%s+sspi-%s://%s\\%s@%s' % (args.protocol_version, args.authmethod, info['domain'], info['username'], args.host)
+		if args.smb_module != 'shareenum':
+			smb_url = 'smb%s+sspi-%s://%s\\%s@%s' % (args.protocol_version, args.authmethod, info['domain'], info['username'], args.host)
 
 		if args.verbose == 0:
 			smblog.setLevel(100)
