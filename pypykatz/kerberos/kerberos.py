@@ -149,9 +149,10 @@ async def get_TGS(url, spn, out_file = None):
 		if out_file is not None:
 			kcomm.ccache.to_file(out_file)
 		logger.debug('[KERBEROS][TGS] done!')
-		return tgs, encTGSRepPart, key, None
+		apreq = kcomm.construct_apreq(tgs, encTGSRepPart, key)
+		return tgs, encTGSRepPart, key, apreq, None
 	except Exception as e:
-		return None, None, None, e
+		return None, None, None, None, e
 
 async def get_TGT(url):
 	try:

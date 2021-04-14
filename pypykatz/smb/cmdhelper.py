@@ -9,6 +9,7 @@
 import os
 import json
 import ntpath
+import asyncio
 import platform
 import argparse
 import base64
@@ -17,7 +18,7 @@ import traceback
 from pypykatz import logging
 from pypykatz.commons.common import UniversalEncoder
 from pypykatz.alsadecryptor.packages.msv.decryptor import LogonSession
-import asyncio
+
 
 """
 This is a wrapper for aiosmb
@@ -44,10 +45,10 @@ class SMBCMDHelper:
 		smb_subparsers.required = True
 		smb_subparsers.dest = 'smb_module'
 
-		smb_console_group = smb_subparsers.add_parser('console', help='SMB client. Use "help" instead of "-h" to get the available subcommands')
-		smb_console_group.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity, can be stacked')
-		smb_console_group.add_argument('url', help="SMB connection string")
-		smb_console_group.add_argument('commands', nargs='*', help="!OPTIONAL! Takes a series of commands which will be executed until error encountered. If the command is 'i' is encountered during execution it drops back to interactive shell.")
+		smb_client_group = smb_subparsers.add_parser('client', help='SMB client. Use "help" instead of "-h" to get the available subcommands')
+		smb_client_group.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity, can be stacked')
+		smb_client_group.add_argument('url', help="SMB connection string")
+		smb_client_group.add_argument('commands', nargs='*', help="!OPTIONAL! Takes a series of commands which will be executed until error encountered. If the command is 'i' is encountered during execution it drops back to interactive shell.")
 		
 		smb_lsassfile_group = smb_subparsers.add_parser('lsassfile', help='Parse a remote LSASS dump file.')
 		smb_lsassfile_group.add_argument('url', help="SMB connection string with file in path field. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/C$/Users/victim/Desktop/lsass.DMP'")
@@ -86,12 +87,12 @@ class SMBCMDHelper:
 		smb_regsec_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
 
 		smb_dcsync_group = smb_subparsers.add_parser('dcsync', help='DcSync')
-		smb_dcsync_group.add_argument('url', help="SMB connection string with folder in path field. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/'")
+		smb_dcsync_group.add_argument('url', help="SMB connection string. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.2'")
 		smb_dcsync_group.add_argument('-u', '--username', help='taget username')
 		smb_dcsync_group.add_argument('-o', '--outfile', help = 'Save results to file')
 
 		smb_secretsdump_group = smb_subparsers.add_parser('secretsdump', help='secretsdump')
-		smb_secretsdump_group.add_argument('url', help="SMB connection string with folder in path field. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/'")
+		smb_secretsdump_group.add_argument('url', help="SMB connection string. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/'")
 		smb_secretsdump_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
 		smb_secretsdump_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 		smb_secretsdump_group.add_argument('-k', '--kerberos-dir', help = 'Save kerberos tickets to a directory.')
@@ -102,8 +103,6 @@ class SMBCMDHelper:
 
 
 		smb_shareenum_parser = smb_subparsers.add_parser('shareenum', help = 'SMB share enumerator')
-		smb_shareenum_parser.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'ntlm', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
-		smb_shareenum_parser.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 		smb_shareenum_parser.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity, can be stacked')
 		smb_shareenum_parser.add_argument('--depth', type=int, default =3, help="Maximum level of folders to enum")
 		smb_shareenum_parser.add_argument('--maxitems', type=int, default = None, help="Maximum number of items per forlder to enumerate")
@@ -130,12 +129,12 @@ class SMBCMDHelper:
 		live_smb_subparsers.required = True
 		live_smb_subparsers.dest = 'livesmbcommand'
 
-		live_console_parser = live_smb_subparsers.add_parser('console', help = 'SMB (live) client. Use "help" instead of "-h" to get the available subcommands')
-		live_console_parser.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'ntlm', help= 'Authentication method to use during login')
-		live_console_parser.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
-		live_console_parser.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity, can be stacked')
-		live_console_parser.add_argument('host', help='Target host to connect to')
-		live_console_parser.add_argument('commands', nargs='*', help="!OPTIONAL! Takes a series of commands which will be executed until error encountered. If the command is 'i' is encountered during execution it drops back to interactive shell.")
+		live_client_parser = live_smb_subparsers.add_parser('client', help = 'SMB (live) client. Use "help" instead of "-h" to get the available subcommands')
+		live_client_parser.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'ntlm', help= 'Authentication method to use during login')
+		live_client_parser.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
+		live_client_parser.add_argument('-v', '--verbose', action='count', default=0, help='Verbosity, can be stacked')
+		live_client_parser.add_argument('host', help='Target host to connect to')
+		live_client_parser.add_argument('commands', nargs='*', help="!OPTIONAL! Takes a series of commands which will be executed until error encountered. If the command is 'i' is encountered during execution it drops back to interactive shell.")
 
 
 		live_shareenum_parser = live_smb_subparsers.add_parser('shareenum', help = 'SMB (live) share enumerator. THE DEFAULT SETTINGS ARE OPTIMIZED TO WORK ON DOMAIN-JOINED MACHINES. This will start enumeration using the current user credentials.')
@@ -184,7 +183,7 @@ class SMBCMDHelper:
 			level = 5 - args.verbose
 			smblog.setLevel(level=level)
 
-		if args.livesmbcommand == 'console':
+		if args.livesmbcommand == 'client':
 			from aiosmb.examples.smbclient import amain
 			from winacl.functions.highlevel import get_logon_info
 			info = get_logon_info()
@@ -389,8 +388,6 @@ class SMBCMDHelper:
 				max_items = args.maxitems, 
 				dirsd = args.dirsd, 
 				filesd = args.filesd, 
-				authmethod = args.authmethod,
-				protocol_version = args.protocol_version,
 				output_type = output_type,
 				max_runtime = args.max_runtime,
 				exclude_share = exclude_share,
@@ -400,7 +397,7 @@ class SMBCMDHelper:
 			)
 
 
-		elif args.smb_module == 'console':
+		elif args.smb_module == 'client':
 			from aiosmb.examples.smbclient import amain
 			la = SMBCMDArgs()
 			la.smb_url = args.url

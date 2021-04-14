@@ -112,10 +112,17 @@ class DPAPI:
 					f.write(x.hex() + '\r\n')
 
 	def load_prekeys(self, filename):
-		with open(filename, 'r') as f:
-			for line in f:
-				line = line.strip()
-				self.prekeys[bytes.fromhex(line)] = 1
+		try:
+			open(filename, 'r')
+		except Exception as e:
+			key = bytes.fromhex(filename)
+			self.prekeys[key] = 1
+			return
+		else:
+			with open(filename, 'r') as f:
+				for line in f:
+					line = line.strip()
+					self.prekeys[bytes.fromhex(line)] = 1
 
 	def dump_masterkeys(self, filename = None):
 		if filename is None:
@@ -347,7 +354,6 @@ class DPAPI:
 		returns: touple of dictionaries. [0] - > masterkey[guid] = key, [1] - > backupkey[guid] = key
 		"""
 		mkf = MasterKeyFile.from_bytes(data)
-		
 		mks = {}
 		bks = {}
 		if mkf.masterkey is not None:

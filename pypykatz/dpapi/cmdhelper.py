@@ -144,10 +144,10 @@ class DPAPICMDHelper:
 				dpapi.get_prekeys_from_password(args.sid, password = pw)
 			
 			elif args.prekey_command == 'nt':
-				if args.nt is None or args.sid is None:
+				if args.nthash is None or args.sid is None:
 					raise Exception('NT hash and SID must be specified for generating prekey in this mode')
 
-				dpapi.get_prekeys_from_password(args.sid, nt_hash = args.nt)
+				dpapi.get_prekeys_from_password(args.sid, nt_hash = args.nthash)
 
 
 			dpapi.dump_pre_keys(args.out_file)
@@ -159,19 +159,18 @@ class DPAPICMDHelper:
 			
 			dpapi.get_masterkeys_from_lsass_dump(args.minidumpfile)
 			dpapi.dump_masterkeys(args.out_file)
-			dpapi.dump_pre_keys(args.out_file + '_prekeys')
+			if args.out_file is not None:
+				dpapi.dump_pre_keys(args.out_file + '_prekeys')
+			else:
+				dpapi.dump_pre_keys()
 
 
 		elif args.dapi_module == 'masterkey':
-			if args.key is None and args.prekey is None:
+			if args.prekey is None:
 				raise Exception('Etieher KEY or path to prekey file must be supplied!')
 
-			if args.prekey:
-				dpapi.load_prekeys(args.prekey)
-				dpapi.decrypt_masterkey_file(args.mkf)
-
-			if args.key:
-				dpapi.decrypt_masterkey_file(args.mkf, bytes.fromhex(args.key))
+			dpapi.load_prekeys(args.prekey)
+			dpapi.decrypt_masterkey_file(args.masterkeyfile)
 			
 			if len(dpapi.masterkeys) == 0 and len(dpapi.backupkeys) == 0:
 				print('Failed to decrypt the masterkeyfile!')
@@ -223,12 +222,12 @@ class DPAPICMDHelper:
 			dpapi.load_masterkeys(args.mkf)
 				
 			try:
-				bytes.fromhex(args.securestring)
+				bytes.fromhex(args.blob)
 			except Exception as e:
 				print('Error! %s' %e)
-				dec_sec = dpapi.decrypt_securestring_file(args.securestring)
+				dec_sec = dpapi.decrypt_securestring_file(args.blob)
 			else:
-				dec_sec = dpapi.decrypt_securestring_hex(args.securestring)
+				dec_sec = dpapi.decrypt_securestring_hex(args.blob)
 			
 			print('HEX: %s' % dec_sec.hex())
 			print('STR: %s' % dec_sec.decode('utf-16-le'))

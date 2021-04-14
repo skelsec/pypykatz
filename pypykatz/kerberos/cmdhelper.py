@@ -276,18 +276,17 @@ class KerberosCMDHelper:
 				print_kirbi(kirbi)
 
 		elif args.kerberos_module == 'tgs':
-			tgs, encTGSRepPart, key, err = asyncio.run(get_TGS(args.url, args.spn))
+			tgs, encTGSRepPart, key, apreq, err = asyncio.run(get_TGS(args.url, args.spn))
 			if err is not None:
 				print('[KERBEROS][TGS] Failed to fetch TGS! Reason: %s' % err)
 				return
 
-
 			if args.out_file is not None:
 				pass
 			else:
-				print(tgs)
-				print(encTGSRepPart)
-				print(key)
+				print('APREQ b64: ')
+				print(format_kirbi(apreq))
+				print('Sessionkey b64: %s' % base64.b64encode(key.contents).decode())
 		
 		elif args.kerberos_module == 'brute':
 			target_spns = generate_targets(args.targets, args.domain)

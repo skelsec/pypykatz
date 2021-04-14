@@ -60,8 +60,8 @@ async def shareenum(smb_url, ldap_url = None, targets = None, smb_worker_count =
 	from pypykatz.apypykatz import apypykatz
 
 
-	if targets is None and ldap_url is None:
-		raise Exception('Shareenum needs a list of targets or LDAP connection string')
+	#if targets is None and ldap_url is None:
+	#	raise Exception('Shareenum needs a list of targets or LDAP connection string')
 	
 	if smb_url == 'auto':
 		smb_url = get_smb_url(authmethod=authmethod, protocol_version=protocol_version)
@@ -101,6 +101,7 @@ async def shareenum(smb_url, ldap_url = None, targets = None, smb_worker_count =
 		enumerator.target_gens.append(LDAPTargetGen(ldap_url))
 
 	if len(enumerator.target_gens) == 0:
-		raise Exception('No suitable targets found!')
+		enumerator.enum_url = True
+		#raise Exception('No suitable targets found!')
 
 	await enumerator.run()
