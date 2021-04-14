@@ -84,7 +84,7 @@ class LDAPCMDHelper:
 			level = 5 - args.verbose
 			ldaplogger.setLevel(level=level)
 
-		if args.livesmbcommand == 'client':
+		if args.liveldapcommand == 'client':
 			la = LDAPCMDArgs()
 			la.url = ldap_url
 			la.verbose = args.verbose
@@ -106,7 +106,7 @@ class LDAPCMDHelper:
 	def run(self, args):
 		from msldap.examples.msldapclient import amain
 
-		if args.smb_module == 'client':
+		if args.ldap_module == 'client':
 			la = LDAPCMDArgs()
 			la.url = args.url
 			la.verbose = args.verbose
