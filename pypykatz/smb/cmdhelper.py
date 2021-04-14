@@ -238,7 +238,7 @@ class SMBCMDHelper:
 		from winacl.functions.highlevel import get_logon_info
 		
 		info = get_logon_info()
-		if args.smb_module != 'shareenum':
+		if args.livesmbcommand != 'shareenum':
 			smb_url = 'smb%s+sspi-%s://%s\\%s@%s' % (args.protocol_version, args.authmethod, info['domain'], info['username'], args.host)
 
 		if args.verbose == 0:
