@@ -4,6 +4,7 @@
 #  Tamas Jos (@skelsec)
 #
 
+import os
 import base64
 import platform
 import argparse
@@ -12,6 +13,7 @@ from pypykatz import logger
 import traceback
 
 from minikerberos.common.utils import print_table
+from minikerberos.protocol.asn1_structs import KRB_CRED
 from pypykatz.commons.filetime import filetime_to_dt
 from pypykatz.commons.common import geterr
 from pypykatz.kerberos.kerberos import get_TGS, get_TGT, generate_targets, \
@@ -248,8 +250,15 @@ class KerberosCMDHelper:
 			if args.outdir is not None:
 				for luid in tickets:
 					for ticket in tickets[luid]:
-						with open(args.outdir + 'ticket_%s.kirbi' % 'a', 'wb') as f:
+						try:
+							pt = KRB_CRED.load(ticket['Ticket']).native
+							name = '_'.join(pt['tickets'][0]['sname']['name-string'])
+							name = hex(int(luid)) + '_' + '@'.join([name, pt['tickets'][0]['realm']])
+						except:
+							name = hex(int(luid)) + '_' + os.urandom(4).hex()
+						with open(os.path.join(args.outdir, 'ticket_%s.kirbi' % name), 'wb') as f:
 							f.write(ticket['Ticket'])
+
 			else:
 				for luid in tickets:
 					if len(tickets[luid]) == 0:
