@@ -689,8 +689,11 @@ class DPAPI:
 					encrypted_key = json.load(f)['os_crypt']['encrypted_key']
 					encrypted_key = base64.b64decode(encrypted_key)
 				
-				localstate_dec = self.decrypt_blob_bytes(encrypted_key[5:])
-
+				try:
+					localstate_dec = self.decrypt_blob_bytes(encrypted_key[5:])
+				except:
+					# this localstate was encrypted for another user...
+					continue
 			if 'cookies' in dbpaths[username]:
 				secrets = DPAPI.get_chrome_encrypted_secret(dbpaths[username]['cookies'])
 				for host_key, name, path, encrypted_value in secrets['cookies']:
@@ -708,8 +711,17 @@ class DPAPI:
 			if 'logindata' in dbpaths[username]:
 				secrets = DPAPI.get_chrome_encrypted_secret(dbpaths[username]['logindata'])
 				for url, user, enc_password in secrets['logins']:
-					password = self.decrypt_blob_bytes(enc_password)
-					results['logins'].append((dbpaths[username]['logindata'], url, user, password ))
+					if enc_password.startswith(b'v10'):
+						nonce = enc_password[3:3+12]
+						ciphertext = enc_password[3+12:-16]
+						tag = enc_password[-16:]
+						cipher = AES_GCM(localstate_dec)
+						password = cipher.decrypt(nonce, ciphertext, tag, auth_data=b'')
+						results['logins'].append((dbpaths[username]['logindata'], url, user, password))
+					
+					else:
+						password = self.decrypt_blob_bytes(enc_password)
+						results['logins'].append((dbpaths[username]['logindata'], url, user, password ))
 				
 				
 		return results
