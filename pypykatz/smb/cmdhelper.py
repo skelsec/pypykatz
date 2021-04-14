@@ -60,7 +60,7 @@ class SMBCMDHelper:
 		smb_lsassfile_group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap'], nargs="+", default = 'all', help = 'LSASS package to parse')
 
 
-		smb_lsassdump_group = smb_subparsers.add_parser('lsassdump', help='Yes.')
+		smb_lsassdump_group = smb_subparsers.add_parser('lsassdump', help='Remotely dumps and parses LSASS')
 		smb_lsassdump_group.add_argument('url', help="SMB connection string Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102'")
 		smb_lsassdump_group.add_argument('-m','--method', choices=['taskexec'] , default = 'taskexec', help = 'Print credentials in JSON format')
 		smb_lsassdump_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
@@ -81,7 +81,7 @@ class SMBCMDHelper:
 		smb_regfile_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 		smb_regfile_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
 		
-		smb_regsec_group = smb_subparsers.add_parser('regdump', help='Regsecrets')
+		smb_regsec_group = smb_subparsers.add_parser('regdump', help='Remotely dumps and parses registry')
 		smb_regsec_group.add_argument('url', help="SMB connection string. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102'")
 		smb_regsec_group.add_argument('-o', '--outfile', help = 'Save results to file (you can specify --json for json file, or text format will be written)')
 		smb_regsec_group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
@@ -136,7 +136,7 @@ class SMBCMDHelper:
 		live_client_parser.add_argument('host', help='Target host to connect to')
 		live_client_parser.add_argument('commands', nargs='*', help="!OPTIONAL! Takes a series of commands which will be executed until error encountered. If the command is 'i' is encountered during execution it drops back to interactive shell.")
 
-		live_lsassdump_group = live_smb_subparsers.add_parser('lsassdump', help='Yes.')
+		live_lsassdump_group = live_smb_subparsers.add_parser('lsassdump', help='Remotely dumps and parses LSASS')
 		live_lsassdump_group.add_argument('host', help='Target host to connect to')
 		live_lsassdump_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		live_lsassdump_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
@@ -149,7 +149,7 @@ class SMBCMDHelper:
 		live_lsassdump_group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap'], nargs="+", default = 'all', help = 'LSASS package to parse')
 
 		
-		live_regsec_group = live_smb_subparsers.add_parser('regdump', help='Regsecrets')
+		live_regsec_group = live_smb_subparsers.add_parser('regdump', help='Remotely dumps and parses registry')
 		live_regsec_group.add_argument('host', help='Target host to connect to')
 		live_regsec_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		live_regsec_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
