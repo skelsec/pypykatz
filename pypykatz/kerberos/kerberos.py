@@ -19,9 +19,10 @@ from minikerberos.common.target import KerberosTarget
 from minikerberos.common.keytab import Keytab
 from minikerberos.aioclient import AIOKerberosClient
 from minikerberos.common.utils import TGSTicket2hashcat
-from minikerberos.protocol.asn1_structs import AP_REQ, TGS_REQ, EncryptedData, KrbCredInfo, KRB_CRED, EncKDCRepPart
+from minikerberos.protocol.asn1_structs import AP_REQ, TGS_REQ, EncryptedData, KrbCredInfo, KRB_CRED, EncKDCRepPart, EncKrbCredPart
 from minikerberos.common.utils import print_table
 from minikerberos.common.ccache import CCACHE, Credential
+from minikerberos.common.utils import tgt_to_kirbi
 
 
 def process_target_line(target, realm = None, to_spn = True):
@@ -145,12 +146,16 @@ async def get_TGS(url, spn, out_file = None):
 		await kcomm.get_TGT()
 		logger.debug('[KERBEROS][TGS] fetching TGS')
 		tgs, encTGSRepPart, key = await kcomm.get_TGS(spn)
+
+		kirbi = tgt_to_kirbi(tgs, encTGSRepPart)
 			
 		if out_file is not None:
-			kcomm.ccache.to_file(out_file)
+			with open(out_file, 'wb') as f:
+				f.write(kirbi.dump())
+
 		logger.debug('[KERBEROS][TGS] done!')
-		apreq = kcomm.construct_apreq(tgs, encTGSRepPart, key)
-		return tgs, encTGSRepPart, key, apreq, None
+		#apreq = kcomm.construct_apreq(tgs, encTGSRepPart, key)
+		return tgs, encTGSRepPart, key, kirbi, None
 	except Exception as e:
 		return None, None, None, None, e
 
@@ -167,11 +172,10 @@ async def get_TGT(url):
 		kcomm = AIOKerberosClient(cred, target)
 		logger.debug('[KERBEROS][TGT] fetching TGT')
 		await kcomm.get_TGT()
-
-		cred = kcomm.ccache.credentials[0]
-		kirbi, filename = cred.to_kirbi()
 		
-		return kirbi, filename, None
+		kirbi = tgt_to_kirbi(kcomm.kerberos_TGT, kcomm.kerberos_TGT_encpart)
+
+		return kirbi, None
 	except Exception as e:
 		return None, None, e
 
@@ -271,7 +275,7 @@ async def spnroast(url, targets, out_file = None, etype = 23):
 	except Exception as e:
 		return None, e
 
-async def s4u(url, spn, targetuser, out_file = None):
+async def s4u(url, spn, targetuser):
 	try:
 		logger.debug('[KERBEROS][S4U] Started')
 		cu = KerberosClientURL.from_url(url)
@@ -286,7 +290,8 @@ async def s4u(url, spn, targetuser, out_file = None):
 			client = AIOKerberosClient(ccred, target)
 			await client.get_TGT()
 			logger.debug('[KERBEROS][S4U] Getting ST')
-			tgs, encTGSRepPart, key = await client.getST(target_user, service_spn)
+			res = await client.getST(target_user, service_spn)
+			tgs, encTGSRepPart, key = res
 		else:
 			logger.debug('[KERBEROS][S4U] Getting TGS via TGT from CCACHE')
 			for tgt, key in ccred.ccache.get_all_tgt():
@@ -294,7 +299,8 @@ async def s4u(url, spn, targetuser, out_file = None):
 					logger.debug('[KERBEROS][S4U] Trying to get SPN with %s' % '!'.join(tgt['cname']['name-string']))
 					client = AIOKerberosClient.from_tgt(target, tgt, key)
 
-					tgs, encTGSRepPart, key = await client.getST(target_user, service_spn)
+					res = await client.getST(target_user, service_spn)
+					tgs, encTGSRepPart, key = res
 					logger.debug('[KERBEROS][S4U] Sucsess!')
 				except Exception as e:
 					logger.debug('[KERBEROS][S4U] This ticket is not usable it seems Reason: %s' % e)
@@ -302,11 +308,9 @@ async def s4u(url, spn, targetuser, out_file = None):
 				else:
 					break
 
-		if out_file:
-			client.ccache.to_file(out_file)
-
 		logger.debug('[KERBEROS][S4U] Done!')
-		return tgs, encTGSRepPart, key, None
+		kirbi = tgt_to_kirbi(tgs, encTGSRepPart)
+		return tgs, encTGSRepPart, key, kirbi, None
 
 	except Exception as e:
-		return None, None, None, e
+		return None, None, None, None, e
