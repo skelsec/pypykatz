@@ -53,6 +53,7 @@ class CredmanCredential:
 		self.luid = None
 		self.username = None
 		self.password = None
+		self.password_raw = None
 		self.domainname = None
 
 	def to_dict(self):
@@ -61,6 +62,7 @@ class CredmanCredential:
 		t['username'] = self.username
 		t['domainname'] = self.domainname
 		t['password'] = self.password
+		t['password_raw'] = self.password_raw
 		t['luid'] = self.luid
 		return t
 		
@@ -73,6 +75,7 @@ class CredmanCredential:
 		t += '\t\tusername %s\n' % self.username
 		t += '\t\tdomain %s\n' % self.domainname
 		t += '\t\tpassword %s\n' % self.password
+		t += '\t\tpassword (hex)%s\n' % self.password_raw.hex()
 		return t
 		
 		
@@ -332,11 +335,11 @@ class MsvDecryptor(PackageDecryptor):
 		if credman_credential_entry.cbEncPassword and credman_credential_entry.cbEncPassword != 0:
 			enc_data = credman_credential_entry.encPassword.read_raw(self.reader, credman_credential_entry.cbEncPassword)
 			if c.username.endswith('$') is True:
-				c.password = self.decrypt_password(enc_data, bytes_expected=True)
+				c.password, c.password_raw = self.decrypt_password(enc_data, bytes_expected=True)
 				if c.password is not None:
 					c.password = c.password.hex()
 			else:
-				c.password = self.decrypt_password(enc_data)
+				c.password, c.password_raw = self.decrypt_password(enc_data)
 		
 		c.luid = self.current_logonsession.luid
 			
@@ -352,7 +355,7 @@ class MsvDecryptor(PackageDecryptor):
 		
 		self.log('Encrypted credential data \n%s' % hexdump(encrypted_credential_data))
 		self.log('Decrypting credential structure')
-		dec_data = self.decrypt_password(encrypted_credential_data, bytes_expected = True)
+		dec_data, raw_dec = self.decrypt_password(encrypted_credential_data, bytes_expected = True)
 		self.log('%s: \n%s' % (self.decryptor_template.decrypted_credential_struct.__name__, hexdump(dec_data)))
 			
 		struct_reader = GenericReader(dec_data, self.sysinfo.architecture)

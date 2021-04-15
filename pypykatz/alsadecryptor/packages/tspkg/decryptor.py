@@ -16,6 +16,7 @@ class TspkgCredential:
 		self.username = None
 		self.domainname = None
 		self.password = None
+		self.password_raw = None
 		self.luid = None
 	
 	def to_dict(self):
@@ -24,8 +25,10 @@ class TspkgCredential:
 		t['username'] = self.username
 		t['domainname'] = self.domainname
 		t['password'] = self.password
+		t['password_raw'] = self.password_raw
 		t['luid'] = self.luid
 		return t
+
 	def to_json(self):
 		return json.dumps(self.to_dict())
 		
@@ -34,6 +37,7 @@ class TspkgCredential:
 		t += '\t\tusername %s\n' % self.username
 		t += '\t\tdomainname %s\n' % self.domainname
 		t += '\t\tpassword %s\n' % self.password
+		t += '\t\tpassword (hex)%s\n' % self.password_raw.hex()
 		return t
 		
 class TspkgDecryptor(PackageDecryptor):
@@ -83,10 +87,10 @@ class TspkgDecryptor(PackageDecryptor):
 				if primary_credential.credentials.Password.Length != 0:
 					enc_data = await primary_credential.credentials.Password.read_maxdata(self.reader)
 					if c.username.endswith('$') is True:
-						c.password = self.decrypt_password(enc_data, bytes_expected=True)
+						c.password, c.password_raw = self.decrypt_password(enc_data, bytes_expected=True)
 						if c.password is not None:
 							c.password = c.password.hex()
 					else:
-						c.password = self.decrypt_password(enc_data)					
+						c.password, c.password_raw = self.decrypt_password(enc_data)					
 				
 				self.credentials.append(c)

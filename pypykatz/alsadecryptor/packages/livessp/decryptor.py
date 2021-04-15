@@ -13,6 +13,7 @@ class LiveSspCredential:
 		self.username = None
 		self.domainname = None
 		self.password = None
+		self.password_raw = None
 		self.luid = None
 	
 	def to_dict(self):
@@ -21,6 +22,7 @@ class LiveSspCredential:
 		t['username'] = self.username
 		t['domainname'] = self.domainname
 		t['password'] = self.password
+		t['password_raw'] = self.password_raw
 		t['luid'] = self.luid
 		return t
 	def to_json(self):
@@ -31,6 +33,7 @@ class LiveSspCredential:
 		t += '\tusername %s\n' % self.username
 		t += '\tdomainname %s\n' % self.domainname
 		t += '\tpassword %s\n' % self.password
+		t += '\t\tpassword (hex)%s\n' % self.password_raw.hex()
 		return t
 		
 class LiveSspDecryptor(PackageDecryptor):
@@ -56,11 +59,11 @@ class LiveSspDecryptor(PackageDecryptor):
 		if suppCreds.credentials.Password.Length != 0:
 			enc_data = await suppCreds.credentials.Password.read_maxdata(self.reader)
 			if c.username.endswith('$') is True:
-				c.password = self.decrypt_password(enc_data, bytes_expected=True)
+				c.password, c.password_raw = self.decrypt_password(enc_data, bytes_expected=True)
 				if c.password is not None:
 					c.password = c.password.hex()
 			else:
-				c.password = self.decrypt_password(enc_data)
+				c.password, c.password_raw = self.decrypt_password(enc_data)
 		
 		self.credentials.append(c)
 	

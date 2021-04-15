@@ -57,7 +57,7 @@ class CloudapDecryptor(PackageDecryptor):
 			cache = cloudap_entry.cacheEntry.read(self.reader)
 			cred.cachedir = cache.toname.decode('utf-16-le').replace('\x00','')
 			if cache.cbPRT != 0 and cache.PRT.value != 0:
-				temp = self.decrypt_password(cache.PRT.read_raw(self.reader, cache.cbPRT), bytes_expected=True)
+				temp, raw_dec = self.decrypt_password(cache.PRT.read_raw(self.reader, cache.cbPRT), bytes_expected=True)
 				try:
 					temp = temp.decode()
 				except:
@@ -69,7 +69,7 @@ class CloudapDecryptor(PackageDecryptor):
 				unk = cache.toDetermine.read(self.reader)
 				if unk is not None:
 					cred.key_guid = unk.guid.value
-					cred.dpapi_key = self.decrypt_password(unk.unk)
+					cred.dpapi_key, raw_dec = self.decrypt_password(unk.unk, bytes_expected = True)
 					cred.dpapi_key_sha1 = hashlib.sha1(bytes.fromhex(cred.dpapi_key)).hexdigest()
 
 			if cred.PRT is None and cred.key_guid is None:
