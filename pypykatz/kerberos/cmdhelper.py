@@ -121,11 +121,13 @@ class KerberosCMDHelper:
 		tgt_parser = kerberos_subparsers.add_parser('tgt', help = 'Fetches a TGT for a given user')
 		tgt_parser.add_argument('url', help='user credentials in URL format. Example: "kerberos+password://TEST\\victim:Passw0rd!1@10.10.10.2"')
 		tgt_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
+		tgt_parser.add_argument('-e','--etype', type=int, default=None, help='Encryption type to be requested')
 
 		tgs_parser = kerberos_subparsers.add_parser('tgs', help = 'Fetches a TGS for a given service/user')
 		tgs_parser.add_argument('url', help='user credentials in URL format')
 		tgs_parser.add_argument('spn', help='SPN string of the service to request the ticket for')
 		tgs_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
+		tgs_parser.add_argument('-e','--etype', type=int, default=None, help='Encryption type to be requested')
 
 		brute_parser = kerberos_subparsers.add_parser('brute', help = 'Bruteforcing usernames')
 		brute_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
@@ -279,7 +281,7 @@ class KerberosCMDHelper:
 	def run(self, args):
 
 		if args.kerberos_module == 'tgt':
-			kirbi, err = asyncio.run(get_TGT(args.url))
+			kirbi, err = asyncio.run(get_TGT(args.url, override_etype = args.etype))
 			if err is not None:
 				print('[KERBEROS][TGT] Failed to fetch TGT! Reason: %s' % err)
 				return
@@ -291,7 +293,7 @@ class KerberosCMDHelper:
 				print_kirbi(kirbi)
 
 		elif args.kerberos_module == 'tgs':
-			tgs, encTGSRepPart, key, kirbi, err = asyncio.run(get_TGS(args.url, args.spn))
+			tgs, encTGSRepPart, key, kirbi, err = asyncio.run(get_TGS(args.url, args.spn, override_etype = args.etype))
 			if err is not None:
 				print('[KERBEROS][TGS] Failed to fetch TGS! Reason: %s' % err)
 				return

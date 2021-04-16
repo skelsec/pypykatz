@@ -132,9 +132,12 @@ def kirbi_to_ccache(ccachefile, kirbi):
 	
 	cc.to_file(ccachefile)
 
-async def get_TGS(url, spn, out_file = None):
+async def get_TGS(url, spn, out_file = None, override_etype = None):
 	try:
 		logger.debug('[KERBEROS][TGS] started')
+		if isinstance(override_etype, int):
+			override_etype = [override_etype]
+
 		ku = KerberosClientURL.from_url(url)
 		cred = ku.get_creds()
 		target = ku.get_target()
@@ -145,7 +148,7 @@ async def get_TGS(url, spn, out_file = None):
 		kcomm = AIOKerberosClient(cred, target)
 		await kcomm.get_TGT()
 		logger.debug('[KERBEROS][TGS] fetching TGS')
-		tgs, encTGSRepPart, key = await kcomm.get_TGS(spn)
+		tgs, encTGSRepPart, key = await kcomm.get_TGS(spn, override_etype=override_etype)
 
 		kirbi = tgt_to_kirbi(tgs, encTGSRepPart)
 			
@@ -154,14 +157,15 @@ async def get_TGS(url, spn, out_file = None):
 				f.write(kirbi.dump())
 
 		logger.debug('[KERBEROS][TGS] done!')
-		#apreq = kcomm.construct_apreq(tgs, encTGSRepPart, key)
 		return tgs, encTGSRepPart, key, kirbi, None
 	except Exception as e:
 		return None, None, None, None, e
 
-async def get_TGT(url):
+async def get_TGT(url, override_etype = None):
 	try:
 		logger.debug('[KERBEROS][TGT] started')
+		if isinstance(override_etype, int):
+			override_etype = [override_etype]
 		ku = KerberosClientURL.from_url(url)
 		cred = ku.get_creds()
 		target = ku.get_target()
@@ -171,13 +175,13 @@ async def get_TGT(url):
 
 		kcomm = AIOKerberosClient(cred, target)
 		logger.debug('[KERBEROS][TGT] fetching TGT')
-		await kcomm.get_TGT()
+		await kcomm.get_TGT(override_etype=override_etype)
 		
 		kirbi = tgt_to_kirbi(kcomm.kerberos_TGT, kcomm.kerberos_TGT_encpart)
 
 		return kirbi, None
 	except Exception as e:
-		return None, None, e
+		return None, e
 
 async def brute(host, targets, out_file = None, show_negatives = False):
 	"""
