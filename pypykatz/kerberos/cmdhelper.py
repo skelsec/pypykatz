@@ -137,7 +137,7 @@ class KerberosCMDHelper:
 		brute_parser.add_argument('targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
 
 		asreproast_parser = kerberos_subparsers.add_parser('asreproast', help='asreproast')
-		asreproast_parser.add_argument('-l','--ldap', help='Load targets via LDAP connection to the DC.')
+		asreproast_parser.add_argument('-l','--ldap', help='LDAP URL. Load targets via LDAP connection to the DC.')
 		asreproast_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
 		asreproast_parser.add_argument('-e','--etype', type=int, default=23, help='Encryption type to be requested')
 		asreproast_parser.add_argument('-o','--out-file', help='Output file to store the tickets in hashcat crackable format.')
@@ -145,11 +145,11 @@ class KerberosCMDHelper:
 		asreproast_parser.add_argument('-t', '--targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
 
 		spnroast_parser = kerberos_subparsers.add_parser('spnroast', help = 'kerberoast/spnroast')
-		spnroast_parser.add_argument('-l','--ldap', help='Load targets via LDAP connection to the DC.')
+		spnroast_parser.add_argument('-l','--ldap', help='LDAP URL. Load targets via LDAP connection to the DC.')
 		spnroast_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
 		spnroast_parser.add_argument('-e','--etype', type=int, default=23, help='Encryption type to be requested')
 		spnroast_parser.add_argument('-o','--out-file', help='Output file to store the tickets in hashcat crackable format.')
-		spnroast_parser.add_argument('url', help='user credentials in URL format')
+		spnroast_parser.add_argument('url', help='user credentials in Kerberos URL format')
 		spnroast_parser.add_argument('-t', '--targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
 
 		s4u_parser = kerberos_subparsers.add_parser('s4u', help = 'Gets an S4U2proxy ticket impersonating given user')
