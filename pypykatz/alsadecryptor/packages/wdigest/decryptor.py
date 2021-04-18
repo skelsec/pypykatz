@@ -15,6 +15,7 @@ class WdigestCredential:
 		self.username = None
 		self.domainname = None
 		self.password = None
+		self.password_raw = None
 		self.luid = None
 	
 	def to_dict(self):
@@ -23,6 +24,7 @@ class WdigestCredential:
 		t['username'] = self.username
 		t['domainname'] = self.domainname
 		t['password'] = self.password
+		t['password_raw'] = self.password_raw
 		t['luid'] = self.luid
 		return t
 	def to_json(self):
@@ -33,6 +35,7 @@ class WdigestCredential:
 		t += '\t\tusername %s\n' % self.username
 		t += '\t\tdomainname %s\n' % self.domainname
 		t += '\t\tpassword %s\n' % self.password
+		t += '\t\tpassword (hex)%s\n' % self.password_raw.hex()
 		return t
 		
 class WdigestDecryptor(PackageDecryptor):
@@ -65,11 +68,11 @@ class WdigestDecryptor(PackageDecryptor):
 		wc.domainname = await DomainName.read_string(self.reader)
 		wc.encrypted_password = await Password.read_maxdata(self.reader)
 		if wc.username.endswith('$') is True:
-			wc.password = self.decrypt_password(wc.encrypted_password, bytes_expected=True)
+			wc.password, wc.password_raw = self.decrypt_password(wc.encrypted_password, bytes_expected=True)
 			if wc.password is not None:
 				wc.password = wc.password.hex()
 		else:
-			wc.password = self.decrypt_password(wc.encrypted_password)
+			wc.password, wc.password_raw = self.decrypt_password(wc.encrypted_password)
 
 		if wc.username == '' and wc.domainname == '' and wc.password is None:
 			return

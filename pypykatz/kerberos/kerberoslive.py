@@ -171,7 +171,7 @@ class KerberosLive:
 		token_handle = OpenProcessToken(process_handle)
 		stats = GetTokenInformation_tokenstatistics(token_handle)
 		CloseHandle(process_handle)
-		return stats['TokenId']
+		return stats['AuthenticationId']
 
 	def list_luids(self):
 		self.available_luids = LsaEnumerateLogonSessions()

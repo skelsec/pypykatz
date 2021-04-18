@@ -14,6 +14,7 @@ class SspCredential:
 		self.username = None
 		self.domainname = None
 		self.password = None
+		self.password_raw = None
 		self.luid = None
 	
 	def to_dict(self):
@@ -22,6 +23,7 @@ class SspCredential:
 		t['username'] = self.username
 		t['domainname'] = self.domainname
 		t['password'] = self.password
+		t['password_raw'] = self.password_raw
 		t['luid'] = self.luid
 		return t
 		
@@ -33,6 +35,7 @@ class SspCredential:
 		t += '\t\tusername %s\n' % self.username
 		t += '\t\tdomainname %s\n' % self.domainname
 		t += '\t\tpassword %s\n' % self.password
+		t += '\t\tpassword (hex)%s\n' % self.password_raw.hex()
 		return t
 		
 class SspDecryptor(PackageDecryptor):
@@ -54,11 +57,11 @@ class SspDecryptor(PackageDecryptor):
 		c.domainname = ssp_entry.credentials.UserName.read_string(self.reader)
 		if ssp_entry.credentials.Password.Length != 0:
 			if c.username.endswith('$') is True or c.domainname.endswith('$') is True:
-				c.password = self.decrypt_password(ssp_entry.credentials.Password.read_data(self.reader), bytes_expected=True)
+				c.password, c.password_raw = self.decrypt_password(ssp_entry.credentials.Password.read_data(self.reader), bytes_expected=True)
 				if c.password is not None:
 					c.password = c.password.hex()
 			else:
-				c.password = self.decrypt_password(ssp_entry.credentials.Password.read_data(self.reader))
+				c.password, c.password_raw = self.decrypt_password(ssp_entry.credentials.Password.read_data(self.reader))
 
 		if c.username == '' and c.domainname == '' and c.password is None:
 			return

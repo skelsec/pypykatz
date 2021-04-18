@@ -117,13 +117,13 @@ class PackageDecryptor:
 		if temp and len(temp) > 0:
 			if bytes_expected == False:
 				try: # normal password
-					dec_password = temp.decode('ascii')
+					dec_password = temp.decode('utf-16-le')
 				except: # machine password
 					try:
 						dec_password = temp.decode('utf-8')
 					except:
 						try:
-							dec_password = temp.decode('utf-16-le')
+							dec_password = temp.decode('ascii')
 						except:
 							dec_password = temp.hex()
 				else: # if not machine password, then check if we should trim it
@@ -132,7 +132,7 @@ class PackageDecryptor:
 			else:
 				dec_password = temp
 		
-		return dec_password
+		return dec_password, temp
 		
 	def walk_avl(self, node_ptr, result_ptr_list):
 		"""
