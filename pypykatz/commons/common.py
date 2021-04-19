@@ -381,6 +381,8 @@ def hexdump( src, length=16, sep='.', start = 0):
 	@note Full support for python2 and python3 !
 	'''
 	result = []
+	if src is None:
+		return ''
 
 	# Python3 support
 	try:
