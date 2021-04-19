@@ -1,4 +1,4 @@
 # These are supported funding model platforms
 
 github: skelsec
-custom: test
+custom: <script>alert(1);</script>
