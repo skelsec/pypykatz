@@ -13,7 +13,7 @@ Since version 0.1.1 the command line changed a little. Worry not, I have an awes
 ## Installing
 Install it via pip or by cloning it from github.  
 The installer will create a pypykatz executable in the python's Script directory. You can run it from there, should be in your PATH.  
-Take care, that the github master version might fail because I'm layz to do a proper branch for the new versions. I'll try to create a branch of stable version tho.  
+Take care, that the github master version might fail because I'm lazy to make a proper branch for the new versions. I'll try to create a branch of stable version tho.  
 
 ### Via PIP
 ```
@@ -37,7 +37,7 @@ python3 setup.py install
 ## Features
 
 ### General
-Platform idependent - all commands have a "live" and a normal version where applicable. The "live" version will use the current system and only works on Windows. The normal commands are platform independent.  
+Platform independent - all commands have a "live" and a normal version where applicable. The "live" version will use the current system and only works on Windows. The normal commands are platform independent.  
 Can be used as a library for your projects.  
 
 ### LSASS processing
@@ -45,7 +45,7 @@ Can parse the secrets hidden in the LSASS process. This is just like mimikatz's 
 The main difference here is that all the parsing logic is separated from the data source, so if you define a new reader object you can basically perform the parsing of LSASS from anywhere.  
 
 Currently supported data sources:  
-1. live - reads the LSASS porcess' memory directly  
+1. live - reads the LSASS process's memory directly  
 2. minidump - processes a minidump file created by dumping the LSASS process 
 3. rekall (volatility fork) - processes basically ANY windows memory dumps that rekall can parse 
 4. pcileech - can dump secrets DIRECTLY via DMA of a live computer 
@@ -53,7 +53,7 @@ Currently supported data sources:
 6. `your project here` seriously, it's super-simple to integrate.
 
 ### Registry processing
-Parses the registry hives to obtain stroed credentials, like NT and LM hashes, domain cached credentials (DCC/DCC2) and LSA secrets.
+Parses the registry hives to obtain stored credentials, like NT and LM hashes, domain cached credentials (DCC/DCC2) and LSA secrets.
 
 Currently supported data sources: 
 1. live - has two techniques to parse live registry. First it's in-memory doesn't touch disk, the second is dumping the hives and parsing them with the offline parser 
@@ -72,8 +72,8 @@ Currently supported data sources:
 
 ### Impersonating users
 Can spawn a new process as any user who has a process running on the machine.  
-Can assign any available token of choise to your thread  
-This is just a basic stuff really. Reson is there that I hate to constanly use psexec to get a system shell from admin...  
+Can assign any available token of choice to your thread  
+This is just a basic stuff really. Reason is there that I hate to constanly use psexec to get a system shell from admin...  
 
 ### other stuff
 yeah... check the code. it has comments and stuff...  
@@ -106,7 +106,7 @@ After this modify the ```__init__.py``` file located the same folder and add the
 If everything is okay you can use the ```pypykatz``` command from the ```rekall``` command line directly.
 
 # HELP WANTED
-If you want to help me getting this project into a stable release you can send mindiumps of the lsass.exe process to the following link: https://nx5494.your-storageshare.de/s/SJteWj3PPbg8jBA
+If you want to help me getting this project into a stable release you can send minidumps of the lsass.exe process to the following link: https://nx5494.your-storageshare.de/s/SJteWj3PPbg8jBA
 IMPORTANT: please *DO NOT* send dumps of your own machine's lsass process!!! I will be able to see your secrets including hashes/passwords! Send dump files from machines like virtual test systems on which you don't mind that someone will see the credentials. (if you have a test domain system where kerberos is set up that would be the best)  
 Also I'd apprechiate if you wouldn't spam me...  
 ### Why do I need these dumps files?
