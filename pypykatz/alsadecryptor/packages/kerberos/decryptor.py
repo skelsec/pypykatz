@@ -84,7 +84,7 @@ class KerberosDecryptor(PackageDecryptor):
 		except Exception as e:
 			raise e
 	
-	def start(self):
+	async def start(self):
 		try:
 			entry_ptr_value, entry_ptr_loc = self.find_first_entry()
 		except Exception as e:
