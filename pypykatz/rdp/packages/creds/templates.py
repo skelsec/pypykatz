@@ -13,7 +13,7 @@ class RDPCredsTemplate:
 	@staticmethod
 	def get_template(sysinfo):
 		template = RDPCredsTemplate()
-		template.signature = b'\x00\x00\x00\x00\xbb\x47' #b'\x00\x00\x00\x00\xbb\x47\x0b\x00'
+		template.signature = b'\x00\x00\x00\x00\xbb\x47\x03' #b'\x00\x00\x00\x00\xbb\x47\x0b\x00'
 		template.cred_struct = WTS_KIWI
 
 		return template
@@ -27,12 +27,6 @@ class WTS_KIWI:
 		self.cbUsername = WORD(reader).value
 		self.cbPassword = WORD(reader).value
 		self.unk2 = DWORD(reader)
-		self.Domain = reader.read(min(self.cbDomain, 255))
-		self.UserName = reader.read(min(self.cbUsername, 255))
-		self.Password = reader.read(min(self.cbPassword, 255))
-
-	
-
-		#WCHAR Domain[WTS_DOMAIN_LENGTH + 1];
-		#WCHAR UserName[WTS_USERNAME_LENGTH + 1];
-		#WCHAR Password[WTS_PASSWORD_LENGTH + 1];
+		self.Domain = reader.read(512)
+		self.UserName = reader.read(512)
+		self.Password = reader.read(512)

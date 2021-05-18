@@ -4,7 +4,7 @@ from pypykatz import logger
 from minidump.minidumpfile import MinidumpFile
 from pypykatz.commons.common import KatzSystemInfo
 from pypykatz.rdp.packages.creds.templates import RDPCredsTemplate
-#from pypykatz.rdp.packages.creds.decryptor import RDPCredsDecryptor
+from pypykatz.rdp.packages.creds.decryptor import RDPCredentialDecryptor
 
 class RDPCredParser:
 	def __init__(self, reader, sysinfo):
@@ -15,8 +15,8 @@ class RDPCredParser:
 	def go_live(pid):
 		if platform.system() != 'Windows':
 			raise Exception('Live parsing will only work on Windows')
-		from pypykatz.common.live_reader_ctypes import OpenProcess, PROCESS_ALL_ACCESS
-		from pypykatz.common.privileges import enable_debug_privilege
+		from pypykatz.commons.readers.local.common.live_reader_ctypes import OpenProcess, PROCESS_ALL_ACCESS
+		from pypykatz.commons.readers.local.common.privileges import enable_debug_privilege
 		from pypykatz.commons.readers.local.live_reader import LiveReader
 
 		enable_debug_privilege()
@@ -46,18 +46,9 @@ class RDPCredParser:
 		return mimi
 
 	def rdpcreds(self):
-		print(self.reader.memory_segments)
 		decryptor_template = RDPCredsTemplate.get_template(self.sysinfo)
-		print(decryptor_template.signature)
-		x = self.reader.find_all_global(decryptor_template.signature)
-		print(x)
-		for addr in x:
-			self.reader.move(addr)
-			cred = decryptor_template.cred_struct(self.reader)
-			print(str(cred.Domain))
-			print(str(cred.UserName))
-			print(str(cred.Password))
-			input()
+		decryptor = RDPCredentialDecryptor(self.reader, decryptor_template, self.sysinfo, None)
+		decryptor.start()
 
 
 	def start(self):
