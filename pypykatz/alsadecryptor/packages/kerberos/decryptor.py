@@ -70,10 +70,10 @@ class KerberosDecryptor(PackageDecryptor):
 		self.current_ticket_type = None
 		self.current_cred = None
 
-	def find_first_entry(self):
-		position = self.find_signature('kerberos.dll',self.decryptor_template.signature)
-		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
-		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
+	async def find_first_entry(self):
+		position = await self.find_signature('kerberos.dll',self.decryptor_template.signature)
+		ptr_entry_loc = await self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
+		ptr_entry = await self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc
 	
 	def handle_ticket(self, kerberos_ticket):
@@ -86,40 +86,40 @@ class KerberosDecryptor(PackageDecryptor):
 	
 	async def start(self):
 		try:
-			entry_ptr_value, entry_ptr_loc = self.find_first_entry()
+			entry_ptr_value, entry_ptr_loc = await self.find_first_entry()
 		except Exception as e:
 			self.log('Failed to find structs! Reason: %s' % e)
 			return
 		
 		if self.sysinfo.buildnumber < WindowsMinBuild.WIN_VISTA.value:
-			self.reader.move(entry_ptr_loc)
+			await self.reader.move(entry_ptr_loc)
 			entry_ptr = await PLIST_ENTRY.load(self.reader)
-			self.walk_list(entry_ptr, self.process_session_elist)
+			await self.walk_list(entry_ptr, self.process_session_elist)
 		else:
 			result_ptr_list = []
-			self.reader.move(entry_ptr_value)
+			await self.reader.move(entry_ptr_value)
 			start_node = await PRTL_AVL_TABLE.load(self.reader).read(self.reader)
-			self.walk_avl(start_node.BalancedRoot.RightChild, result_ptr_list)
+			await self.walk_avl(start_node.BalancedRoot.RightChild, result_ptr_list)
 			
 			for ptr in result_ptr_list:
 				self.log_ptr(ptr, self.decryptor_template.kerberos_session_struct.__name__)
-				self.reader.move(ptr)
-				kerberos_logon_session = self.decryptor_template.kerberos_session_struct(self.reader)
-				self.process_session(kerberos_logon_session)
+				await self.reader.move(ptr)
+				kerberos_logon_session = await self.decryptor_template.kerberos_session_struct.load(self.reader)
+				await self.process_session(kerberos_logon_session)
 
-	def process_session_elist(self, elist):
-		self.reader.move(elist.location)
-		self.reader.read_uint() #Flink do not remove this line!
-		self.reader.read_uint() #Blink do not remove this line!
-		kerberos_logon_session = self.decryptor_template.kerberos_session_struct(self.reader)
-		self.process_session(kerberos_logon_session)
+	async def process_session_elist(self, elist):
+		await self.reader.move(elist.location)
+		await self.reader.read_uint() #Flink do not remove this line!
+		await self.reader.read_uint() #Blink do not remove this line!
+		kerberos_logon_session = await self.decryptor_template.kerberos_session_struct.load(self.reader)
+		await self.process_session(kerberos_logon_session)
 
-	def process_session(self, kerberos_logon_session):
+	async def process_session(self, kerberos_logon_session):
 		self.current_cred = KerberosCredential()
 		self.current_cred.luid = kerberos_logon_session.LocallyUniqueIdentifier
 		
-		self.current_cred.username = kerberos_logon_session.credentials.UserName.read_string(self.reader)
-		self.current_cred.domainname = kerberos_logon_session.credentials.Domaine.read_string(self.reader)
+		self.current_cred.username = await kerberos_logon_session.credentials.UserName.read_string(self.reader)
+		self.current_cred.domainname = await kerberos_logon_session.credentials.Domaine.read_string(self.reader)
 		if self.current_cred.username.endswith('$') is True:
 			self.current_cred.password, raw_dec = self.decrypt_password(kerberos_logon_session.credentials.Password.read_maxdata(self.reader), bytes_expected=True)
 			if self.current_cred.password is not None:
@@ -128,17 +128,17 @@ class KerberosDecryptor(PackageDecryptor):
 			self.current_cred.password, raw_dec = self.decrypt_password(kerberos_logon_session.credentials.Password.read_maxdata(self.reader))
 		
 		if kerberos_logon_session.SmartcardInfos.value != 0:
-			csp_info = kerberos_logon_session.SmartcardInfos.read(self.reader, override_finaltype = self.decryptor_template.csp_info_struct)
-			pin_enc = csp_info.PinCode.read_maxdata(self.reader)
+			csp_info = await kerberos_logon_session.SmartcardInfos.read(self.reader, override_finaltype = self.decryptor_template.csp_info_struct)
+			pin_enc = await csp_info.PinCode.read_maxdata(self.reader)
 			self.current_cred.pin, raw_dec = self.decrypt_password(pin_enc)
 			if csp_info.CspDataLength != 0:
 				self.current_cred.cardinfo = csp_info.CspData.get_infos()
 
 		#### key list (still in session) this is not a linked list (thank god!)
 		if kerberos_logon_session.pKeyList.value != 0:
-			key_list = kerberos_logon_session.pKeyList.read(self.reader, override_finaltype = self.decryptor_template.keys_list_struct)
+			key_list = await kerberos_logon_session.pKeyList.read(self.reader, override_finaltype = self.decryptor_template.keys_list_struct)
 			#print(key_list.cbItem)
-			key_list.read(self.reader, self.decryptor_template.hash_password_struct)
+			await key_list.read(self.reader, self.decryptor_template.hash_password_struct)
 			for key in key_list.KeyEntries:
 				pass
 				### GOOD
@@ -204,19 +204,19 @@ class KerberosDecryptor(PackageDecryptor):
 				kerberos_logon_session.Tickets_1.Flink.value != kerberos_logon_session.Tickets_1.Flink.location and \
 					kerberos_logon_session.Tickets_1.Flink.value != kerberos_logon_session.Tickets_1.Flink.location - 4 :
 			self.current_ticket_type = KerberosTicketType.TGS
-			self.walk_list(kerberos_logon_session.Tickets_1.Flink, self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
+			await self.walk_list(kerberos_logon_session.Tickets_1.Flink, self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 		
 		if kerberos_logon_session.Tickets_2.Flink.value != 0 and \
 				kerberos_logon_session.Tickets_2.Flink.value != kerberos_logon_session.Tickets_2.Flink.location and \
 					kerberos_logon_session.Tickets_2.Flink.value != kerberos_logon_session.Tickets_2.Flink.location - 4 :
 			self.current_ticket_type = KerberosTicketType.CLIENT
-			self.walk_list(kerberos_logon_session.Tickets_2.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
+			await self.walk_list(kerberos_logon_session.Tickets_2.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 		
 		if kerberos_logon_session.Tickets_3.Flink.value != 0 and \
 				kerberos_logon_session.Tickets_3.Flink.value != kerberos_logon_session.Tickets_3.Flink.location and \
 					kerberos_logon_session.Tickets_3.Flink.value != kerberos_logon_session.Tickets_3.Flink.location - 4 :
 			self.current_ticket_type = KerberosTicketType.TGT
-			self.walk_list(kerberos_logon_session.Tickets_3.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
+			await self.walk_list(kerberos_logon_session.Tickets_3.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 		self.current_ticket_type = None
 		self.credentials.append(self.current_cred)
 	
