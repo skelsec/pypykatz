@@ -39,6 +39,8 @@ class RDPCMDHelper:
 		
 	def run_live(self, args):
 		credparser = RDPCredParser.go_live(args.pid)
+		for cred in credparser.credentials:
+			print(str(cred))
 			
 	def run(self, args):
 		credparser = RDPCredParser.parse_minidump_file(args.memoryfile)
