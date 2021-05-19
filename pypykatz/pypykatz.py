@@ -122,11 +122,11 @@ class pypykatz:
 				print('[-] Failed to parse lsass via handle %s[@%s] Reason: %s' % (pid, lsass_handle, e))
 			
 	@staticmethod
-	def go_live_phandle(lsass_process_handle, packages = ['all']):
+	def go_live_phandle(process_handle, packages = ['all']):
 		if platform.system() != 'Windows':
 			raise Exception('Live parsing will only work on Windows')
 		from pypykatz.commons.readers.local.live_reader import LiveReader
-		reader = LiveReader(lsass_process_handle=lsass_process_handle)
+		reader = LiveReader(process_handle=process_handle)
 		sysinfo = KatzSystemInfo.from_live_reader(reader)
 		mimi = pypykatz(reader.get_buffered_reader(), sysinfo)
 		mimi.start(packages)

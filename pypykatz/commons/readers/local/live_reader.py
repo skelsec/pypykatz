@@ -68,16 +68,16 @@ class Page:
 		p.EndAddress  = page_info.BaseAddress + page_info.RegionSize
 		return p
 		
-	def read_data(self, lsass_process_handle):
-		self.data = ReadProcessMemory(lsass_process_handle, self.BaseAddress, self.RegionSize)
+	def read_data(self, process_handle):
+		self.data = ReadProcessMemory(process_handle, self.BaseAddress, self.RegionSize)
 		
 	def inrange(self, addr):
 		return self.BaseAddress <= addr < self.EndAddress
 		
-	def search(self, pattern, lsass_process_handle):
+	def search(self, pattern, process_handle):
 		if len(pattern) > self.RegionSize:
 			return []
-		data = ReadProcessMemory(lsass_process_handle, self.BaseAddress, self.RegionSize)
+		data = ReadProcessMemory(process_handle, self.BaseAddress, self.RegionSize)
 		fl = []
 		offset = 0
 		while len(data) > len(pattern):
@@ -116,7 +116,7 @@ class BufferedLiveReader:
 		# not in cache, check if it's present in memory space. if yes then create a new buffered memeory object, and copy data
 		for page in self.reader.pages:
 			if page.inrange(requested_position):
-				page.read_data(self.reader.lsass_process_handle)
+				page.read_data(self.reader.process_handle)
 				newsegment = copy.deepcopy(page)
 				self.pages.append(newsegment)
 				self.current_segment = newsegment
@@ -265,12 +265,12 @@ class BufferedLiveReader:
 		
 		return pos_s[0]
 		
-	def find_all_global(self, pattern):
+	def find_all_global(self, pattern, allocationprotect = 0x04):
 		"""
 		Searches for the pattern in the whole process memory space and returns a list of addresses where the pattern begins.
 		This is exhaustive!
 		"""
-		return self.reader.search(pattern)
+		return self.reader.search(pattern, allocationprotect = allocationprotect)
 		
 	def get_ptr(self, pos):
 		self.move(pos)
@@ -293,10 +293,11 @@ class BufferedLiveReader:
 		
 		
 class LiveReader:
-	def __init__(self, lsass_process_handle = None):
+	def __init__(self, process_handle = None, process_name='lsass.exe', process_pid = None):
 		self.processor_architecture = None
-		self.lsass_process_name = 'lsass.exe'
-		self.lsass_process_handle = lsass_process_handle
+		self.process_name = process_name
+		self.process_handle = process_handle
+		self.process_pid = process_pid
 		self.current_position = None
 		self.BuildNumber = None
 		self.modules = []
@@ -335,43 +336,47 @@ class LiveReader:
 		buildnumber, t = winreg.QueryValueEx(key, 'CurrentBuildNumber')
 		self.BuildNumber = int(buildnumber)
 		
-		if self.lsass_process_handle is None:
-			logging.log(1, 'Searching for lsass.exe')
-			pid = get_lsass_pid()
-			logging.log(1, 'Lsass.exe found at PID %d' % pid)
-			logging.log(1, 'Checking Lsass.exe protection status')
-			#proc_protection_info = get_protected_process_infos(pid)
-			#protection_msg = "Protection Status: No protection"
-			#if proc_protection_info:
-			#	protection_msg = f"Protection Status: {proc_protection_info['type']}"
-			#	if 'signer' in proc_protection_info:
-			#		protection_msg += f" ({proc_protection_info['signer']})"
-			#	raise Exception('Failed to open lsass.exe Reason: %s' % protection_msg)
-			#logging.log(1, protection_msg)
-			logging.log(1, 'Opening lsass.exe')
-			self.lsass_process_handle = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
-			if self.lsass_process_handle is None:
+		if self.process_handle is None:
+			if self.process_pid is None:
+				if self.process_name is None:
+					raise Exception('Process name or PID or opened handle must be provided')
+				
+				logging.log(1, 'Searching for lsass.exe')
+				self.process_pid = pid_for_name(self.process_name)
+				logging.log(1, '%s found at PID %d' % (self.process_name, self.process_pid))
+				logging.log(1, 'Checking Lsass.exe protection status')
+				#proc_protection_info = get_protected_process_infos(pid)
+				#protection_msg = "Protection Status: No protection"
+				#if proc_protection_info:
+				#	protection_msg = f"Protection Status: {proc_protection_info['type']}"
+				#	if 'signer' in proc_protection_info:
+				#		protection_msg += f" ({proc_protection_info['signer']})"
+				#	raise Exception('Failed to open lsass.exe Reason: %s' % protection_msg)
+				#logging.log(1, protection_msg)
+			logging.log(1, 'Opening %s' % self.process_name)
+			self.process_handle = OpenProcess(PROCESS_ALL_ACCESS, False, self.process_pid)
+			if self.process_handle is None:
 				raise Exception('Failed to open lsass.exe Reason: %s' % ctypes.WinError())
 		else:
 			logging.debug('Using pre-defined handle')
 		logging.log(1, 'Enumerating modules')
-		module_handles = EnumProcessModules(self.lsass_process_handle)
+		module_handles = EnumProcessModules(self.process_handle)
 		for module_handle in module_handles:
 			
-			module_file_path = GetModuleFileNameExW(self.lsass_process_handle, module_handle)
+			module_file_path = GetModuleFileNameExW(self.process_handle, module_handle)
 			logging.log(1, module_file_path)
 			timestamp = 0
 			if ntpath.basename(module_file_path).lower() == 'msv1_0.dll':
 				timestamp = int(os.stat(module_file_path).st_ctime)
 				self.msv_dll_timestamp = timestamp
-			modinfo = GetModuleInformation(self.lsass_process_handle, module_handle)
+			modinfo = GetModuleInformation(self.process_handle, module_handle)
 			self.modules.append(Module.parse(module_file_path, modinfo, timestamp))
 			
 		logging.log(1, 'Found %d modules' % len(self.modules))
 			
 		current_address = sysinfo.lpMinimumApplicationAddress
 		while current_address < sysinfo.lpMaximumApplicationAddress:
-			page_info = VirtualQueryEx(self.lsass_process_handle, current_address)
+			page_info = VirtualQueryEx(self.process_handle, current_address)
 			self.pages.append(Page.parse(page_info))
 			
 			current_address += page_info.RegionSize
@@ -380,14 +385,9 @@ class LiveReader:
 		
 		
 		for page in self.pages:
-			#self.log(str(page))
-		
 			for mod in self.modules:
 				if mod.inrange(page.BaseAddress) == True:
 					mod.pages.append(page)
-		
-		#for mod in self.modules:
-		#	self.log('%s %d' % (mod.name, len(mod.pages)))
 		
 	def get_buffered_reader(self):
 		return BufferedLiveReader(self)			
@@ -404,11 +404,18 @@ class LiveReader:
 			raise Exception('Could not find module! %s' % module_name)
 		needles = []
 		for page in mod.pages:
-			needles += page.search(pattern, self.lsass_process_handle)
+			needles += page.search(pattern, self.process_handle)
 			if len(needles) > 0 and find_first is True:
 				return needles
 
 		return needles
+
+	def search(self, pattern, allocationprotect = 0x04):
+		t = []
+		for page in self.pages:
+			if page.AllocationProtect & allocationprotect:
+				t += page.search(pattern, self.process_handle)
+		return t
 		
 if __name__ == '__main__':
 	logging.basicConfig(level=1)
