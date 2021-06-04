@@ -49,7 +49,7 @@ class OffineRegistry:
 			await self.software.get_default_logon()
 		
 	def to_file(self, file_path, json_format = False):
-		with open(file_path, 'w', newline = '') as f:
+		with open(file_path, 'a', newline = '') as f:
 			if json_format == False:
 				f.write(str(self))
 			else:
