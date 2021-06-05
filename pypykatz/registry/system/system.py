@@ -61,8 +61,13 @@ class SYSTEM:
 		if self.currentcontrol is None:
 			self.get_currentcontrol()
 		
-		key = '%s\\Services\\%s\\ObjectName' % (self.currentcontrol, service_name)
-		return self.hive.get_value(key)[1].decode('utf-16-le')
+		for srvloc in ['Services', 'services']:
+			try:
+				key = '%s\\%s\\%s\\ObjectName' % (self.currentcontrol, srvloc, service_name)
+				return self.hive.get_value(key)[1].decode('utf-16-le')
+			except:
+				continue
+		return None
 
 	def to_dict(self):
 		t = {}
