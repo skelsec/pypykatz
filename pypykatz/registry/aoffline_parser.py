@@ -41,7 +41,7 @@ class OffineRegistry:
 			await self.sam.get_secrets()
 			
 		if self.security_hive:
-			self.security = SECURITY(self.security_hive, bootkey)
+			self.security = SECURITY(self.security_hive, bootkey, self.system)
 			await self.security.get_secrets()
 			
 		if self.software_hive:
