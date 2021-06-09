@@ -71,13 +71,14 @@ class RDPCredentialDecryptor:
 			
 	
 	def start(self):
-		x = self.reader.find_all_global(self.decryptor_template.signature)
-		if len(x) == 0:
-			logger.debug('No RDP credentials found!')
-			return
-		for addr in x:
-			addr += self.decryptor_template.offset
-			self.reader.move(addr)
-			#print(hexdump(self.reader.peek(0x100)))
-			cred = self.decryptor_template.cred_struct(self.reader)
-			self.add_entry(cred)
+		for signature in self.decryptor_template.signatures:
+			x = self.reader.find_all_global(signature)
+			if len(x) == 0:
+				logger.debug('No RDP credentials found!')
+				return
+			for addr in x:
+				addr += self.decryptor_template.offset
+				self.reader.move(addr)
+				#print(hexdump(self.reader.peek(0x100)))
+				cred = self.decryptor_template.cred_struct(self.reader)
+				self.add_entry(cred)

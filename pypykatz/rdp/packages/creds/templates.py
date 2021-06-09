@@ -15,12 +15,12 @@ class RDPCredsTemplate:
 		template = RDPCredsTemplate()
 
 		if sysinfo.buildnumber >= WindowsBuild.WIN_8.value:
-			template.signature = b'\x00\x00\x00\x00\xbb\x47' #b'\x00\x00\x00\x00\xbb\x47\x0b\x00'
+			template.signatures = [b'\x00\x00\x00\x00\xbb\x47', b'\x00\x00\x00\x00\xf3\x47', b'x00\x00\x00\x00\x3b\x01']
 			template.offset = 0
 			template.cred_struct = WTS_KIWI
 		
 		else:
-			template.signature = b'\xc8\x00\x00\x00\xc8\x00\x00\x00'
+			template.signatures = [b'\xc8\x00\x00\x00\xc8\x00\x00\x00']
 			template.offset = 16
 			template.cred_struct = WTS_KIWI_2008R2
 		
