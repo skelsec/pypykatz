@@ -206,12 +206,12 @@ async def lsassdump_single(targetid, connection, method = 'task', remote_base_pa
 			logging.debug('[LSASSDUMP][%s] Deleting remote dump file...' % targetid)
 			_, err = await smbfile.delete()
 			if err is not None:
-				logging.info('[LSASSDUMP][%s] Failed to delete LSASS file! Reason: %s' % (targetid, err))
+				print('[%s] Failed to delete LSASS file! Reason: %s' % (targetid, err))
 			else:
-				logging.info('[LSASSDUMP][%s] remote LSASS file deleted OK!' % targetid)
+				print('[%s] Remote LSASS file deleted OK!' % targetid)
 	
 		return targetid, mimi, None
 	except Exception as e:
-		#import traceback
-		#traceback.print_exc()
+		import traceback
+		traceback.print_exc()
 		return targetid, None, e

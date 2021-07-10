@@ -258,6 +258,8 @@ class SMBCMDHelper:
 			from pypykatz.smb.lsassutils import lsassdump
 			tmimis = await lsassdump(smb_url, chunksize=args.chunksize, packages=args.packages, method = args.method)
 			for tid, mimi, err in tmimis:
+				if err is not None:
+					print('ERROR: %s' % err)
 				self.process_results({'smbfile':mimi}, [], args)
 
 		elif args.livesmbcommand == 'secretsdump':
