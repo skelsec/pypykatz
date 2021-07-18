@@ -164,7 +164,14 @@ class Process:
 	def create_thread(self, start_addr):
 		return CreateRemoteThread(self.phandle, None, 0, start_addr, None, 0)
 
-	def get_remote_function_addr(self, dll_name, function_name):
+	def find_module_by_name(self, module_name):
+		for module in self.modules:
+			#print(module.name)
+			if module.name.lower().find(module_name.lower()) != -1:
+				#print('Found remote DLL!')
+				return module
+
+	def get_remote_function_addr(self, dll_name, function_name, force_load = False):
 		module_handle = LoadLibraryW(dll_name)
 		#print(module_handle)
 		function_addr_total = GetProcAddressW(module_handle, function_name)
@@ -176,11 +183,16 @@ class Process:
 
 		#print('function_addr_offset %s' % hex(function_addr_offset))
 		
-		for module in self.modules:
-			#print(module.name)
-			if module.name.lower().find(dll_name.lower()) != -1:
-				#print('Found remote DLL!')
-				return module.baseaddress - function_addr_offset
+		module = self.find_module_by_name(dll_name)
+		if module is None:
+			if force_load is True:
+				self.load_dll(dll_name)
+				self.list_modules()
+				module = self.find_module_by_name(dll_name)
+			if module is None:
+				return None
+
+		return module.baseaddress - function_addr_offset
 
 	@staticmethod
 	def int_to_asm(x, bitsize = 64):
@@ -223,6 +235,30 @@ class Process:
 		thread_exit = GetExitCodeThread(thread_handle)
 		print(thread_exit)
 
+	def load_dll(self, dll_path):
+		if dll_path[-1] != '\x00':
+			dll_path += '\x00'
+
+		loadlibrary_addr = self.get_remote_function_addr("Kernel32.dll", "LoadLibraryW")
+		exitthread_addr = self.get_remote_function_addr("Kernel32.dll", "ExitThread")
+
+
+		code_cave = self.page_alloc(2048)
+		self.write(dll_path.encode('utf-16-le'))
+
+		code  = b''
+		code += b'\x48\xb9' + Process.int_to_asm(code_cave) # MOVABS RCX,<ADDR>
+		code += b'\x48\xb8' + Process.int_to_asm(loadlibrary_addr) # MOVABS RAX,<ADDR>
+		code += b'\xff\xd0' # CALL RAX
+		code += b''
+		code += b'\x48\x89\xC1' # mov rcx, rax
+		code += b'\x48\xb8' + Process.int_to_asm(exitthread_addr) # MOVABS RAX,<ADDR>
+		code += b'\xff\xd0' # CALL RAX
+
+
+		self.page_free(code_cave)
+
+
 	def dpapi_memory_unprotect(self, protected_blob_addr, protected_blob_size, same_process = 0):
 		return self.dpapi_memory_unprotect_x64(protected_blob_addr, protected_blob_size, same_process)
 
@@ -234,8 +270,8 @@ class Process:
 
 		
 		#finding remote function addresses
-		protectmemory_addr = self.get_remote_function_addr("Crypt32.dll", "CryptProtectMemory")
-		unprotectmemory_addr = self.get_remote_function_addr("Crypt32.dll", "CryptUnprotectMemory")
+		protectmemory_addr = self.get_remote_function_addr("Crypt32.dll", "CryptProtectMemory", True)
+		unprotectmemory_addr = self.get_remote_function_addr("Crypt32.dll", "CryptUnprotectMemory", True)
 		exitthread_addr = self.get_remote_function_addr("Kernel32.dll", "ExitThread")
 		copymemory_addr = self.get_remote_function_addr("NtDll.dll", "RtlCopyMemory")
 		#print('unprotectmemory_addr %s' % hex(unprotectmemory_addr))
