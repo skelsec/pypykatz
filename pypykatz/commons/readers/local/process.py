@@ -234,18 +234,18 @@ class Process:
 
 		
 		#finding remote function addresses
-		protectmemory_addr = calc.get_remote_function_addr("Crypt32.dll", "CryptProtectMemory")
-		unprotectmemory_addr = calc.get_remote_function_addr("Crypt32.dll", "CryptUnprotectMemory")
-		exitthread_addr = calc.get_remote_function_addr("Kernel32.dll", "ExitThread")
-		copymemory_addr = calc.get_remote_function_addr("NtDll.dll", "RtlCopyMemory")
+		protectmemory_addr = self.get_remote_function_addr("Crypt32.dll", "CryptProtectMemory")
+		unprotectmemory_addr = self.get_remote_function_addr("Crypt32.dll", "CryptUnprotectMemory")
+		exitthread_addr = self.get_remote_function_addr("Kernel32.dll", "ExitThread")
+		copymemory_addr = self.get_remote_function_addr("NtDll.dll", "RtlCopyMemory")
 		#print('unprotectmemory_addr %s' % hex(unprotectmemory_addr))
 		#print('exitthread_addr %s' % hex(exitthread_addr))
 		#print('copymemory_addr %s' % hex(copymemory_addr))
 
 
 		# allocating memory in remote process
-		code_cave = calc.page_alloc(1024)
-		result_cave = calc.page_alloc(protected_blob_size*10)
+		code_cave = self.page_alloc(1024)
+		result_cave = self.page_alloc(protected_blob_size*10)
 		#print('code_cave : %s' % hex(code_cave))
 		#print('result_cave : %s' % hex(result_cave))
 
