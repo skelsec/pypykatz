@@ -31,6 +31,13 @@
 
 from .defines import *
 
+STILL_ACTIVE = 259
+
+WAIT_TIMEOUT        = 0x102
+WAIT_FAILED         = -1
+WAIT_OBJECT_0       = 0
+
+
 PAGE_NOACCESS		  = 0x01
 PAGE_READONLY		  = 0x02
 PAGE_READWRITE		 = 0x04
@@ -669,3 +676,42 @@ class PS_PROTECTION(Union):
     _fields_ = (('Level', UCHAR),
                 ('obj', UNION_PS_PROTECTION),
                 )
+
+
+# BOOL WINAPI GetExitCodeThread(
+#   __in   HANDLE hThread,
+#   __out  LPDWORD lpExitCode
+# );
+def GetExitCodeThread(hThread):
+    _GetExitCodeThread = windll.kernel32.GetExitCodeThread
+    _GetExitCodeThread.argtypes = [HANDLE, PDWORD]
+    _GetExitCodeThread.restype  = bool
+    _GetExitCodeThread.errcheck = RaiseIfZero
+
+    lpExitCode = DWORD(0)
+    _GetExitCodeThread(hThread, byref(lpExitCode))
+    return lpExitCode.value
+
+# DWORD WINAPI WaitForSingleObject(
+#   HANDLE hHandle,
+#   DWORD dwMilliseconds
+# );
+def WaitForSingleObject(hHandle, dwMilliseconds = INFINITE):
+    _WaitForSingleObject = windll.kernel32.WaitForSingleObject
+    _WaitForSingleObject.argtypes = [HANDLE, DWORD]
+    _WaitForSingleObject.restype  = DWORD
+
+    if not dwMilliseconds and dwMilliseconds != 0:
+        dwMilliseconds = INFINITE
+    if dwMilliseconds != INFINITE:
+        r = _WaitForSingleObject(hHandle, dwMilliseconds)
+        if r == WAIT_FAILED:
+            raise ctypes.WinError()
+    else:
+        while 1:
+            r = _WaitForSingleObject(hHandle, 100)
+            if r == WAIT_FAILED:
+                raise ctypes.WinError()
+            if r != WAIT_TIMEOUT:
+                break
+    return r

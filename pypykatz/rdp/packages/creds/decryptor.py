@@ -36,10 +36,10 @@ class RDPCredential:
 		return t
 
 class RDPCredentialDecryptor:
-	def __init__(self, reader, decryptor_template, sysinfo, lsa_decryptor = None):
+	def __init__(self, process, reader, decryptor_template, sysinfo):
+		self.process = process
 		self.reader = reader
 		self.sysinfo = sysinfo
-		self.lsa_decryptor = lsa_decryptor
 		self.decryptor_template = decryptor_template
 		self.credentials = []
 
@@ -48,11 +48,11 @@ class RDPCredentialDecryptor:
 			if rdpcred_entry.cbDomain <= 512 and rdpcred_entry.cbUsername <= 512 and rdpcred_entry.cbPassword <= 512:
 				domainame = rdpcred_entry.Domain[:rdpcred_entry.cbDomain].decode('utf-16-le')
 				username = rdpcred_entry.UserName[:rdpcred_entry.cbUsername].decode('utf-16-le')
-				password_raw = rdpcred_entry.Password[:rdpcred_entry.cbPassword]
+				#password_raw = rdpcred_entry.Password[:rdpcred_entry.cbPassword]
 
 				if self.sysinfo.buildnumber >= WindowsMinBuild.WIN_10.value:
-					# encryption needed!
-					password = password_raw
+					password_raw = self.process.dpapi_memory_unprotect(rdpcred_entry.Password_addr, rdpcred_entry.cbPassword, 0)
+					password = password_raw.decode('utf-16-le')
 				else:
 					password = password_raw.decode('utf-16-le')
 					password_raw = password_raw.split(b'\x00\x00')[0] + b'\x00'

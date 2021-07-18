@@ -38,6 +38,7 @@ class WTS_KIWI:
 		self.unk2 = DWORD(reader)
 		self.Domain = reader.read(512)
 		self.UserName = reader.read(512)
+		self.Password_addr = reader.tell()
 		self.Password = reader.read(512)
 
 class WTS_KIWI_2008R2:
@@ -50,4 +51,5 @@ class WTS_KIWI_2008R2:
 		self.unk2 = DWORD(reader)
 		self.Domain = reader.read(512)
 		self.UserName = reader.read(512)
+		self.Password_addr = reader.tell()
 		self.Password = reader.read(512)

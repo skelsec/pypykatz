@@ -6,6 +6,7 @@ import logging
 
 from pypykatz.commons.readers.local.common.kernel32 import *
 from pypykatz.commons.readers.local.common.psapi import *
+from pypykatz.commons.readers.local.common.version import *
 
 class WindowsMinBuild(enum.Enum):
 	WIN_XP = 2500
@@ -18,20 +19,24 @@ class WindowsMinBuild(enum.Enum):
 
 	
 #utter microsoft bullshit commencing..
-def getWindowsBuild():   
-	class OSVersionInfo(ctypes.Structure):
-		_fields_ = [
-			("dwOSVersionInfoSize" , ctypes.c_int),
-			("dwMajorVersion"      , ctypes.c_int),
-			("dwMinorVersion"      , ctypes.c_int),
-			("dwBuildNumber"       , ctypes.c_int),
-			("dwPlatformId"        , ctypes.c_int),
-			("szCSDVersion"        , ctypes.c_char*128)];
-	GetVersionEx = getattr( ctypes.windll.kernel32 , "GetVersionExA")
-	version  = OSVersionInfo()
-	version.dwOSVersionInfoSize = ctypes.sizeof(OSVersionInfo)
-	GetVersionEx( ctypes.byref(version) )    
+def getWindowsBuild():
+
+	version = GetVersionExA()
 	return version.dwBuildNumber
+
+	#class OSVersionInfo(ctypes.Structure):
+	#	_fields_ = [
+	#		("dwOSVersionInfoSize" , ctypes.c_int),
+	#		("dwMajorVersion"      , ctypes.c_int),
+	#		("dwMinorVersion"      , ctypes.c_int),
+	#		("dwBuildNumber"       , ctypes.c_int),
+	#		("dwPlatformId"        , ctypes.c_int),
+	#		("szCSDVersion"        , ctypes.c_char*128)];
+	#GetVersionEx = getattr( ctypes.windll.kernel32 , "GetVersionExA")
+	#version  = OSVersionInfo()
+	#version.dwOSVersionInfoSize = ctypes.sizeof(OSVersionInfo)
+	#GetVersionEx( ctypes.byref(version) )    
+	#return version.dwBuildNumber
 	
 DELETE = 0x00010000
 READ_CONTROL = 0x00020000

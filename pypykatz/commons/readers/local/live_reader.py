@@ -34,7 +34,8 @@ class Module:
 		
 	def inrange(self, addr):
 		return self.baseaddress <= addr < self.endaddress
-		
+	
+	@staticmethod
 	def parse(name, module_info, timestamp):
 		m = Module()
 		m.name = name
@@ -58,7 +59,8 @@ class Page:
 		self.EndAddress = None
 		
 		self.data = None
-		
+	
+	@staticmethod
 	def parse(page_info):
 		p = Page()
 		p.BaseAddress = page_info.BaseAddress
