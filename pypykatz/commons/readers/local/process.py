@@ -224,7 +224,7 @@ class Process:
 		print(thread_exit)
 
 	def dpapi_memory_unprotect(self, protected_blob_addr, protected_blob_size, same_process = 0):
-		self.dpapi_memory_unprotect_x64(protected_blob_addr, protected_blob_size, same_process)
+		return self.dpapi_memory_unprotect_x64(protected_blob_addr, protected_blob_size, same_process)
 
 	def dpapi_memory_unprotect_x64(self, protected_blob_addr, protected_blob_size, flags = 0):
 		# https://docs.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptunprotectmemory
@@ -238,17 +238,16 @@ class Process:
 		unprotectmemory_addr = calc.get_remote_function_addr("Crypt32.dll", "CryptUnprotectMemory")
 		exitthread_addr = calc.get_remote_function_addr("Kernel32.dll", "ExitThread")
 		copymemory_addr = calc.get_remote_function_addr("NtDll.dll", "RtlCopyMemory")
-		print('unprotectmemory_addr %s' % hex(unprotectmemory_addr))
-		print('exitthread_addr %s' % hex(exitthread_addr))
-		print('copymemory_addr %s' % hex(copymemory_addr))
+		#print('unprotectmemory_addr %s' % hex(unprotectmemory_addr))
+		#print('exitthread_addr %s' % hex(exitthread_addr))
+		#print('copymemory_addr %s' % hex(copymemory_addr))
 
 
 		# allocating memory in remote process
 		code_cave = calc.page_alloc(1024)
 		result_cave = calc.page_alloc(protected_blob_size*10)
-		print('code_cave : %s' % hex(code_cave))
-		print('result_cave : %s' % hex(result_cave))
-		input()
+		#print('code_cave : %s' % hex(code_cave))
+		#print('result_cave : %s' % hex(result_cave))
 
 
 		#building code
@@ -276,20 +275,19 @@ class Process:
 		code += b'\xff\xd0' # CALL RAX
 		
 	
-		print('code: %s' % code.hex())
+		#print('code: %s' % code.hex())
 		self.write(code_cave, code)
-		input()
 
 		thread_handle, thread_id = self.create_thread(code_cave)
 		WaitForSingleObject(thread_handle, 100)
 		thread_exit_code = GetExitCodeThread(thread_handle)
-		print(thread_exit_code)
+		#print(thread_exit_code)
 
 		result = self.read(result_cave, protected_blob_size)
-		print(result)
 
 		self.page_free(code_cave)
 		self.page_free(result_cave)
+		return result
 
 
 

@@ -51,6 +51,9 @@ class RDPCredentialDecryptor:
 				#password_raw = rdpcred_entry.Password[:rdpcred_entry.cbPassword]
 
 				if self.sysinfo.buildnumber >= WindowsMinBuild.WIN_10.value:
+					if self.process is None:
+						raise Exception ('Credentials found but they are encrypted!')
+
 					password_raw = self.process.dpapi_memory_unprotect(rdpcred_entry.Password_addr, rdpcred_entry.cbPassword, 0)
 					password = password_raw.decode('utf-16-le')
 				else:
