@@ -3252,7 +3252,7 @@ def EnumServicesStatusExA(hSCManager, InfoLevel = SC_ENUM_PROCESS_INFO, dwServic
 		if sizeof(ServicesBuffer) < (sizeof(ENUM_SERVICE_STATUS_PROCESSA) * ServicesReturned.value):
 			raise ctypes.WinError()
 		lpServicesArray = ctypes.cast(ctypes.cast(ctypes.pointer(ServicesBuffer), ctypes.c_void_p), LPENUM_SERVICE_STATUS_PROCESSA)
-		for index in xrange(0, ServicesReturned.value):
+		for index in range(0, ServicesReturned.value):
 			Services.append( ServiceStatusProcessEntry(lpServicesArray[index]) )
 		if success: break
 	if not success:

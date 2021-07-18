@@ -24,7 +24,8 @@ class RDPCMDHelper:
 		
 	def add_args(self, parser, live_parser):
 		live_group = live_parser.add_parser('rdp', help='a')
-		live_group.add_argument('--pid', type=int, help = 'PID')
+		live_group.add_argument('--pid', type=int, help = 'Search a specific process PID for RDP creds')
+		live_group.add_argument('--all', action='store_true', help = 'Looks for all processes which use the rdp DLL')
 
 		group = parser.add_parser('rdp', help='Parse RDP ceredentials from minidump file. Only WINVER <= Win2012')
 		group.add_argument('cmd', choices=['minidump'])
@@ -38,11 +39,13 @@ class RDPCMDHelper:
 			self.run_live(args)
 		
 	def run_live(self, args):
-		credparser = RDPCredParser.go_live(args.pid)
-		for cred in credparser.credentials:
-			print(str(cred))
-			
+		credparsers = RDPCredParser.go_live(pid = args.pid, all_rdp = args.all)
+		for credparser in credparsers:
+			for cred in credparser.credentials:
+				print(str(cred))
+				
 	def run(self, args):
-		credparser = RDPCredParser.parse_minidump_file(args.memoryfile)
-		for cred in credparser.credentials:
-			print(str(cred))
+		credparsers = RDPCredParser.parse_minidump_file(args.memoryfile)
+		for credparser in credparsers:
+			for cred in credparser.credentials:
+				print(str(cred))

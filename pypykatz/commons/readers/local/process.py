@@ -142,9 +142,6 @@ class Process:
 
 	def page_change_protect(self, addr, flags = PAGE_EXECUTE_READWRITE):
 		selected_page = self.page_find_for_addr(addr)
-		print(addr)
-		print( selected_page.BaseAddress)
-		print( hex(selected_page.RegionSize))
 		return VirtualProtectEx(self.phandle, selected_page.BaseAddress, selected_page.RegionSize, flags)
 
 	def page_alloc(self, size, addr = 0, allocation_type = MEM_COMMIT | MEM_RESERVE, allocation_protect = PAGE_EXECUTE_READWRITE):
@@ -165,6 +162,8 @@ class Process:
 		return CreateRemoteThread(self.phandle, None, 0, start_addr, None, 0)
 
 	def find_module_by_name(self, module_name):
+		if len(self.modules) == 0:
+			self.list_modules()
 		for module in self.modules:
 			#print(module.name)
 			if module.name.lower().find(module_name.lower()) != -1:
@@ -244,25 +243,30 @@ class Process:
 
 
 		code_cave = self.page_alloc(2048)
-		self.write(dll_path.encode('utf-16-le'))
+		dllname_page = self.page_alloc(2048)
+		self.write(dllname_page, dll_path.encode('utf-16-le'))
 
 		code  = b''
-		code += b'\x48\xb9' + Process.int_to_asm(code_cave) # MOVABS RCX,<ADDR>
+		code += b'\x48\xb9' + Process.int_to_asm(dllname_page) # MOVABS RCX,<ADDR>
 		code += b'\x48\xb8' + Process.int_to_asm(loadlibrary_addr) # MOVABS RAX,<ADDR>
 		code += b'\xff\xd0' # CALL RAX
 		code += b''
 		code += b'\x48\x89\xC1' # mov rcx, rax
 		code += b'\x48\xb8' + Process.int_to_asm(exitthread_addr) # MOVABS RAX,<ADDR>
 		code += b'\xff\xd0' # CALL RAX
-
+		
+		self.write(code_cave, code)
+		thread_handle, thread_id = self.create_thread(code_cave)
+		WaitForSingleObject(thread_handle, 100) #waiting for the shellcode to finish...
 
 		self.page_free(code_cave)
 
 
-	def dpapi_memory_unprotect(self, protected_blob_addr, protected_blob_size, same_process = 0):
-		return self.dpapi_memory_unprotect_x64(protected_blob_addr, protected_blob_size, same_process)
+	def dpapi_memory_unprotect(self, protected_blob_addr, protected_blob_size, flags = 0):
+		return self.dpapi_memory_unprotect_x64(protected_blob_addr, protected_blob_size, flags)
 
 	def dpapi_memory_unprotect_x64(self, protected_blob_addr, protected_blob_size, flags = 0):
+		print(protected_blob_size)
 		# https://docs.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptunprotectmemory
 		#CRYPTPROTECTMEMORY_SAME_PROCESS 0 
 		#CRYPTPROTECTMEMORY_CROSS_PROCESS 1
@@ -315,7 +319,7 @@ class Process:
 		self.write(code_cave, code)
 
 		thread_handle, thread_id = self.create_thread(code_cave)
-		WaitForSingleObject(thread_handle, 100)
+		WaitForSingleObject(thread_handle, 100) #waiting for the shellcode to finish...
 		thread_exit_code = GetExitCodeThread(thread_handle)
 		#print(thread_exit_code)
 
