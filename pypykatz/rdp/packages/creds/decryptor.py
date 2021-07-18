@@ -45,7 +45,7 @@ class RDPCredentialDecryptor:
 
 	def add_entry(self, rdpcred_entry):
 		try:
-			if rdpcred_entry.cbDomain <= 512 and rdpcred_entry.cbUsername <= 512 and rdpcred_entry.cbPassword <= 512:
+			if rdpcred_entry.cbDomain <= 512 and rdpcred_entry.cbUsername <= 512 and rdpcred_entry.cbPassword <= 512 and rdpcred_entry.cbPassword > 0:
 				domainame = rdpcred_entry.Domain[:rdpcred_entry.cbDomain].decode('utf-16-le')
 				username = rdpcred_entry.UserName[:rdpcred_entry.cbUsername].decode('utf-16-le')
 				#password_raw = rdpcred_entry.Password[:rdpcred_entry.cbPassword]

@@ -225,14 +225,14 @@ class Process:
 		call_thread_exit_fnc = b'\xff\xd0' # CALL RAX
 		
 		code = p3 + p2 + p1 + fnc + call_fnc + exit_code_set + thread_exit_fnc + call_thread_exit_fnc
-		print('code: %s' % code.hex())
+		#print('code: %s' % code.hex())
 		self.write(enclave, code)
-		input()
+		#input()
 
 		thread_handle, thread_id = self.create_thread(enclave)
-		print(thread_handle)
+		#print(thread_handle)
 		thread_exit = GetExitCodeThread(thread_handle)
-		print(thread_exit)
+		#print(thread_exit)
 
 	def load_dll(self, dll_path):
 		if dll_path[-1] != '\x00':
@@ -266,7 +266,6 @@ class Process:
 		return self.dpapi_memory_unprotect_x64(protected_blob_addr, protected_blob_size, flags)
 
 	def dpapi_memory_unprotect_x64(self, protected_blob_addr, protected_blob_size, flags = 0):
-		print(protected_blob_size)
 		# https://docs.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptunprotectmemory
 		#CRYPTPROTECTMEMORY_SAME_PROCESS 0 
 		#CRYPTPROTECTMEMORY_CROSS_PROCESS 1
