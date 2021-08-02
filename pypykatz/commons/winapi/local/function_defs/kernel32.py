@@ -619,3 +619,104 @@ class STARTUPINFOEXW(Structure):
         ('lpAttributeList', PPROC_THREAD_ATTRIBUTE_LIST),
     ]
 LPSTARTUPINFOEXW = POINTER(STARTUPINFOEXW)
+
+
+
+# BOOL WINAPI VirtualProtectEx(
+#   __in   HANDLE hProcess,
+#   __in   LPVOID lpAddress,
+#   __in   SIZE_T dwSize,
+#   __in   DWORD flNewProtect,
+#   __out  PDWORD lpflOldProtect
+# );
+def VirtualProtectEx(hProcess, lpAddress, dwSize, flNewProtect = PAGE_EXECUTE_READWRITE):
+    _VirtualProtectEx = windll.kernel32.VirtualProtectEx
+    _VirtualProtectEx.argtypes = [HANDLE, LPVOID, SIZE_T, DWORD, PDWORD]
+    _VirtualProtectEx.restype  = bool
+    _VirtualProtectEx.errcheck = RaiseIfZero
+
+    flOldProtect = DWORD(0)
+    _VirtualProtectEx(hProcess, lpAddress, dwSize, flNewProtect, byref(flOldProtect))
+    return flOldProtect.value
+
+# BOOL WINAPI VirtualFreeEx(
+#   __in  HANDLE hProcess,
+#   __in  LPVOID lpAddress,
+#   __in  SIZE_T dwSize,
+#   __in  DWORD dwFreeType
+# );
+def VirtualFreeEx(hProcess, lpAddress, dwSize = 0, dwFreeType = MEM_RELEASE):
+    _VirtualFreeEx = windll.kernel32.VirtualFreeEx
+    _VirtualFreeEx.argtypes = [HANDLE, LPVOID, SIZE_T, DWORD]
+    _VirtualFreeEx.restype  = bool
+    _VirtualFreeEx.errcheck = RaiseIfZero
+    _VirtualFreeEx(hProcess, lpAddress, dwSize, dwFreeType)
+
+# LPVOID WINAPI VirtualAllocEx(
+#   __in      HANDLE hProcess,
+#   __in_opt  LPVOID lpAddress,
+#   __in      SIZE_T dwSize,
+#   __in      DWORD flAllocationType,
+#   __in      DWORD flProtect
+# );
+def VirtualAllocEx(hProcess, lpAddress = 0, dwSize = 0x1000, flAllocationType = MEM_COMMIT | MEM_RESERVE, flProtect = PAGE_EXECUTE_READWRITE):
+    _VirtualAllocEx = windll.kernel32.VirtualAllocEx
+    _VirtualAllocEx.argtypes = [HANDLE, LPVOID, SIZE_T, DWORD, DWORD]
+    _VirtualAllocEx.restype  = LPVOID
+
+    lpAddress = _VirtualAllocEx(hProcess, lpAddress, dwSize, flAllocationType, flProtect)
+    if lpAddress == NULL:
+        raise ctypes.WinError()
+    return lpAddress
+
+
+# HANDLE WINAPI CreateRemoteThread(
+#   __in   HANDLE hProcess,
+#   __in   LPSECURITY_ATTRIBUTES lpThreadAttributes,
+#   __in   SIZE_T dwStackSize,
+#   __in   LPTHREAD_START_ROUTINE lpStartAddress,
+#   __in   LPVOID lpParameter,
+#   __in   DWORD dwCreationFlags,
+#   __out  LPDWORD lpThreadId
+# );
+def CreateRemoteThread(hProcess, lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags):
+    _CreateRemoteThread = windll.kernel32.CreateRemoteThread
+    _CreateRemoteThread.argtypes = [HANDLE, LPSECURITY_ATTRIBUTES, SIZE_T, LPVOID, LPVOID, DWORD, LPDWORD]
+    _CreateRemoteThread.restype  = HANDLE
+
+    if not lpThreadAttributes:
+        lpThreadAttributes = None
+    else:
+        lpThreadAttributes = byref(lpThreadAttributes)
+    dwThreadId = DWORD(0)
+    hThread = _CreateRemoteThread(hProcess, lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, byref(dwThreadId))
+    if not hThread:
+        raise ctypes.WinError()
+    return hThread, dwThreadId.value
+
+def GetProcAddressW(hModule, lpProcName):
+    _GetProcAddress = windll.kernel32.GetProcAddress
+    _GetProcAddress.argtypes = [HMODULE, LPVOID]
+    _GetProcAddress.restype  = LPVOID
+
+    if type(lpProcName) in (type(0), type(0)):
+        lpProcName = LPVOID(lpProcName)
+        if lpProcName.value & (~0xFFFF):
+            raise ValueError('Ordinal number too large: %d' % lpProcName.value)
+    elif type(lpProcName) == type(""):
+        lpProcName = ctypes.create_string_buffer(lpProcName.encode('ascii'))
+    elif type(lpProcName) == type(b""):
+        lpProcName = ctypes.c_char_p(lpProcName)
+    else:
+        raise TypeError(str(type(lpProcName)))
+    return _GetProcAddress(hModule, lpProcName)
+
+
+def LoadLibraryW(pszLibrary):
+    _LoadLibraryW = windll.kernel32.LoadLibraryW
+    _LoadLibraryW.argtypes = [LPWSTR]
+    _LoadLibraryW.restype  = HMODULE
+    hModule = _LoadLibraryW(pszLibrary)
+    if hModule == NULL:
+        raise ctypes.WinError()
+    return hModule

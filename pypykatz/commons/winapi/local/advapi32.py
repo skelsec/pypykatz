@@ -1,7 +1,10 @@
 
 import ctypes
 from pypykatz.commons.winapi.constants import *
-from pypykatz.commons.winapi.local.function_defs.advapi32 import RevertToSelf, LookupPrivilegeValueW, OpenProcessToken, GetTokenInformation_sid, LookupAccountSidW, ConvertSidToStringSidA, DuplicateTokenEx, CreateProcessWithTokenW, SetThreadToken, ConvertStringSidToSidA, LOGON_NETCREDENTIALS_ONLY
+from pypykatz.commons.winapi.local.function_defs.advapi32 import RevertToSelf, LookupPrivilegeValueW, OpenProcessToken, \
+	GetTokenInformation_sid, LookupAccountSidW, ConvertSidToStringSidA, DuplicateTokenEx, CreateProcessWithTokenW, \
+	SetThreadToken, ConvertStringSidToSidA, LOGON_NETCREDENTIALS_ONLY, OpenSCManagerW, SC_MANAGER_ALL_ACCESS, \
+	SERVICE_DRIVER, SERVICE_WIN32, SERVICE_STATE_ALL, EnumServicesStatusW, EnumServicesStatusExW, SC_ENUM_PROCESS_INFO
 from pypykatz.commons.winapi.local.function_defs.kernel32 import STARTUPINFOW
 
 
@@ -77,4 +80,15 @@ class ADVAPI32:
 	@staticmethod
 	def RevertToSelf():
 		return RevertToSelf()
-		
+
+	@staticmethod
+	def OpenSCManager(dwDesiredAccess = SC_MANAGER_ALL_ACCESS):
+		return OpenSCManagerW(dwDesiredAccess = dwDesiredAccess)
+	
+	@staticmethod
+	def EnumServicesStatus(hSCManager, dwServiceType = SERVICE_DRIVER | SERVICE_WIN32, dwServiceState = SERVICE_STATE_ALL):
+		return EnumServicesStatusW(hSCManager, dwServiceType = dwServiceType, dwServiceState = dwServiceState)
+	
+	@staticmethod
+	def EnumServicesStatusEx(hSCManager, InfoLevel = SC_ENUM_PROCESS_INFO, dwServiceType = SERVICE_DRIVER | SERVICE_WIN32, dwServiceState = SERVICE_STATE_ALL, pszGroupName = None):
+		return EnumServicesStatusExW(hSCManager, InfoLevel = InfoLevel, dwServiceType = dwServiceType, dwServiceState = dwServiceState, pszGroupName = pszGroupName)

@@ -10,6 +10,7 @@ import winreg
 from pypykatz.commons.winapi.local.localwindowsapi import LocalWindowsAPI
 from pypykatz.commons.winapi.constants import *
 from pypykatz.commons.readers.registry.live.reader import LiveRegistryHive
+from pypykatz.commons.winapi.local.function_defs.advapi32 import SC_MANAGER_ENUMERATE_SERVICE
 
 class User:
 	def __init__(self, name, domain, sid):
@@ -61,11 +62,61 @@ class LiveMachine:
 			name, domain, token_type = self.api.advapi32.LookupAccountSid(None, ptr_sid)
 			users[sid_str] = User(name, domain, sid_str)
 		return users
+	
+	#def list_services(self):
+	#	logger.debug('Listing services...')
+	#	hsrvmgr = self.api.advapi32.OpenSCManager(dwDesiredAccess = SC_MANAGER_ENUMERATE_SERVICE)
+	#	for serviceattr in self.api.advapi32.EnumServicesStatus(hsrvmgr):
+	#		print(serviceattr.lpServiceName)
+	#		print(serviceattr.lpDisplayName)
+	#		print(serviceattr.ServiceStatus.dwServiceType)
+	#		
+	#
+	#		status = ''
+	#		if serviceattr.ServiceStatus.dwCurrentState == SERVICE_CONTINUE_PENDING:
+	#			status = 'PENDING'
+	#		elif serviceattr.ServiceStatus.dwCurrentState == SERVICE_PAUSE_PENDING:
+	#			status = 'PENDINGPAUSE'
+	#		elif serviceattr.ServiceStatus.dwCurrentState == SERVICE_PAUSED:
+	#			status = 'PAUSED'
+	#		elif serviceattr.ServiceStatus.dwCurrentState == SERVICE_RUNNING:
+	#			status = 'RUNNING'
+	#		elif serviceattr.ServiceStatus.dwCurrentState == SERVICE_START_PENDING:
+	#			status = 'PENDINGSTART'
+	#		elif serviceattr.ServiceStatus.dwCurrentState == SERVICE_STOP_PENDING:
+	#			status = 'PENDINGSTOP'
+	#		elif serviceattr.ServiceStatus.dwCurrentState == SERVICE_STOPPED:
+	#			status = 'STOPPED'
+	#
+	#		print(status)
+
+	def list_services_pid(self):
+		logger.debug('Listing services with pid...')
+		hsrvmgr = self.api.advapi32.OpenSCManager(dwDesiredAccess = SC_MANAGER_ENUMERATE_SERVICE)
+		for serviceattr in self.api.advapi32.EnumServicesStatusEx(hsrvmgr):
+			if serviceattr.ServiceStatusProcess.dwProcessId == 0:
+				continue
+			yield serviceattr.ServiceStatusProcess.dwProcessId
+	
+	def list_services(self):
+		logger.debug('Listing services with pid...')
+		hsrvmgr = self.api.advapi32.OpenSCManager(dwDesiredAccess = SC_MANAGER_ENUMERATE_SERVICE)
+		for serviceattr in self.api.advapi32.EnumServicesStatusEx(hsrvmgr):
+			if serviceattr.ServiceStatusProcess.dwProcessId == 0:
+				continue
+			yield serviceattr.lpServiceName, serviceattr.lpDisplayName, serviceattr.ServiceStatusProcess.dwProcessId
+	
+	def list_all_pids(self):
+		for pid in self.api.psapi.EnumProcesses():
+			if pid == 0:
+				continue
+			yield pid
 			
 if __name__ == '__main__':
 	u = LiveMachine()
-	t = u.list_users()
-	for sid in t:
-		print(str(t[sid]))
-	t = u.get_current_user()
-	print(str(t))
+	t = u.list_services()
+	
+	#for srv in t:
+	#	print(str(t[sid]))
+	#t = u.get_current_user()
+	#print(str(t))

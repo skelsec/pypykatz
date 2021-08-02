@@ -56,7 +56,17 @@ class SYSTEM:
 	def get_secrets(self):
 		self.get_currentcontrol()
 		self.get_bootkey()
-	
+
+	def get_service_user(self, service_name):
+		if self.currentcontrol is None:
+			self.get_currentcontrol()
+		
+		try:
+			key = '%s\\Services\\%s\\ObjectName' % (self.currentcontrol, service_name)
+			return self.hive.get_value(key)[1].decode('utf-16-le')
+		except:
+			return None
+
 	def to_dict(self):
 		t = {}
 		t['CurrentControlSet'] = self.currentcontrol

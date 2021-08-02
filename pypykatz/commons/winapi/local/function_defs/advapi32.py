@@ -2822,8 +2822,8 @@ def OpenSCManagerW(lpMachineName = None, lpDatabaseName = None, dwDesiredAccess 
 	_OpenSCManagerW.restype  = SC_HANDLE
 	_OpenSCManagerW.errcheck = RaiseIfZero
 
-	hSCObject = _OpenSCManagerA(lpMachineName, lpDatabaseName, dwDesiredAccess)
-	return ServiceControlManagerHANDLE(hSCObject)
+	hSCObject = _OpenSCManagerW(lpMachineName, lpDatabaseName, dwDesiredAccess)
+	return hSCObject
 
 OpenSCManager = GuessStringType(OpenSCManagerA, OpenSCManagerW)
 
@@ -3200,13 +3200,13 @@ def EnumServicesStatusW(hSCManager, dwServiceType = SERVICE_DRIVER | SERVICE_WIN
 	while GetLastError() == ERROR_MORE_DATA:
 		if cbBytesNeeded.value < sizeof(ENUM_SERVICE_STATUSW):
 			break
-		ServicesBuffer = ctypes.create_string_buffer("", cbBytesNeeded.value)
+		ServicesBuffer = ctypes.create_string_buffer(b"", cbBytesNeeded.value)
 		success = _EnumServicesStatusW(hSCManager, dwServiceType, dwServiceState, byref(ServicesBuffer), sizeof(ServicesBuffer), byref(cbBytesNeeded), byref(ServicesReturned), byref(ResumeHANDLE))
 		if sizeof(ServicesBuffer) < (sizeof(ENUM_SERVICE_STATUSW) * ServicesReturned.value):
 			raise ctypes.WinError()
 		lpServicesArray = ctypes.cast(ctypes.cast(ctypes.pointer(ServicesBuffer), ctypes.c_void_p), LPENUM_SERVICE_STATUSW)
 		for index in range(0, ServicesReturned.value):
-			Services.append( ServiceStatusEntry(lpServicesArray[index]) )
+			Services.append( lpServicesArray[index])
 		if success: break
 	if not success:
 		raise ctypes.WinError()
@@ -3252,7 +3252,7 @@ def EnumServicesStatusExA(hSCManager, InfoLevel = SC_ENUM_PROCESS_INFO, dwServic
 		if sizeof(ServicesBuffer) < (sizeof(ENUM_SERVICE_STATUS_PROCESSA) * ServicesReturned.value):
 			raise ctypes.WinError()
 		lpServicesArray = ctypes.cast(ctypes.cast(ctypes.pointer(ServicesBuffer), ctypes.c_void_p), LPENUM_SERVICE_STATUS_PROCESSA)
-		for index in xrange(0, ServicesReturned.value):
+		for index in range(0, ServicesReturned.value):
 			Services.append( ServiceStatusProcessEntry(lpServicesArray[index]) )
 		if success: break
 	if not success:
@@ -3279,13 +3279,13 @@ def EnumServicesStatusExW(hSCManager, InfoLevel = SC_ENUM_PROCESS_INFO, dwServic
 	while GetLastError() == ERROR_MORE_DATA:
 		if cbBytesNeeded.value < sizeof(ENUM_SERVICE_STATUS_PROCESSW):
 			break
-		ServicesBuffer = ctypes.create_string_buffer("", cbBytesNeeded.value)
+		ServicesBuffer = ctypes.create_string_buffer(b"", cbBytesNeeded.value)
 		success = _EnumServicesStatusExW(hSCManager, InfoLevel, dwServiceType, dwServiceState, byref(ServicesBuffer), sizeof(ServicesBuffer), byref(cbBytesNeeded), byref(ServicesReturned), byref(ResumeHANDLE), pszGroupName)
 		if sizeof(ServicesBuffer) < (sizeof(ENUM_SERVICE_STATUS_PROCESSW) * ServicesReturned.value):
 			raise ctypes.WinError()
 		lpServicesArray = ctypes.cast(ctypes.cast(ctypes.pointer(ServicesBuffer), ctypes.c_void_p), LPENUM_SERVICE_STATUS_PROCESSW)
-		for index in xrange(0, ServicesReturned.value):
-			Services.append( ServiceStatusProcessEntry(lpServicesArray[index]) )
+		for index in range(0, ServicesReturned.value):
+			Services.append( lpServicesArray[index])
 		if success: break
 	if not success:
 		raise ctypes.WinError()
@@ -3326,6 +3326,27 @@ def RevertToSelf():
 	_RevertToSelf.errcheck = RaiseIfZero
 
 	_RevertToSelf()
+
+def CredBackupCredentials(token, path, password = None, flags = 0):
+	_CredBackupCredentials = windll.advapi32.CredBackupCredentials
+	_CredBackupCredentials.argtypes = [HANDLE, LPWSTR, PVOID, DWORD, DWORD]
+	_CredBackupCredentials.restype  = bool
+
+	ppath = ctypes.create_unicode_buffer(path)
+	
+	ppassword     = None
+	ppasswordlen  = DWORD(0)
+	if password is not None:
+		ppassword     = ctypes.create_string_buffer(password.encode('utf-16-le'))
+		ppasswordlen  = DWORD(len(password.encode('utf-16-le')))
+
+	success = _CredBackupCredentials(token, ppath, ppassword, ppasswordlen, flags)
+
+	if not success:
+		raise ctypes.WinError()
+
+	return success
+
 
 #==============================================================================
 # This calculates the list of exported symbols.

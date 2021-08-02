@@ -13,7 +13,7 @@ from pypykatz.crypto.des import *
 
 #####
 from pypykatz.registry.security.structures import *
-from pypykatz.registry.security.common import *
+from pypykatz.registry.security.acommon import *
 from pypykatz.registry import logger
 from pypykatz.commons.common import hexdump
 
@@ -25,8 +25,9 @@ from pypykatz.commons.common import hexdump
 # as this functionality can be used by any service that wants to stroe some secret information
 
 class SECURITY:
-	def __init__(self, security_hive, bootkey):
+	def __init__(self, security_hive, bootkey, system_hive = None):
 		self.hive = security_hive
+		self.system_hive = system_hive
 		self.bootkey = bootkey
 		
 		self.dcc_iteration_count = 10240
@@ -248,7 +249,7 @@ class SECURITY:
 					else:
 						dec_blob = self.decrypt_secret(self.lsa_key, v[1])
 						
-					secret = LSASecret.process(key_name, dec_blob, vl == 'OldVal')
+					secret = await LSASecret.process(key_name, dec_blob, vl == 'OldVal', self.system_hive)
 					if secret is not None:
 						self.cached_secrets.append(secret)
 					

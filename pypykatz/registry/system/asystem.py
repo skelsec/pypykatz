@@ -58,6 +58,17 @@ class SYSTEM:
 		await self.get_currentcontrol()
 		await self.get_bootkey()
 	
+	async def get_service_user(self, service_name):
+		if self.currentcontrol is None:
+			await self.get_currentcontrol()
+		
+		try:
+			key = '%s\\Services\\%s\\ObjectName' % (self.currentcontrol, service_name)
+			val = await self.hive.get_value(key)
+			return val[1].decode('utf-16-le')
+		except:
+			return None
+		
 	def to_dict(self):
 		t = {}
 		t['CurrentControlSet'] = self.currentcontrol

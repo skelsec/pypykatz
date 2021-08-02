@@ -22,7 +22,7 @@ class LSASecret:
 		self.history = history
 	
 	@staticmethod
-	def process(key_name, raw_secret, history = False, system_hive = None):
+	async def process(key_name, raw_secret, history = False, system_hive = None):
 		kn = key_name.upper()
 		if len(raw_secret) == 0:
 			return
@@ -31,7 +31,7 @@ class LSASecret:
 		
 		if kn.startswith('_SC_'):
 			lss = LSASecretService(kn, raw_secret, history, system_hive)
-			lss.process_secret()
+			await lss.process_secret()
 			
 		elif kn.startswith('DEFAULTPASSWORD'):
 			lss = LSASecretDefaultPassword(kn, raw_secret, history)
@@ -73,7 +73,7 @@ class LSASecretService(LSASecret):
 		self.username = None
 		self.secret = None
 		
-	def process_secret(self):
+	async def process_secret(self):
 		try:
 			self.secret = self.raw_secret.decode('utf-16-le')
 		except:
@@ -84,8 +84,7 @@ class LSASecretService(LSASecret):
 			self.service = self.key_name
 			self.username = 'UNKNOWN'
 			if self.system_hive is not None:
-				print(self.key_name[4:])
-				self.username = self.system_hive.get_service_user(self.key_name[4:])
+				self.username = await self.system_hive.get_service_user(self.key_name[4:])
 
 	def __str__(self):
 		return '=== LSA Service User Secret ===\r\nHistory: %s\r\nService name: %s \r\nUsername: %s' % (self.history, self.service, self.username) + '\r\n' + hexdump(self.secret)
@@ -100,6 +99,7 @@ class LSASecretService(LSASecret):
 		t['service'] = self.service
 		return t
 		
+
 class LSASecretDefaultPassword(LSASecret):
 	def __init__(self, key_name, raw_secret, history):
 		LSASecret.__init__(self, key_name, raw_secret, history)
