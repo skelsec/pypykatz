@@ -132,7 +132,7 @@ class SMBCMDHelper:
 		printnightmare_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 		
 		parprintnightmare_group = smb_subparsers.add_parser('parprintnightmare', help='par printnightmare')
-		printnightmare_group.add_argument('url', help="SMB connection string. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/'")
+		parprintnightmare_group.add_argument('url', help="SMB connection string. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/'")
 		parprintnightmare_group.add_argument('dllpath', help='Path to the DLL to be loaded by the remote host. Either UNC (\\\\<ip>\\path\\to\\dll.dll) or Full file path on the remote computer (C:\\path\\to\\dll.dll). Latter is useful if you have write permissions on the remote machine')
 		parprintnightmare_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
 		parprintnightmare_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
