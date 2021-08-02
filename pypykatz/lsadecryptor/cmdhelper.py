@@ -89,14 +89,14 @@ class LSACMDHelper:
 			print(json.dumps(results, cls = UniversalEncoder, indent=4, sort_keys=True))
 		
 		elif args.grep:
-			if args.directory:
+			if hasattr(args, 'directory') and args.directory is not None:
 				print(':'.join(['filename'] + LogonSession.grep_header))
 			else:
 				print(':'.join(LogonSession.grep_header))
 			for result in results:
 				for luid in results[result].logon_sessions:
 					for row in results[result].logon_sessions[luid].to_grep_rows():
-						if args.directory:
+						if hasattr(args, 'directory') and args.directory is not None:
 							row = [result] + row
 						print(':'.join(row))
 				for cred in results[result].orphaned_creds:
@@ -104,13 +104,13 @@ class LSACMDHelper:
 					if t['credtype'] != 'dpapi':
 						if t['password'] is not None:
 							x =  [str(t['credtype']), str(t['domainname']), str(t['username']), '', '', '', '', '', str(t['password'])]
-							if args.directory:
+							if hasattr(args, 'directory') and args.directory is not None:
 								x = [result] + x
 							print(':'.join(x))
 					else:
 						t = cred.to_dict()
 						x = [str(t['credtype']), '', '', '', '', '', str(t['masterkey']), str(t['sha1_masterkey']), str(t['key_guid']), '']
-						if args.directory:
+						if hasattr(args, 'directory') and args.directory is not None:
 							x = [result] + x
 						print(':'.join(x))
 				
@@ -118,7 +118,7 @@ class LSACMDHelper:
 					err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
 					err_str = base64.b64encode(err_str.encode()).decode()
 					x =  [pkg+'_exception_please_report', '', '', '', '', '', '', '', '', err_str]
-					if args.directory:
+					if hasattr(args, 'directory') and args.directory is not None:
 						x = [result] + x
 					print(':'.join(x) + '\r\n')
 		else:
