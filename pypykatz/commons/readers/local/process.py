@@ -1,9 +1,39 @@
 from .common.version import *
 from .common.live_reader_ctypes import *
 from pypykatz.commons.winapi.local.function_defs.kernel32 import LoadLibraryW, GetProcAddressW, VirtualProtectEx, VirtualAllocEx, VirtualFreeEx, CreateRemoteThread
+from pypykatz.commons.winapi.local.function_defs.advapi32 import OpenProcessToken, DuplicateTokenEx
 from minidump.streams.SystemInfoStream import PROCESSOR_ARCHITECTURE
 import ntpath
 import os
+
+PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+
+# Token access rights
+TOKEN_ASSIGN_PRIMARY	= 0x0001
+TOKEN_DUPLICATE		 = 0x0002
+TOKEN_IMPERSONATE	   = 0x0004
+TOKEN_QUERY			 = 0x0008
+TOKEN_QUERY_SOURCE	  = 0x0010
+TOKEN_ADJUST_PRIVILEGES = 0x0020
+TOKEN_ADJUST_GROUPS	 = 0x0040
+TOKEN_ADJUST_DEFAULT	= 0x0080
+TOKEN_ADJUST_SESSIONID  = 0x0100
+TOKEN_READ = (STANDARD_RIGHTS_READ | TOKEN_QUERY)
+TOKEN_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED | TOKEN_ASSIGN_PRIMARY |
+		TOKEN_DUPLICATE | TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_QUERY_SOURCE |
+		TOKEN_ADJUST_PRIVILEGES | TOKEN_ADJUST_GROUPS | TOKEN_ADJUST_DEFAULT |
+		TOKEN_ADJUST_SESSIONID)
+
+SecurityAnonymous	   = 0
+SecurityIdentification  = 1
+SecurityImpersonation   = 2
+SecurityDelegation	  = 3
+
+TokenPrimary		= 1
+TokenImpersonation  = 2
+
+#dont ask me...
+#TOKEN_MANIP_ACCESS = (TOKEN_QUERY | TOKEN_READ | TOKEN_IMPERSONATE | TOKEN_QUERY_SOURCE | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY | (131072 | 4))
 
 class Module:
 	def __init__(self):
@@ -327,9 +357,21 @@ class Process:
 		self.page_free(code_cave)
 		self.page_free(result_cave)
 		return result
-
-
-
+	
+	def get_process_token(self, dwDesiredAccess = TOKEN_ALL_ACCESS):
+		return OpenProcessToken(self.phandle, dwDesiredAccess)
+	
+	def duplicate_token(self, dwDesiredAccess = TOKEN_ALL_ACCESS, ImpersonationLevel = SecurityImpersonation, TokenType = 2):
+		#proc_handle = self.api.kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
+		token_handle = OpenProcessToken(self.phandle, TOKEN_DUPLICATE)
+		cloned_token = DuplicateTokenEx(
+			token_handle, 
+			dwDesiredAccess = dwDesiredAccess, 
+			ImpersonationLevel = ImpersonationLevel, 
+			TokenType = TokenType
+		)
+		CloseHandle(token_handle)
+		return cloned_token
 if __name__ == '__main__':
 	calc = Process(pid=16236)
 	calc.list_pages()

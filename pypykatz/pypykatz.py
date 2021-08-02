@@ -383,13 +383,7 @@ class pypykatz:
 				self.get_ssp()
 			except Exception as e:
 				self.errors.append(('ssp', e))
-
-		if 'livessp' in packages or 'all' in packages:
-			try:
-				self.get_livessp()
-			except Exception as e:
-				self.errors.append(('livessp', e))
-
+		
 		if 'dpapi' in packages or 'all' in packages:
 			try:
 				self.get_dpapi()
@@ -401,4 +395,12 @@ class pypykatz:
 				self.get_cloudap()
 			except Exception as e:
 				self.errors.append(('cloudap', e))
+
+		if 'livessp' in packages or 'all' in packages:
+			try:
+				self.get_livessp()
+			except Exception as e:
+				self.errors.append(('livessp', e))
+
+		
 

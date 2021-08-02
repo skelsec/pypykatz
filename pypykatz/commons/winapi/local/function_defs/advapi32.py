@@ -3327,6 +3327,27 @@ def RevertToSelf():
 
 	_RevertToSelf()
 
+def CredBackupCredentials(token, path, password = None, flags = 0):
+	_CredBackupCredentials = windll.advapi32.CredBackupCredentials
+	_CredBackupCredentials.argtypes = [HANDLE, LPWSTR, PVOID, DWORD, DWORD]
+	_CredBackupCredentials.restype  = bool
+
+	ppath = ctypes.create_unicode_buffer(path)
+	
+	ppassword     = None
+	ppasswordlen  = DWORD(0)
+	if password is not None:
+		ppassword     = ctypes.create_string_buffer(password.encode('utf-16-le'))
+		ppasswordlen  = DWORD(len(password.encode('utf-16-le')))
+
+	success = _CredBackupCredentials(token, ppath, ppassword, ppasswordlen, flags)
+
+	if not success:
+		raise ctypes.WinError()
+
+	return success
+
+
 #==============================================================================
 # This calculates the list of exported symbols.
 _all = set(vars().keys()).difference(_all)

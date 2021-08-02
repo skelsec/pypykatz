@@ -90,8 +90,16 @@ class CREDENTIAL_ATTRIBUTE:
 			else:
 				t += '%s: %s \r\n' % (k, str(self.__dict__[k]))
 		return t
-		
-		
+
+class CREDBLOBTYPE(enum.Enum):
+	UNKNOWN = 0
+	GENERIC = 1
+	DOMAIN_PASSWORD = 2
+	DOMAIN_CERTIFICATE = 3
+	DOMAIN_VISIBLE_PASSWORD = 4
+	GENERIC_CERTIFICATE = 5
+	DOMAIN_EXTENDED = 6
+
 class CREDENTIAL_BLOB:
 	"""
 	"""
@@ -120,6 +128,7 @@ class CREDENTIAL_BLOB:
 		self.unknown4 = None
 		
 		self.attributes = []
+		self.type_pretty = None
 		
 		
 		
@@ -134,6 +143,10 @@ class CREDENTIAL_BLOB:
 		sk.size = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.unk0 = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.type = int.from_bytes(buff.read(4), 'little', signed = False)
+		try:
+			sk.type_pretty = CREDBLOBTYPE(sk.type)
+		except:
+			sk.type_pretty = CREDBLOBTYPE.UNKNOWN
 		sk.flags2 = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.last_written = int.from_bytes(buff.read(8), 'little', signed = False)
 		sk.unk1 = int.from_bytes(buff.read(4), 'little', signed = False)
@@ -181,6 +194,7 @@ class CREDENTIAL_BLOB:
 		
 	def to_text(self):	
 		t = ''
+		t += 'type : %s (%s)\r\n' % (self.type_pretty.name, self.type)
 		t += 'last_written : %s\r\n' %  self.last_written
 		if len(self.target) > 0:
 			t += 'target : %s\r\n' %  str(self.target)

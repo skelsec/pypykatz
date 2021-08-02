@@ -45,6 +45,11 @@ class DPAPICMDHelper:
 		live_wifi_parser = live_dpapi_subparsers.add_parser('wifi', help = '[ADMIN ONLY] Decrypt stored WIFI passwords')
 		live_chrome_parser = live_dpapi_subparsers.add_parser('chrome', help = '[ADMIN ONLY] !TAKES SUPER-LONG! Decrypt all chrome passwords for all users (admin) or for the current user.')
 
+		live_tcap_parser = live_dpapi_subparsers.add_parser('tcap', help = '[ADMIN ONLY] Obtains users stored DPAPI creds via SeTrustedCredmanAccessPrivilege')
+		live_tcap_parser.add_argument('targetpid', type=int, help= 'PID of the process of the target user.')
+		live_tcap_parser.add_argument('--source', default = 'winlogon.exe', help= 'A process that has SeTrustedCredmanAccessPrivilege')
+		live_tcap_parser.add_argument('--tempfile', help= 'PID of the process of the target user')
+		live_tcap_parser.add_argument('-o', '--outfile', help= 'Output file name')
 
 		live_parser.add_parser('dpapi', help='DPAPI (live) related commands. This will use winAPI to decrypt secrets using the current user context.', parents=[live_subcommand_parser])
 		
@@ -237,6 +242,23 @@ class DPAPICMDHelper:
 	def run_live(self, args):
 		if platform.system().lower() != 'windows':
 			raise Exception('Live commands only work on Windows!')
+
+		if args.livedpapicommand == 'tcap':
+			from pypykatz.dpapi.extras import dpapi_trustedcredman
+
+			rawdata, creds, err = dpapi_trustedcredman(args.targetpid, args.source, args.tempfile)
+			if err is not None:
+				print(err)
+				return
+
+			if args.outfile is not None:
+				with open(args.outfile, 'w') as f:
+					for cred in creds:
+						f.write(cred.to_text() + '\r\n')
+			else:
+				for cred in creds:
+					print(cred.to_text())			
+			return
 
 		from pypykatz.dpapi.dpapi import DPAPI	
 		dpapi = DPAPI(use_winapi=True)
