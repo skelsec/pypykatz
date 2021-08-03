@@ -48,7 +48,7 @@ class RDPCredentialDecryptor:
 			if rdpcred_entry.cbDomain <= 512 and rdpcred_entry.cbUsername <= 512 and rdpcred_entry.cbPassword <= 512 and rdpcred_entry.cbPassword > 0:
 				domainame = rdpcred_entry.Domain[:rdpcred_entry.cbDomain].decode('utf-16-le')
 				username = rdpcred_entry.UserName[:rdpcred_entry.cbUsername].decode('utf-16-le')
-				#password_raw = rdpcred_entry.Password[:rdpcred_entry.cbPassword]
+				password_raw = rdpcred_entry.Password[:rdpcred_entry.cbPassword]
 
 				if self.sysinfo.buildnumber >= WindowsMinBuild.WIN_10.value:
 					if self.process is None:
@@ -83,5 +83,9 @@ class RDPCredentialDecryptor:
 				addr += self.decryptor_template.offset
 				self.reader.move(addr)
 				#print(hexdump(self.reader.peek(0x100)))
-				cred = self.decryptor_template.cred_struct(self.reader)
+				try:
+					cred = self.decryptor_template.cred_struct(self.reader)
+				except Exception as e:
+					logger.debug('Reading error! (this can be normal here) %s' % str(e))
+					continue
 				self.add_entry(cred)

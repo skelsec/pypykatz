@@ -5,6 +5,7 @@ from pypykatz.commons.winapi.local.function_defs.advapi32 import OpenProcessToke
 from minidump.streams.SystemInfoStream import PROCESSOR_ARCHITECTURE
 import ntpath
 import os
+import math
 
 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 
@@ -293,6 +294,7 @@ class Process:
 
 
 	def dpapi_memory_unprotect(self, protected_blob_addr, protected_blob_size, flags = 0):
+		protected_blob_size = 16 * math.ceil(protected_blob_size/16)
 		return self.dpapi_memory_unprotect_x64(protected_blob_addr, protected_blob_size, flags)
 
 	def dpapi_memory_unprotect_x64(self, protected_blob_addr, protected_blob_size, flags = 0):
