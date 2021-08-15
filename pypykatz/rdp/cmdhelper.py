@@ -23,13 +23,33 @@ class RDPCMDHelper:
 		self.keywords = ['rdp']
 		
 	def add_args(self, parser, live_parser):
+		# live
 		live_group = live_parser.add_parser('rdp', help='a')
-		live_group.add_argument('--pid', type=int, help = 'Search a specific process PID for RDP creds')
-		live_group.add_argument('--all', action='store_true', help = 'Looks for all processes which use the rdp DLL')
+		live_rdp_subparsers = live_group.add_subparsers()
+		live_rdp_subparsers.required = True
+		live_rdp_subparsers.dest = 'live_rdp_module'
 
-		group = parser.add_parser('rdp', help='Parse RDP ceredentials from minidump file. Only WINVER <= Win2012')
-		group.add_argument('cmd', choices=['minidump'])
-		group.add_argument('memoryfile', help='path to the dump file')
+		live_logonpasswords_group = live_rdp_subparsers.add_parser('logonpasswords', help='Parse RDP credentials from the SERVER side')
+		live_logonpasswords_group.add_argument('--pid', type=int, help = 'Search a specific process PID for RDP creds')
+		live_logonpasswords_group.add_argument('--all', action='store_true', help = 'Looks for all processes which use the rdp DLL rdpcorets.dll')
+
+		live_mstsc_group = live_rdp_subparsers.add_parser('mstsc', help='Parse RDP credentials from the CLIENT side')
+		live_mstsc_group.add_argument('--pid', type=int, help = 'Search a specific process PID for RDP creds')
+		live_mstsc_group.add_argument('--all', action='store_true', help = 'Looks for all processes which use the rdp DLL mstscax.dll')
+
+		# offline
+		group = parser.add_parser('rdp', help='Parse RDP credentials from minidump file')
+		rdp_subparsers = group.add_subparsers()
+		rdp_subparsers.required = True
+		rdp_subparsers.dest = 'rdp_module'
+
+		logonpasswords_group = rdp_subparsers.add_parser('logonpasswords', help='Parse RDP credentials (SERVER side) from minidump file. Cleartext passwords only for WINVER <= Win2012')
+		logonpasswords_group.add_argument('cmd', choices=['minidump'])
+		logonpasswords_group.add_argument('memoryfile', help='path to the dump file')
+
+		mstsc_group = rdp_subparsers.add_parser('mstsc', help='Parse RDP credentials (CLIENT side) from minidump file.')
+		mstsc_group.add_argument('cmd', choices=['minidump'])
+		mstsc_group.add_argument('memoryfile', help='path to the dump file')
 
 	def execute(self, args):
 		if len(self.keywords) > 0 and args.command in self.keywords:
@@ -45,7 +65,7 @@ class RDPCMDHelper:
 				print(str(cred))
 				
 	def run(self, args):
-		credparsers = RDPCredParser.parse_minidump_file(args.memoryfile)
+		credparsers = RDPCredParser.parse_minidump_file(args.memoryfile, args.rdp_module)
 		for credparser in credparsers:
 			for cred in credparser.credentials:
 				print(str(cred))

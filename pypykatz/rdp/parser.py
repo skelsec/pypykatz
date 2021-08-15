@@ -4,14 +4,15 @@ from pypykatz import logger
 from minidump.minidumpfile import MinidumpFile
 from pypykatz.commons.common import KatzSystemInfo
 from pypykatz.rdp.packages.creds.templates import RDPCredsTemplate
-from pypykatz.rdp.packages.creds.decryptor import RDPCredentialDecryptor
+from pypykatz.rdp.packages.creds.decryptor import RDPCredentialDecryptorLogonpasswords, RDPCredentialDecryptorMstsc
 
 class RDPCredParser:
-	def __init__(self, process, reader, sysinfo):
+	def __init__(self, process, reader, sysinfo, rdp_module):
 		self.process = process
 		self.reader = reader
 		self.sysinfo = sysinfo
 		self.credentials = []
+		self.rdp_module = rdp_module
 	
 	@staticmethod
 	def go_live(pid = None, all_rdp = False):
@@ -66,7 +67,7 @@ class RDPCredParser:
 
 
 	@staticmethod
-	def parse_minidump_file(filename, chunksize = 10*1024):
+	def parse_minidump_file(filename, rdp_module, chunksize = 10*1024):
 		try:
 			minidump = MinidumpFile.parse(filename)
 			reader = minidump.get_reader().get_buffered_reader(segment_chunk_size=chunksize)
@@ -75,7 +76,7 @@ class RDPCredParser:
 			logger.exception('Minidump parsing error!')
 			raise e
 		try:
-			mimi = RDPCredParser(None, reader, sysinfo)
+			mimi = RDPCredParser(None, reader, sysinfo, rdp_module)
 			mimi.start()
 		except Exception as e:
 			logger.info('Credentials parsing error!')
@@ -83,13 +84,17 @@ class RDPCredParser:
 		return [mimi]
 
 	def rdpcreds(self):
-		decryptor_template = RDPCredsTemplate.get_template(self.sysinfo)
-		decryptor = RDPCredentialDecryptor(self.process, self.reader, decryptor_template, self.sysinfo)
+		if self.rdp_module == "logonpasswords":
+			decryptor_template = RDPCredsTemplate.get_logonpasswords_template(self.sysinfo)
+			decryptor = RDPCredentialDecryptorLogonpasswords(self.process, self.reader, decryptor_template, self.sysinfo)
+		else: # mstsc
+			decryptor_template = RDPCredsTemplate.get_mstsc_template()
+			decryptor = RDPCredentialDecryptorMstsc(self.process, self.reader, decryptor_template, self.sysinfo)
+
 		decryptor.start()
 
 		for cred in decryptor.credentials:
 			self.credentials.append(cred)
-
 
 	def start(self):
 		self.rdpcreds()
