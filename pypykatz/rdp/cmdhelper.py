@@ -29,11 +29,11 @@ class RDPCMDHelper:
 		live_rdp_subparsers.required = True
 		live_rdp_subparsers.dest = 'live_rdp_module'
 
-		live_logonpasswords_group = live_rdp_subparsers.add_parser('logonpasswords', help='Parse RDP credentials from the SERVER side')
+		live_logonpasswords_group = live_rdp_subparsers.add_parser('logonpasswords', help='Parse RDP credentials (SERVER side)')
 		live_logonpasswords_group.add_argument('--pid', type=int, help = 'Search a specific process PID for RDP creds')
 		live_logonpasswords_group.add_argument('--all', action='store_true', help = 'Looks for all processes which use the rdp DLL rdpcorets.dll')
 
-		live_mstsc_group = live_rdp_subparsers.add_parser('mstsc', help='Parse RDP credentials from the CLIENT side')
+		live_mstsc_group = live_rdp_subparsers.add_parser('mstsc', help='Parse RDP credentials (CLIENT side)')
 		live_mstsc_group.add_argument('--pid', type=int, help = 'Search a specific process PID for RDP creds')
 		live_mstsc_group.add_argument('--all', action='store_true', help = 'Looks for all processes which use the rdp DLL mstscax.dll')
 
@@ -43,11 +43,11 @@ class RDPCMDHelper:
 		rdp_subparsers.required = True
 		rdp_subparsers.dest = 'rdp_module'
 
-		logonpasswords_group = rdp_subparsers.add_parser('logonpasswords', help='Parse RDP credentials (SERVER side) from minidump file. Cleartext passwords only for WINVER <= Win2012')
+		logonpasswords_group = rdp_subparsers.add_parser('logonpasswords', help='Parse RDP credentials (SERVER side) from minidump file. Plain-text passwords only for WINVER <= Win2012')
 		logonpasswords_group.add_argument('cmd', choices=['minidump'])
 		logonpasswords_group.add_argument('memoryfile', help='path to the dump file')
 
-		mstsc_group = rdp_subparsers.add_parser('mstsc', help='Parse RDP credentials (CLIENT side) from minidump file.')
+		mstsc_group = rdp_subparsers.add_parser('mstsc', help='Parse RDP credentials (CLIENT side) from minidump file. Unable to recover plain-text passwords offline.')
 		mstsc_group.add_argument('cmd', choices=['minidump'])
 		mstsc_group.add_argument('memoryfile', help='path to the dump file')
 
