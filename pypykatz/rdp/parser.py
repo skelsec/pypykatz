@@ -15,7 +15,7 @@ class RDPCredParser:
 		self.rdp_module = rdp_module
 	
 	@staticmethod
-	def go_live(pid = None, all_rdp = False):
+	def go_live(pid = None, all_rdp = False, live_rdp_module = None):
 		if platform.system() != 'Windows':
 			raise Exception('Live parsing will only work on Windows')
 		from pypykatz.commons.readers.local.common.live_reader_ctypes import OpenProcess, PROCESS_ALL_ACCESS
@@ -34,19 +34,20 @@ class RDPCredParser:
 			process.list_modules()
 			reader = LiveReader(process_handle=process.phandle)
 			sysinfo = KatzSystemInfo.from_live_reader(reader)
-			targets.append(RDPCredParser(process, reader.get_buffered_reader(), sysinfo))
-		
+			targets.append(RDPCredParser(process, reader.get_buffered_reader(), sysinfo, live_rdp_module))
+			
 		else:
 			machine = LiveMachine()
-			for service_name, display_name, pid in machine.list_services():
-				if service_name == 'TermService':
-					process = Process(pid=pid, access = req_access_rights )
-					reader = LiveReader(process_handle=process.phandle)
-					sysinfo = KatzSystemInfo.from_live_reader(reader)
-					targets.append(RDPCredParser(process, reader.get_buffered_reader(), sysinfo))
 
+			if live_rdp_module == "logonpasswords" and all_rdp is False:
+				for service_name, display_name, pid in machine.list_services():
+					if service_name == 'TermService':
+						process = Process(pid=pid, access = req_access_rights )
+						reader = LiveReader(process_handle=process.phandle)
+						sysinfo = KatzSystemInfo.from_live_reader(reader)
+						targets.append(RDPCredParser(process, reader.get_buffered_reader(), sysinfo, live_rdp_module))
 
-			if all_rdp is True:
+			if live_rdp_module == "mstsc" and all_rdp is False:
 				for pid in machine.list_all_pids():
 					try:
 						process = Process(pid=pid, access = req_access_rights )
@@ -54,7 +55,24 @@ class RDPCredParser:
 							if module.name.lower().find("mstscax.dll") != -1:
 								reader = LiveReader(process_handle=process.phandle)
 								sysinfo = KatzSystemInfo.from_live_reader(reader)
-								targets.append(RDPCredParser(process, reader.get_buffered_reader(), sysinfo))
+								targets.append(RDPCredParser(process, reader.get_buffered_reader(), sysinfo, live_rdp_module))
+								break
+					except Exception as e:
+						#import traceback
+						#traceback.print_exc()
+						pass
+					if len(targets):
+						break
+
+			if all_rdp is True:
+				for pid in machine.list_all_pids():
+					try:
+						process = Process(pid=pid, access = req_access_rights )
+						for module in process.list_modules():
+							if module.name.lower().find("mstscax.dll") != -1 or module.name.lower().find("rdpcorets.dll") != -1:
+								reader = LiveReader(process_handle=process.phandle)
+								sysinfo = KatzSystemInfo.from_live_reader(reader)
+								targets.append(RDPCredParser(process, reader.get_buffered_reader(), sysinfo, live_rdp_module))
 								break
 					except Exception as e:
 						#import traceback
@@ -64,7 +82,6 @@ class RDPCredParser:
 		for target in targets:
 			target.start()
 		return targets
-
 
 	@staticmethod
 	def parse_minidump_file(filename, rdp_module, chunksize = 10*1024):

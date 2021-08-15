@@ -57,7 +57,8 @@ class RDPCredentialDecryptorMstsc:
 
     def start(self, chunksize=10*1024):
         x = self.reader.find_all_global(self.decryptor_template.signature)
-        if len(x) == 0:
+
+        if not len(x):
             logger.debug('No RDP credentials found!')
             return
 
@@ -132,7 +133,10 @@ class RDPCredentialDecryptorMstsc:
                                                         chunck = self.reader.read(property.unkp2)
                                                         if property.dwFlags & 0x800:
                                                             #print("{:<35s}\t[protect] {} (length = {})".format(szProperty, chunck, property.unkp2))
-                                                            value = chunck
+                                                            if self.process is None:
+                                                                value = chunck
+                                                            else:
+                                                                value = self.process.dpapi_memory_unprotect(property.pvData, property.unkp2, 0)
                                                         else:
                                                             #print("{:<35s}\t[unprotect] {} (length = {})".format(szProperty, chunck, property.unkp2))
                                                             value = chunck
@@ -147,8 +151,12 @@ class RDPCredentialDecryptorMstsc:
                                                     cred.domainname = value
                                                 elif szProperty == "Password" and (property.dwFlags & 0x800):
                                                     cred.password_raw = value
-                                                    cred.password = ''
-                                                    cred.isencrypted = True
+                                                    if self.process is None:
+                                                        cred.password = ''
+                                                        cred.isencrypted = True
+                                                    else:
+                                                        cred.password = cred.password_raw.decode('utf-16-le')
+                                                        cred.isencrypted = False
                                                 elif szProperty == "Password":
                                                     cred.password_raw = value
                                                     cred.password = value.decode('utf-16-le')

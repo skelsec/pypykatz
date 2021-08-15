@@ -88,7 +88,7 @@ class Page:
 				return fl
 			fl.append(marker + offset + self.BaseAddress)
 			data = data[marker+1:]
-			offset = marker + 1
+			offset += marker + 1
 				
 		return fl
 	

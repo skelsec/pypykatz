@@ -59,7 +59,7 @@ class RDPCMDHelper:
 			self.run_live(args)
 		
 	def run_live(self, args):
-		credparsers = RDPCredParser.go_live(pid = args.pid, all_rdp = args.all)
+		credparsers = RDPCredParser.go_live(pid = args.pid, all_rdp = args.all, live_rdp_module = args.live_rdp_module)
 		for credparser in credparsers:
 			for cred in credparser.credentials:
 				print(str(cred))
