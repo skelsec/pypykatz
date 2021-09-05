@@ -35,7 +35,12 @@ class RDPCredential:
         t += '\t\tdomainname %s\n' % self.domainname
         t += '\t\tusername %s\n' % self.username
         t += '\t\tpassword \'%s\'\n' % self.password
-        t += '\t\tpassword_raw %s\n' % self.password_raw.hex()
+
+        try:
+            t += '\t\tpassword_raw %s\n' % self.password_raw.hex()
+        except:
+            t += '\t\tpassword_raw %s\n' % self.password_raw
+
         t += '\t\tisencrypted: %s\n' % str(self.isencrypted)
         t += '\t\tservername: \'%s\'\n' % self.servername
         t += '\t\tserverfqdn: \'%s\'\n' % self.serverfqdn
@@ -141,6 +146,8 @@ class RDPCredentialDecryptorMstsc:
                                                             #print("{:<35s}\t[unprotect] {} (length = {})".format(szProperty, chunck, property.unkp2))
                                                             value = chunck
 
+                                                if value is None:
+                                                    value = b''
                                                 if szProperty == "ServerName":
                                                     cred.servername = value
                                                 elif szProperty == "ServerFqdn":
