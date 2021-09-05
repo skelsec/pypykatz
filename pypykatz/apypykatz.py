@@ -76,11 +76,11 @@ class apypykatz:
 						x = [str(t['credtype']), '', '', '', '', '', str(t['masterkey']), str(t['sha1_masterkey']), str(t['key_guid']), '']
 						res += ':'.join(x) + '\r\n'
 				
-				for pkg, err in self.errors:
-					err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
-					err_str = base64.b64encode(err_str.encode()).decode()
-					x =  [pkg+'_exception_please_report', '', '', '', '', '', '', '', err_str]
-					res += ':'.join(x) + '\r\n'
+		for pkg, err in self.errors:
+			err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
+			err_str = base64.b64encode(err_str.encode()).decode()
+			x =  [pkg+'_exception_please_report', '', '', '', '', '', '', '', err_str]
+			res += ':'.join(x) + '\r\n'
 
 		return res
 

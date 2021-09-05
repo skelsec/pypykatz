@@ -19,8 +19,9 @@ def main():
 	from pypykatz.remote.cmdhelper import RemoteCMDHelper
 	from pypykatz.dpapi.cmdhelper import DPAPICMDHelper
 	from pypykatz.rdp.cmdhelper import RDPCMDHelper
+	from pypykatz.parsers.cmdhelper import ParsersCMDHelper
 	
-	cmdhelpers = [LSACMDHelper(), RegistryCMDHelper(), CryptoCMDHelper(), KerberosCMDHelper(), RemoteCMDHelper(), DPAPICMDHelper(), LDAPCMDHelper(), RDPCMDHelper()]
+	cmdhelpers = [LSACMDHelper(), RegistryCMDHelper(), CryptoCMDHelper(), KerberosCMDHelper(), RemoteCMDHelper(), DPAPICMDHelper(), LDAPCMDHelper(), RDPCMDHelper(), ParsersCMDHelper()]
 	
 	try:
 		from pypykatz.smb.cmdhelper import SMBCMDHelper
