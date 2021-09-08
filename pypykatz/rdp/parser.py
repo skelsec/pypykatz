@@ -7,12 +7,15 @@ from pypykatz.rdp.packages.creds.templates import RDPCredsTemplate
 from pypykatz.rdp.packages.creds.decryptor import RDPCredentialDecryptorLogonpasswords, RDPCredentialDecryptorMstsc
 
 class RDPCredParser:
-	def __init__(self, process, reader, sysinfo, rdp_module):
+	def __init__(self, process, reader, sysinfo, rdp_module, find_first=False, lower_bound=0, upper_bound=-1):
 		self.process = process
 		self.reader = reader
 		self.sysinfo = sysinfo
 		self.credentials = []
 		self.rdp_module = rdp_module
+		self.find_first = find_first
+		self.lower_bound = lower_bound
+		self.upper_bound = upper_bound
 	
 	@staticmethod
 	def go_live(pid = None, all_rdp = False, live_rdp_module = None):
@@ -103,10 +106,10 @@ class RDPCredParser:
 	def rdpcreds(self):
 		if self.rdp_module == "logonpasswords":
 			decryptor_template = RDPCredsTemplate.get_logonpasswords_template(self.sysinfo)
-			decryptor = RDPCredentialDecryptorLogonpasswords(self.process, self.reader, decryptor_template, self.sysinfo)
+			decryptor = RDPCredentialDecryptorLogonpasswords(self.process, self.reader, decryptor_template, self.sysinfo, find_first=self.find_first, lower_bound=self.lower_bound, upper_bound=self.upper_bound)
 		else: # mstsc
 			decryptor_template = RDPCredsTemplate.get_mstsc_template()
-			decryptor = RDPCredentialDecryptorMstsc(self.process, self.reader, decryptor_template, self.sysinfo)
+			decryptor = RDPCredentialDecryptorMstsc(self.process, self.reader, decryptor_template, self.sysinfo, find_first=self.find_first)
 
 		decryptor.start()
 
