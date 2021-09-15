@@ -51,12 +51,12 @@ setup(
 		"Operating System :: OS Independent",
 	],
 	install_requires=[
-		'minidump>=0.0.19',
+		'minidump>=0.0.20',
 		'minikerberos>=0.2.14',
 		'aiowinreg>=0.0.7',
-		'msldap>=0.3.30',
+		'msldap>=0.3.31',
 		'winacl>=0.1.1',
-		'aiosmb>=0.2.50',
+		'aiosmb>=0.3.0',
 		'aesedb>=0.0.3',
 	],
 	
