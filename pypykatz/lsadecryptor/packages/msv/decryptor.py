@@ -75,7 +75,7 @@ class CredmanCredential:
 		t += '\t\tusername %s\n' % self.username
 		t += '\t\tdomain %s\n' % self.domainname
 		t += '\t\tpassword %s\n' % self.password
-		t += '\t\tpassword (hex)%s\n' % self.password_raw.hex()
+		t += '\t\tpassword (hex)%s\n' % (self.password_raw.hex() if self.password_raw else '')
 		return t
 		
 		
