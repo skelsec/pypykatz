@@ -7,9 +7,10 @@
 import hashlib
 from pypykatz.crypto.unified.des import DES, expand_DES_key
 from pypykatz.crypto.unified.pbkdf2 import pbkdf2
+from pypykatz.crypto.MD4 import MD4
 
 def LM(password):
-	if password is None:
+	if password is None or password == '':
 		return bytes.fromhex('aad3b435b51404eeaad3b435b51404ee')
 	LM_SECRET = b'KGS!@#$%'
 	password_uppercase = password.upper()
@@ -26,21 +27,19 @@ def LM(password):
 	return lm_hash
 
 def NT(password):
-	if password is None:
+	if password is None or password == '':
 		return bytes.fromhex('31d6cfe0d16ae931b73c59d7e0c089c0')
 	password_bytes = password.encode('utf-16-le')
-	md4 = hashlib.new('md4')
-	md4.update(password_bytes)
-	nt_hash =  md4.digest()	
-	return nt_hash
+	md4 = MD4(password_bytes)
+	return md4.digest()
 	
 def MSDCC(username, password):
 	nt_hash_of_password = NT(password)
 	username_lower = username.lower()
 	username_bytes = username_lower.encode('utf-16-le')
-	md4 = hashlib.new('md4')
-	md4.update(nt_hash_of_password)
-	md4.update(username_bytes)
+	md4 = MD4(nt_hash_of_password + username_bytes)
+	#md4.update(nt_hash_of_password)
+	#md4.update(username_bytes)
 	dcc =  md4.digest()
 	return dcc
 	

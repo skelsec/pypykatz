@@ -677,12 +677,17 @@ class DPAPI:
 		return results
 		
 	def decrypt_all_chrome_live(self):
+		dbpaths = DPAPI.find_chrome_database_file_live()
+		return self.decrypt_all_chrome(dbpaths)
+		
+		
+	def decrypt_all_chrome(self, dbpaths):
 		results = {}
 		results['logins'] = []
 		results['cookies'] = []
+		results['fmtcookies'] = []
 		localstate_dec = None
 
-		dbpaths = DPAPI.find_chrome_database_file_live()
 		for username in dbpaths:
 			if 'localstate' in dbpaths[username]:
 				with open(dbpaths[username]['localstate'], 'r') as f:
@@ -702,11 +707,13 @@ class DPAPI:
 						ciphertext = encrypted_value[3+12:-16]
 						tag = encrypted_value[-16:]
 						cipher = AES_GCM(localstate_dec)
-						dec_val = cipher.decrypt(nonce, ciphertext, tag, auth_data=b'') 
+						dec_val = cipher.decrypt(nonce, ciphertext, tag, auth_data=b'')
 						results['cookies'].append((dbpaths[username]['cookies'], host_key, name, path, dec_val ))
+						results['fmtcookies'].append(DPAPI.cookieformatter('https://' + host_key, name, path, dec_val))
 					else:
 						dec_val = self.decrypt_blob_bytes(encrypted_value)
 						results['cookies'].append((dbpaths[username]['cookies'], host_key, name, path, dec_val ))
+						results['fmtcookies'].append(DPAPI.cookieformatter('https://' + host_key, name, path, dec_val))
 
 			if 'logindata' in dbpaths[username]:
 				secrets = DPAPI.get_chrome_encrypted_secret(dbpaths[username]['logindata'])
@@ -722,7 +729,6 @@ class DPAPI:
 					else:
 						password = self.decrypt_blob_bytes(enc_password)
 						results['logins'].append((dbpaths[username]['logindata'], url, user, password ))
-				
 				
 		return results
 		
@@ -786,12 +792,40 @@ class DPAPI:
 				raise Exception('Failed to obtain SYSTEM privileges! Are you admin? Error: %s' % e)
 			
 			for wificonfig in DPAPI.get_all_wifi_settings_live():
-				if 'enckey' in wificonfig and wificonfig['enckey'] != '':
-					wificonfig['key'] = self.decrypt_securestring_hex(wificonfig['enckey'])
-					yield wificonfig
+				yield self.decrypt_wifi_config_file_inner(wificonfig)
 
 		finally:
 			pm.dropsystem()
+
+	def decrypt_wifi_config_file_inner(self, wificonfig):
+		if 'enckey' in wificonfig and wificonfig['enckey'] != '':
+			wificonfig['key'] = self.decrypt_securestring_hex(wificonfig['enckey'])
+			return wificonfig
+	
+	def decrypt_wifi_config_file(self, configfile):
+		wificonfig = DPAPI.parse_wifi_config_file(configfile)
+		return self.decrypt_wifi_config_file_inner(wificonfig)
+	
+	@staticmethod
+	def cookieformatter(host, name, path, content):
+		"""This is the data format the 'Cookie Quick Manager' uses to load cookies in FireFox"""
+		return {
+			"Host raw": host,      #"https://.pkgs.org/",
+			"Name raw": name,      #"distro_id",
+			"Path raw": path,      #"/",
+			"Content raw": content,   # "196",
+			"Expires": "26-05-2022 21:06:29",       # "12-05-2022 15:59:48",
+			"Expires raw": "1653591989",   # "1652363988",
+			"Send for": "Any type of connection", #"Encrypted connections only",
+			"Send for raw": False,  #"true",
+			"HTTP only raw": False, #"false",
+			"SameSite raw": "lax", #"lax",
+			"This domain only": False, #"Valid for subdomains",
+			"This domain only raw": False, #"false",
+			"Store raw": "firefox-default", #"firefox-default",
+			"First Party Domain": "", #""
+		}
+
 
 # arpparse helper
 def prepare_dpapi_live(methods = [], mkf = None, pkf = None):
