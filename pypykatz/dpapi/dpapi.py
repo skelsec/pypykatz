@@ -8,12 +8,12 @@ import os
 import ntpath
 import json
 import hmac
-import hashlib
 import glob
 import sqlite3
 import base64
 import platform
 from hashlib import sha1, pbkdf2_hmac
+
 import xml.etree.ElementTree as ET
 
 from pypykatz import logger
@@ -21,6 +21,7 @@ from pypykatz.dpapi.structures.masterkeyfile import MasterKeyFile
 from pypykatz.dpapi.structures.credentialfile import CredentialFile, CREDENTIAL_BLOB
 from pypykatz.dpapi.structures.blob import DPAPI_BLOB
 from pypykatz.dpapi.structures.vault import VAULT_VCRD, VAULT_VPOL, VAULT_VPOL_KEYS
+from pypykatz.crypto.MD4 import MD4
 
 from pypykatz.crypto.unified.aes import AES
 from pypykatz.crypto.unified.aesgcm import AES_GCM
@@ -165,9 +166,9 @@ class DPAPI:
 			key1 = None
 		
 		if password or password == '':
-			md4 = hashlib.new('md4')
-			md4.update(password.encode('utf-16le'))
-			nt_hash = md4.digest()
+			ctx = MD4(password.encode('utf-16le'))
+			nt_hash = ctx.digest()
+
 			# Will generate two keys, one with SHA1 and another with MD4
 			key1 = hmac.new(sha1(password.encode('utf-16le')).digest(), (sid + '\0').encode('utf-16le'), sha1).digest()
 		
