@@ -1,8 +1,7 @@
 
 import base64
-from pypykatz.crypto.unified.aes import AES
-from pypykatz.crypto.unified.common import SYMMETRIC_MODE
-from pypykatz.crypto.unified.pkcs7 import unpad as pkcs7_unpad
+from unicrypto.symmetric import AES, MODE_CBC
+from unicrypto.backends.pure.padding.pkcs7 import unpad as pkcs7_unpad
 
 
 def gppassword(pw_enc_b64):
@@ -17,7 +16,7 @@ def gppassword(pw_enc_b64):
 		
 	pw_enc = base64.b64decode(pw_enc_b64)
 	
-	ctx = AES(AES_KEY, mode = SYMMETRIC_MODE.CBC, iv = AES_IV)
+	ctx = AES(AES_KEY, MODE_CBC, IV = AES_IV)
 	pw_dec  = pkcs7_unpad(ctx.decrypt(pw_enc))
 	
 	return pw_dec.decode('utf-16-le')

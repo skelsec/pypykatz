@@ -116,11 +116,16 @@ class MsvTemplate(PackageTemplate):
 				template.signature = b'\x33\xff\x41\x89\x37\x4c\x8b\xf3\x45\x85\xc9\x74'
 				template.first_entry_offset = 23
 				template.offset2 = -4
-				
-			else:
-				#1903
+			
+			elif WindowsBuild.WIN_10_1903.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_20H2.value:
 				template.signature = b'\x33\xff\x41\x89\x37\x4c\x8b\xf3\x45\x85\xc0\x74'
 				template.first_entry_offset = 23
+				template.offset2 = -4
+				
+			else:
+				#win11
+				template.signature = b'\x45\x89\x34\x24\x4c\x8b\xff\x8b\xf3\x45\x85\xc0\x74'
+				template.first_entry_offset = 24
 				template.offset2 = -4
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:

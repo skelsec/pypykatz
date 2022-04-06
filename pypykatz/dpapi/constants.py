@@ -4,11 +4,10 @@ import enum
 # https://doxygen.reactos.org/d7/d4a/wincrypt_8h.html
 # impacket dpapi.py
 
-from hashlib import sha1 as SHA1
-from hashlib import sha512 as SHA512
-from pypykatz.crypto.unified.aes import AES
-from pypykatz.crypto.unified.des3 import DES3
-from pypykatz.crypto.unified.common import SYMMETRIC_MODE
+from unicrypto.hashlib import sha1 as SHA1
+from unicrypto.hashlib import sha512 as SHA512
+from unicrypto.symmetric import AES, MODE_CBC
+from unicrypto.symmetric import TDES as DES3
 
 
 # Algorithm classes
@@ -152,9 +151,9 @@ ALGORITHMS_DATA = {
     # Algorithm: key/SaltLen, CryptHashModule, Mode, IVLen, BlockSize
     ALGORITHMS.CALG_SHA: (160//8, SHA1, None, None, 512//8),
     ALGORITHMS.CALG_HMAC: (160//8, SHA512, None, None, 512//8),
-    ALGORITHMS.CALG_3DES: (192//8, DES3, SYMMETRIC_MODE.CBC, 64//8),
+    ALGORITHMS.CALG_3DES: (192//8, DES3, MODE_CBC, 64//8),
     ALGORITHMS.CALG_SHA_512: (128//8, SHA512, None, None, 1024//8),
-    ALGORITHMS.CALG_AES_256: (256//8, AES, SYMMETRIC_MODE.CBC,128//8), #CBC is already in the object...
+    ALGORITHMS.CALG_AES_256: (256//8, AES, MODE_CBC,128//8), #CBC is already in the object...
 }
 	
 	

@@ -6,9 +6,7 @@
 import hashlib
 import hmac
 from pypykatz.registry.sam.structures import *
-from pypykatz.crypto.RC4 import RC4
-from pypykatz.crypto.aes import AESModeOfOperationCBC,AESModeOfOperationECB, Decrypter
-from pypykatz.crypto.des import *
+from unicrypto.symmetric import RC4, DES, AES, expand_DES_key, MODE_CBC
 
 
 #####
@@ -52,7 +50,7 @@ class SECURITY:
 			record = LSA_SECRET.from_bytes(data)
 			key = SECURITY.sha256_multi(self.bootkey, record.data[:32])
 			secret_dec = b''
-			cipher = AESModeOfOperationECB(key)
+			cipher = AES(key)
 			n = 16
 			for block in [record.data[32:][i:i+n] for i in range(0, len(record.data[32:]), n)]:  #terrible, terrible workaround
 				if len(block) < n:
@@ -97,7 +95,7 @@ class SECURITY:
 		for _ in range(0, len(value), 8):
 			enc_blob = value[:8]
 			des_key = expand_DES_key(t_key[:7])
-			ctx = des(des_key)
+			ctx = DES(des_key)
 			dec_blob += ctx.decrypt(enc_blob)
 			t_key = t_key[7:]
 			value = value[8:]
@@ -121,7 +119,7 @@ class SECURITY:
 			self.NKLM_key = b''
 			record = LSA_SECRET.from_bytes(value[1])
 			key = SECURITY.sha256_multi(self.lsa_key, record.data[:32])
-			cipher = AESModeOfOperationECB(key)
+			cipher = AES(key)
 			n = 16
 			for block in [record.data[32:][i:i+n] for i in range(0, len(record.data[32:]), n)]:  #terrible, terrible workaround
 				if len(block) < n:
@@ -180,7 +178,7 @@ class SECURITY:
 					# Encrypted
 					if self.lsa_secret_key_vista_type is True:
 						plaintext = b''
-						cipher = AESModeOfOperationCBC(self.NKLM_key[16:32], iv = record.IV)
+						cipher = AES(self.NKLM_key[16:32], MODE_CBC, IV = record.IV)
 						n = 16
 						for block in [record.EncryptedData[i:i+n] for i in range(0, len(record.EncryptedData), n)]:  #terrible, terrible workaround
 							if len(block) < 16:
@@ -237,7 +235,7 @@ class SECURITY:
 						record = LSA_SECRET.from_bytes(v[1])
 						key = SECURITY.sha256_multi(self.lsa_key, record.data[:32])
 						secret_dec = b''
-						cipher = AESModeOfOperationECB(key)
+						cipher = AES(key)
 						n = 16
 						for block in [record.data[32:][i:i+n] for i in range(0, len(record.data[32:]), n)]:  #terrible, terrible workaround
 							if len(block) < n:

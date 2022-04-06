@@ -3,19 +3,14 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import hashlib
-import hmac
-import io
-from pypykatz.registry.sam.structures import *
-from pypykatz.crypto.RC4 import RC4
-from pypykatz.crypto.aes import AESModeOfOperationCBC
-from pypykatz.crypto.des import des, expand_DES_key
 
-#####
-from pypykatz.registry.sam.structures import *
-from pypykatz.registry.sam.common import *
+from unicrypto import hashlib
+from unicrypto.symmetric import RC4, AES, MODE_CBC, expand_DES_key, DES
+
 from pypykatz.registry import logger
-from pypykatz.commons.win_datatypes import SID
+from pypykatz.registry.sam.common import SAMSecret
+from pypykatz.registry.sam.structures import SAM_HASH, DOMAIN_ACCOUNT_F,\
+	SAM_KEY_DATA, SAM_KEY_DATA_AES, USER_ACCOUNT_V, SAM_HASH_AES
 
 #
 # The SAM hive holds the hashed passwords of the LOCAL machine users
@@ -42,8 +37,8 @@ class SAM:
 		
 	def decrypt_hash(self, rid, hashobj, constant):
 		key1, key2 = SAM.rid_to_key(rid)
-		des1 = des(key1)
-		des2 = des(key2)
+		des1 = DES(key1)
+		des2 = DES(key2)
 		
 		if isinstance(hashobj, SAM_HASH):
 			rc4key = hashlib.md5( self.hashed_bootkey[:0x10] + int(rid, 16).to_bytes(4, 'little', signed = False) + constant ).digest()
@@ -51,7 +46,7 @@ class SAM:
 			
 		else:
 			key = b''
-			cipher = AESModeOfOperationCBC(self.hashed_bootkey[:0x10], iv = hashobj.salt)
+			cipher = AES(self.hashed_bootkey[:0x10], MODE_CBC, IV = hashobj.salt)
 			n = 16
 			for block in [hashobj.data[i:i+n] for i in range(0, len(hashobj.data), n)]:  #terrible, terrible workaround
 				key += cipher.decrypt(block)
@@ -83,7 +78,7 @@ class SAM:
 				
 		elif isinstance(domain_properties.key_0, SAM_KEY_DATA_AES):
 			self.hashed_bootkey = b''
-			cipher = AESModeOfOperationCBC(self.bootkey, iv = domain_properties.key_0.salt)
+			cipher = AES(self.bootkey, MODE_CBC, IV = domain_properties.key_0.salt)
 			n = 16
 			for block in [domain_properties.key_0.data[i:i+n] for i in range(0, len(domain_properties.key_0.data), n)]:  #terrible, terrible workaround
 				self.hashed_bootkey += cipher.decrypt(block)

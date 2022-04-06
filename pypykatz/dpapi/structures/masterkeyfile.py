@@ -127,7 +127,7 @@ class MasterKey:
 		#print('temp_key : %s' % temp_key)
 		crypt_key = temp_key[:ALGORITHMS_DATA[self.crypto_algorithm][0]]
 		iv = temp_key[ALGORITHMS_DATA[self.crypto_algorithm][0]:][:ALGORITHMS_DATA[self.crypto_algorithm][3]]
-		cipher = ALGORITHMS_DATA[self.crypto_algorithm][1](crypt_key, mode = ALGORITHMS_DATA[self.crypto_algorithm][2], iv = iv)
+		cipher = ALGORITHMS_DATA[self.crypto_algorithm][1](crypt_key, mode = ALGORITHMS_DATA[self.crypto_algorithm][2], IV = iv)
 		
 		cleartext = cipher.decrypt(self.data)
 		key_dec = cleartext[-64:]

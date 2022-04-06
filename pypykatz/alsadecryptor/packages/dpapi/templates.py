@@ -108,5 +108,8 @@ class KIWI_MASTERKEY_CACHE_ENTRY:
 		res.KeyUid = await GUID.loadvalue(reader)
 		res.insertTime = await FILETIME.load(reader)
 		res.keySize = await ULONG.loadvalue(reader)
-		res.key = await reader.read(res.keySize)
+		if res.keySize < 512:
+			res.key = await reader.read(res.keySize)
+		else:
+			res.key = None
 		return res

@@ -360,6 +360,10 @@ class WindowsBuild(enum.Enum):
 	WIN_10_1803 = 17134
 	WIN_10_1809 = 17763
 	WIN_10_1903 = 18362
+	WIN_10_1909 = 18363
+	WIN_10_2004 = 19041
+	WIN_10_20H2 = 19042
+	WIN_11_2022 = 20348
 	
 class WindowsMinBuild(enum.Enum):
 	WIN_XP = 2500
@@ -369,6 +373,7 @@ class WindowsMinBuild(enum.Enum):
 	WIN_8 = 8000
 	WIN_BLUE = 9400
 	WIN_10 = 9800
+	WIN_11 = 22000
 	
 	
 def hexdump( src, length=16, sep='.', start = 0):

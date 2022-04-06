@@ -5,7 +5,7 @@
 #
 import io
 import logging
-from pypykatz.crypto.RC4 import RC4
+from unicrypto.symmetric import RC4
 from pypykatz.lsadecryptor.package_commons import PackageDecryptor
 from pypykatz.commons.win_datatypes import LONG
 

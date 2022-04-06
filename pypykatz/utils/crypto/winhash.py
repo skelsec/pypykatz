@@ -4,10 +4,9 @@
 #  Tamas Jos (@skelsec)
 #
 
-import hashlib
-from pypykatz.crypto.unified.des import DES, expand_DES_key
-from pypykatz.crypto.unified.pbkdf2 import pbkdf2
-from pypykatz.crypto.MD4 import MD4
+from unicrypto.symmetric import DES, expand_DES_key
+from unicrypto.pbkdf2 import pbkdf2
+from unicrypto.hashlib import md4 as MD4
 
 def LM(password):
 	if password is None or password == '':

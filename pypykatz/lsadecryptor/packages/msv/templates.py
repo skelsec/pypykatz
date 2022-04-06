@@ -4,6 +4,7 @@
 #  Tamas Jos (@skelsec)
 #
 import io
+from pypykatz import logger
 from minidump.win_datatypes import BOOLEAN, HANDLE
 from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild, WindowsBuild
 from pypykatz.commons.win_datatypes import USHORT, ULONG, LSA_UNICODE_STRING, LSAISO_DATA_BLOB, \
@@ -25,6 +26,7 @@ class MsvTemplate(PackageTemplate):
 	
 	@staticmethod
 	def get_template(sysinfo):
+		logger.debug('buildnumber: %s' % sysinfo.buildnumber)
 		template = MsvTemplate()
 		template.encrypted_credentials_list_struct = KIWI_MSV1_0_CREDENTIAL_LIST
 		template.log_template('encrypted_credentials_list_struct', template.encrypted_credentials_list_struct)
@@ -117,12 +119,20 @@ class MsvTemplate(PackageTemplate):
 				template.signature = b'\x33\xff\x41\x89\x37\x4c\x8b\xf3\x45\x85\xc9\x74'
 				template.first_entry_offset = 23
 				template.offset2 = -4
-				
-			else:
-				#1903
+			
+			elif WindowsBuild.WIN_10_1903.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_20H2.value:
 				template.signature = b'\x33\xff\x41\x89\x37\x4c\x8b\xf3\x45\x85\xc0\x74'
 				template.first_entry_offset = 23
 				template.offset2 = -4
+				
+			else:
+				#win11
+				template.signature = b'\x45\x89\x34\x24\x4c\x8b\xff\x8b\xf3\x45\x85\xc0\x74'
+				template.first_entry_offset = 24
+				template.offset2 = -4
+
+			#BYTE PTRN_WN11_LogonSessionList[]       = {};
+			#logger.debug(template.signature.hex())
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
 			if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:

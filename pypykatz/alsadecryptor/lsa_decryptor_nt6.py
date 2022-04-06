@@ -7,8 +7,7 @@
 
 from pypykatz import logger
 from pypykatz.commons.common import hexdump
-from pypykatz.crypto.des import triple_des, CBC
-from pypykatz.crypto.aes import AESModeOfOperationCFB
+from unicrypto.symmetric import MODE_CBC, MODE_CFB, AES, TDES
 from pypykatz.alsadecryptor.package_commons import PackageDecryptor
 
 class LsaDecryptor_NT6(PackageDecryptor):
@@ -86,12 +85,12 @@ class LsaDecryptor_NT6(PackageDecryptor):
 			if size % 8:
 				if not self.aes_key or not self.iv:
 					return cleartext
-				cipher = AESModeOfOperationCFB(self.aes_key, iv = self.iv)
+				cipher = AES(self.aes_key, MODE_CFB, self.iv)
 				cleartext = cipher.decrypt(encrypted)
 			else:
 				if not self.des_key or not self.iv:
 					return cleartext
-				cipher = triple_des(self.des_key, CBC, self.iv[:8])
+				cipher = TDES(self.des_key, MODE_CBC, self.iv[:8])
 				cleartext = cipher.decrypt(encrypted)
 		return cleartext
 

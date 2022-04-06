@@ -3,9 +3,10 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
+
 import io
 import logging
-from pypykatz.crypto.RC4 import RC4
+from unicrypto.symmetric import RC4
 from pypykatz.alsadecryptor.package_commons import PackageDecryptor
 from pypykatz.alsadecryptor.win_datatypes import LONG
 

@@ -21,11 +21,9 @@ from pypykatz.dpapi.structures.masterkeyfile import MasterKeyFile
 from pypykatz.dpapi.structures.credentialfile import CredentialFile, CREDENTIAL_BLOB
 from pypykatz.dpapi.structures.blob import DPAPI_BLOB
 from pypykatz.dpapi.structures.vault import VAULT_VCRD, VAULT_VPOL, VAULT_VPOL_KEYS
-from pypykatz.crypto.MD4 import MD4
+from unicrypto.hashlib import md4 as MD4
+from unicrypto.symmetric import AES, MODE_GCM, MODE_CBC
 
-from pypykatz.crypto.unified.aes import AES
-from pypykatz.crypto.unified.aesgcm import AES_GCM
-from pypykatz.crypto.unified.common import SYMMETRIC_MODE
 from pypykatz.commons.common import UniversalEncoder
 
 if platform.system().lower() == 'windows':
@@ -485,9 +483,9 @@ class DPAPI:
 		def decrypt_attr(attr, key):
 			if attr.data is not None:
 				if attr.iv is not None:
-					cipher = AES(key, SYMMETRIC_MODE.CBC, iv=attr.iv)
+					cipher = AES(key, MODE_CBC, attr.iv)
 				else:
-					cipher = AES(key, SYMMETRIC_MODE.CBC, iv=b'\x00'*16)
+					cipher = AES(key, MODE_CBC, b'\x00'*16)
 				
 				cleartext = cipher.decrypt(attr.data)
 				return cleartext
@@ -707,7 +705,7 @@ class DPAPI:
 						nonce = encrypted_value[3:3+12]
 						ciphertext = encrypted_value[3+12:-16]
 						tag = encrypted_value[-16:]
-						cipher = AES_GCM(localstate_dec)
+						cipher = AES(localstate_dec, MODE_GCM)
 						dec_val = cipher.decrypt(nonce, ciphertext, tag, auth_data=b'')
 						results['cookies'].append((dbpaths[username]['cookies'], host_key, name, path, dec_val ))
 						results['fmtcookies'].append(DPAPI.cookieformatter('https://' + host_key, name, path, dec_val))
@@ -723,7 +721,7 @@ class DPAPI:
 						nonce = enc_password[3:3+12]
 						ciphertext = enc_password[3+12:-16]
 						tag = enc_password[-16:]
-						cipher = AES_GCM(localstate_dec)
+						cipher = AES(localstate_dec, MODE_GCM)
 						password = cipher.decrypt(nonce, ciphertext, tag, auth_data=b'')
 						results['logins'].append((dbpaths[username]['logindata'], url, user, password))
 					

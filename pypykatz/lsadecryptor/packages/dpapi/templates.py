@@ -90,4 +90,7 @@ class KIWI_MASTERKEY_CACHE_ENTRY:
 		self.KeyUid = GUID(reader).value
 		self.insertTime = FILETIME(reader)
 		self.keySize = ULONG(reader).value
-		self.key = reader.read(self.keySize)
+		if self.keySize < 512:
+			self.key = reader.read(self.keySize)
+		else:
+			self.key = None

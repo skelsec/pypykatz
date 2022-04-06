@@ -70,7 +70,7 @@ class CloudapDecryptor(PackageDecryptor):
 				if unk is not None:
 					cred.key_guid = unk.guid.value
 					cred.dpapi_key, raw_dec = self.decrypt_password(unk.unk, bytes_expected = True)
-					cred.dpapi_key_sha1 = hashlib.sha1(bytes.fromhex(cred.dpapi_key)).hexdigest()
+					cred.dpapi_key_sha1 = hashlib.sha1(cred.dpapi_key).hexdigest()
 
 			if cred.PRT is None and cred.key_guid is None:
 				return

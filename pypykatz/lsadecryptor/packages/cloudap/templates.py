@@ -16,7 +16,7 @@ class CloudapTemplate(PackageTemplate):
 			return None
 
 		if sysinfo.architecture == KatzSystemArchitecture.X64:
-			template.signature = b'\x44\x8b\x01\x44\x39\x42\x18\x75'
+			template.signature = b'\x44\x8b\x01\x44\x39\x42'
 			template.first_entry_offset = -9
 			template.list_entry = PKIWI_CLOUDAP_LOGON_LIST_ENTRY
 		
@@ -93,4 +93,27 @@ class KIWI_CLOUDAP_LOGON_LIST_ENTRY:
 		self.LocallyUniqueIdentifier = LUID(reader).value
 		self.unk2 = DWORD64(reader)
 		self.unk3 = DWORD64(reader)
+		self.cacheEntry = PKIWI_CLOUDAP_CACHE_LIST_ENTRY(reader)
+
+
+#### THIS IS FOR TESTING!!!
+class PKIWI_CLOUDAP_LOGON_LIST_ENTRY_11(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, KIWI_CLOUDAP_LOGON_LIST_ENTRY_11)
+
+class KIWI_CLOUDAP_LOGON_LIST_ENTRY_11:
+	def __init__(self, reader):
+		self.Flink = PKIWI_CLOUDAP_LOGON_LIST_ENTRY_11(reader)
+		self.Blink = PKIWI_CLOUDAP_LOGON_LIST_ENTRY_11(reader)
+		self.LocallyUniqueIdentifier = 1
+		reader.read(8*11)
+		#self.unk0 = DWORD(reader)
+		#self.unk1 = DWORD(reader)
+		#self.unk2 = DWORD(reader)
+		#reader.align()
+		#self.LocallyUniqueIdentifier = LUID(reader).value
+		#self.unk3 = DWORD64(reader)
+		#self.unk4 = DWORD64(reader)
+		#self.unk5 = DWORD64(reader)
+		#self.unk6 = DWORD64(reader)
 		self.cacheEntry = PKIWI_CLOUDAP_CACHE_LIST_ENTRY(reader)

@@ -11,6 +11,7 @@ def main():
 	import argparse
 	import glob
 	
+	from pypykatz import logger
 	from pypykatz.utils.crypto.cmdhelper import CryptoCMDHelper
 	from pypykatz.ldap.cmdhelper import LDAPCMDHelper
 	from pypykatz.kerberos.cmdhelper import KerberosCMDHelper
@@ -71,11 +72,14 @@ def main():
 	###### VERBOSITY
 	if args.verbose == 0:
 		logging.basicConfig(level=logging.INFO)
+		logger.setLevel(logging.INFO)
 	elif args.verbose == 1:
 		logging.basicConfig(level=logging.DEBUG)
+		logger.setLevel(logging.DEBUG)
 	else:
 		level = 5 - args.verbose
 		logging.basicConfig(level=level)
+		logger.setLevel(1)
 	
 	##### Common obj
 	#results = {}
