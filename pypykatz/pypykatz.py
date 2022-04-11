@@ -247,7 +247,7 @@ class pypykatz:
 		for lsa_dec_template in LsaTemplate.get_template_brute(self.sysinfo):
 			try:
 				lsa_dec = LsaDecryptor.choose(self.reader, lsa_dec_template, self.sysinfo)
-				logger.debug(lsa_dec.dump())
+				lsa_dec.dump()
 			except:
 				pass
 			else:
@@ -259,7 +259,7 @@ class pypykatz:
 		try:
 			lsa_dec_template = LsaTemplate.get_template(self.sysinfo)
 			lsa_dec = LsaDecryptor.choose(self.reader, lsa_dec_template, self.sysinfo)
-			logger.debug(lsa_dec.dump())
+			lsa_dec.dump()
 		except Exception as e:
 			logger.debug('Failed to automatically detect correct LSA template! Reason: %s' % str(e))
 			lsa_dec = self.get_lsa_bruteforce()

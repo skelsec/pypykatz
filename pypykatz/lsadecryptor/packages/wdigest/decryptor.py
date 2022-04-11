@@ -15,7 +15,7 @@ class WdigestCredential:
 		self.username = None
 		self.domainname = None
 		self.password = None
-		self.password_raw = None
+		self.password_raw = b''
 		self.luid = None
 	
 	def to_dict(self):

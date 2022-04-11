@@ -26,7 +26,7 @@ class MsvTemplate(PackageTemplate):
 	
 	@staticmethod
 	def get_template(sysinfo):
-		logger.debug('buildnumber: %s' % sysinfo.buildnumber)
+		#logger.debug('buildnumber: %s' % sysinfo.buildnumber)
 		template = MsvTemplate()
 		template.encrypted_credentials_list_struct = KIWI_MSV1_0_CREDENTIAL_LIST
 		template.log_template('encrypted_credentials_list_struct', template.encrypted_credentials_list_struct)

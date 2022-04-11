@@ -294,7 +294,7 @@ class BufferedLiveReader:
 	
 	def find_in_module(self, module_name, pattern, find_first = False, reverse_order = False):
 		t = self.reader.search_module(module_name, pattern, find_first = find_first, reverse_order = reverse_order)
-		return t		
+		return t
 		
 		
 class LiveReader:

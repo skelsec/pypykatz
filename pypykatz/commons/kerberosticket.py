@@ -163,6 +163,50 @@ class KerberosTicket:
 		kt.kirbi_data[kt.generate_filename()] = kirbi
 		
 		return kt
+
+	@staticmethod
+	async def aparse(kerberos_ticket, reader, sysinfo, type = None):
+		kt = KerberosTicket()
+		kt.type = type
+		x = await kerberos_ticket.ServiceName.read(reader)
+		kt.ServiceName_type = x.NameType
+		x = await kerberos_ticket.ServiceName.read(reader)
+		kt.ServiceName = await x.read(reader)
+		kt.DomainName = await kerberos_ticket.DomainName.read_string(reader)
+		x = await kerberos_ticket.TargetName.read(reader)
+		if x:
+			y = await kerberos_ticket.TargetName.read(reader)
+			kt.ETargetName = await y.read(reader)
+			y = await kerberos_ticket.TargetName.read(reader)
+			kt.ETargetName_type = y.NameType 
+		kt.TargetDomainName = await kerberos_ticket.TargetDomainName.read_string(reader) 
+		x = await kerberos_ticket.ClientName.read(reader)
+		kt.EClientName = await x.read(reader)
+		x = await kerberos_ticket.ClientName.read(reader)
+		kt.EClientName_type = x.NameType
+		kt.AltTargetDomainName = await kerberos_ticket.AltTargetDomainName.read_string(reader)
+		kt.Description = await kerberos_ticket.Description.read_string(reader)
+		
+		kt.StartTime = filetime_to_dt(kerberos_ticket.StartTime)
+		kt.EndTime = filetime_to_dt(kerberos_ticket.EndTime)
+		if kerberos_ticket.RenewUntil == 0:
+			kt.RenewUntil = datetime.datetime(1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)
+		else:
+			kt.RenewUntil = filetime_to_dt(kerberos_ticket.RenewUntil)
+		
+		kt.KeyType = kerberos_ticket.KeyType
+		kt.Key = await kerberos_ticket.Key.read(reader)
+		kt.session_key = KerberosSessionKey.parse(kerberos_ticket.Key, sysinfo)
+		
+		kt.TicketFlags = kerberos_ticket.TicketFlags
+		kt.TicketEncType = kerberos_ticket.TicketEncType
+		kt.TicketKvno = kerberos_ticket.TicketKvno
+		kt.Ticket = await kerberos_ticket.Ticket.read(reader)
+		
+		kirbi = kt.to_asn1()
+		kt.kirbi_data[kt.generate_filename()] = kirbi
+		
+		return kt
 		
 	def generate_filename(self):
 		t = '%s' % ('_'.join([self.type.name, self.DomainName, '_'.join(self.EClientName), '_'.join(self.ServiceName), hashlib.sha1(self.Ticket).hexdigest()[:8]]))

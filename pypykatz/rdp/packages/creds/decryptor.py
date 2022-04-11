@@ -13,7 +13,7 @@ class RDPCredential:
         self.domainname = None
         self.username = ''
         self.password = ''
-        self.password_raw = None
+        self.password_raw = b''
         self.isencrypted = None 
         self.servername = ''
         self.serverfqdn = ''

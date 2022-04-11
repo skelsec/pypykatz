@@ -53,7 +53,7 @@ class CredmanCredential:
 		self.luid = None
 		self.username = None
 		self.password = None
-		self.password_raw = None
+		self.password_raw = b''
 		self.domainname = None
 
 	def to_dict(self):

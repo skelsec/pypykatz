@@ -6,7 +6,7 @@
 import io
 
 
-from pypykatz.alsadecryptor.kerberosticket import KerberosTicket, KerberosTicketType
+from pypykatz.commons.kerberosticket import KerberosTicket, KerberosTicketType
 from pypykatz.alsadecryptor.package_commons import PackageDecryptor
 from pypykatz.alsadecryptor.win_datatypes import PLIST_ENTRY, PRTL_AVL_TABLE
 from pypykatz.commons.common import WindowsMinBuild
@@ -16,10 +16,12 @@ class KerberosCredential:
 		self.credtype = 'kerberos'
 		self.username = None
 		self.password = None
+		self.password_raw = b''
 		self.domainname = None
 		self.luid = None
 		self.tickets = []
 		self.pin = None
+		self.pin_raw = None
 		self.cardinfo = None
 		
 	def __str__(self):
@@ -28,8 +30,10 @@ class KerberosCredential:
 		t += '\t\tDomain: %s\n' % self.domainname
 		if self.password is not None:
 			t += '\t\tPassword: %s\n' % self.password
+			t += '\t\tpassword (hex)%s\n' % self.password_raw.hex()
 		if self.pin is not None:
 			t += '\t\tPIN: %s\n' % self.pin
+			t += '\t\tPIN (hex): %s\n' % self.pin_raw.hex()
 		if self.cardinfo is not None:
 			t += '\t\tCARDINFO: \n'
 			t += '\t\t\tCardName: %s\n' % self.cardinfo['CardName']
@@ -50,9 +54,11 @@ class KerberosCredential:
 		t['credtype'] = self.credtype
 		t['username'] = self.username
 		t['password'] = self.password
+		t['password_raw'] = self.password_raw
 		t['domainname'] = self.domainname
 		t['luid'] = self.luid
 		t['pin'] = self.pin
+		t['pin_raw'] = self.pin_raw
 		t['cardinfo'] = self.cardinfo
 		t['tickets'] = []
 		for ticket in self.tickets:
@@ -76,9 +82,10 @@ class KerberosDecryptor(PackageDecryptor):
 		ptr_entry = await self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc
 	
-	def handle_ticket(self, kerberos_ticket):
+	async def handle_ticket(self, kerberos_ticket):
 		try:
-			kt = KerberosTicket.parse(kerberos_ticket, self.reader, self.decryptor_template.sysinfo, self.current_ticket_type)
+			#input(kerberos_ticket)
+			kt = await KerberosTicket.aparse(kerberos_ticket, self.reader, self.decryptor_template.sysinfo, self.current_ticket_type)
 			self.current_cred.tickets.append(kt)
 			#print(str(kt))
 		except Exception as e:
@@ -98,11 +105,12 @@ class KerberosDecryptor(PackageDecryptor):
 		else:
 			result_ptr_list = []
 			await self.reader.move(entry_ptr_value)
-			start_node = await PRTL_AVL_TABLE.load(self.reader).read(self.reader)
+			avl_table = await PRTL_AVL_TABLE.load(self.reader)
+			start_node = await avl_table.read(self.reader)
 			await self.walk_avl(start_node.BalancedRoot.RightChild, result_ptr_list)
 			
 			for ptr in result_ptr_list:
-				self.log_ptr(ptr, self.decryptor_template.kerberos_session_struct.__name__)
+				await self.log_ptr(ptr, self.decryptor_template.kerberos_session_struct.__name__)
 				await self.reader.move(ptr)
 				kerberos_logon_session = await self.decryptor_template.kerberos_session_struct.load(self.reader)
 				await self.process_session(kerberos_logon_session)
@@ -120,12 +128,8 @@ class KerberosDecryptor(PackageDecryptor):
 		
 		self.current_cred.username = await kerberos_logon_session.credentials.UserName.read_string(self.reader)
 		self.current_cred.domainname = await kerberos_logon_session.credentials.Domaine.read_string(self.reader)
-		if self.current_cred.username.endswith('$') is True:
-			self.current_cred.password, raw_dec = self.decrypt_password(kerberos_logon_session.credentials.Password.read_maxdata(self.reader), bytes_expected=True)
-			if self.current_cred.password is not None:
-				self.current_cred.password = self.current_cred.password.hex()
-		else:
-			self.current_cred.password, raw_dec = self.decrypt_password(kerberos_logon_session.credentials.Password.read_maxdata(self.reader))
+		pwdata = await kerberos_logon_session.credentials.Password.read_maxdata(self.reader)
+		self.current_cred.password, self.current_cred.password_raw = self.decrypt_password(pwdata)
 		
 		if kerberos_logon_session.SmartcardInfos.value != 0:
 			csp_info = await kerberos_logon_session.SmartcardInfos.read(self.reader, override_finaltype = self.decryptor_template.csp_info_struct)

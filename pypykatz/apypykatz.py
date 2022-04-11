@@ -16,8 +16,7 @@ from pypykatz.alsadecryptor import CredmanTemplate, MsvTemplate, \
 	LiveSspTemplate, LiveSspDecryptor, SspDecryptor, SspTemplate, \
 	TspkgDecryptor, TspkgTemplate, \
 	DpapiTemplate, DpapiDecryptor, LsaDecryptor,CloudapTemplate,\
-	CloudapDecryptor
-#KerberosTemplate, KerberosDecryptor, 
+	CloudapDecryptor, KerberosTemplate, KerberosDecryptor
 from pypykatz.alsadecryptor.packages.msv.decryptor import LogonSession
 from pypykatz import logger
 from pypykatz.commons.common import UniversalEncoder
@@ -239,19 +238,19 @@ class apypykatz:
 			else:
 				self.orphaned_creds.append(cred)
 	
-	#async def get_kerberos(self, with_tickets = True):
-	#	dec_template = KerberosTemplate.get_template(self.sysinfo)
-	#	dec = KerberosDecryptor(self.reader, dec_template, self.lsa_decryptor, self.sysinfo)
-	#	await dec.start()
-	#	for cred in dec.credentials:
-	#		for ticket in cred.tickets:
-	#			for fn in ticket.kirbi_data:
-	#				self.kerberos_ccache.add_kirbi(ticket.kirbi_data[fn].native)
-	#		
-	#		if cred.luid in self.logon_sessions:
-	#			self.logon_sessions[cred.luid].kerberos_creds.append(cred)
-	#		else:
-	#			self.orphaned_creds.append(cred)
+	async def get_kerberos(self, with_tickets = True):
+		dec_template = KerberosTemplate.get_template(self.sysinfo)
+		dec = KerberosDecryptor(self.reader, dec_template, self.lsa_decryptor, self.sysinfo)
+		await dec.start()
+		for cred in dec.credentials:
+			for ticket in cred.tickets:
+				for fn in ticket.kirbi_data:
+					self.kerberos_ccache.add_kirbi(ticket.kirbi_data[fn].native)
+			
+			if cred.luid in self.logon_sessions:
+				self.logon_sessions[cred.luid].kerberos_creds.append(cred)
+			else:
+				self.orphaned_creds.append(cred)
 	
 	async def get_cloudap(self):
 		cloudap_dec_template = CloudapTemplate.get_template(self.sysinfo)
@@ -281,11 +280,11 @@ class apypykatz:
 			except Exception as e:
 				self.errors.append(('wdigest', e))
 		
-		#if 'kerberos' in packages or 'ktickets' in packages or 'all' in packages:
-		#	with_tickets = False
-		#	if 'ktickets' in packages or 'all' in packages:
-		#		with_tickets = True
-		#	await self.get_kerberos(with_tickets)
+		if 'kerberos' in packages or 'ktickets' in packages or 'all' in packages:
+			with_tickets = False
+			if 'ktickets' in packages or 'all' in packages:
+				with_tickets = True
+			await self.get_kerberos(with_tickets)
 		
 		if 'tspkg' in packages or 'all' in packages:
 			try:

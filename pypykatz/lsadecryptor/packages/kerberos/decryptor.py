@@ -18,7 +18,7 @@ class KerberosCredential:
 		self.credtype = 'kerberos'
 		self.username = None
 		self.password = None
-		self.password_raw = None
+		self.password_raw = b''
 		self.domainname = None
 		self.luid = None
 		self.tickets = []
@@ -129,12 +129,13 @@ class KerberosDecryptor(PackageDecryptor):
 		
 		self.current_cred.username = kerberos_logon_session.credentials.UserName.read_string(self.reader)
 		self.current_cred.domainname = kerberos_logon_session.credentials.Domaine.read_string(self.reader)
-		if self.current_cred.username.endswith('$') is True:
-			self.current_cred.password, self.current_cred.password_raw = self.decrypt_password(kerberos_logon_session.credentials.Password.read_maxdata(self.reader), bytes_expected=True)
-			if self.current_cred.password is not None:
-				self.current_cred.password = self.current_cred.password.hex()
-		else:
-			self.current_cred.password, self.current_cred.password_raw = self.decrypt_password(kerberos_logon_session.credentials.Password.read_maxdata(self.reader))
+		#if self.current_cred.username.endswith('$') is True:
+		#	self.current_cred.password, self.current_cred.password_raw = self.decrypt_password(kerberos_logon_session.credentials.Password.read_maxdata(self.reader), bytes_expected=True)
+		#	if self.current_cred.password is not None:
+		#		self.current_cred.password = self.current_cred.password.hex()
+		#else:
+		#	self.current_cred.password, self.current_cred.password_raw = self.decrypt_password(kerberos_logon_session.credentials.Password.read_maxdata(self.reader))
+		self.current_cred.password, self.current_cred.password_raw = self.decrypt_password(kerberos_logon_session.credentials.Password.read_maxdata(self.reader))
 		
 		if kerberos_logon_session.SmartcardInfos.value != 0:
 			csp_info = kerberos_logon_session.SmartcardInfos.read(self.reader, override_finaltype = self.decryptor_template.csp_info_struct)

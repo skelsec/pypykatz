@@ -179,7 +179,6 @@ class LSACMDHelper:
 				for filename in glob.glob(globdata, recursive=args.recursive):
 					logging.info('Parsing file %s' % filename)
 					try:
-						print('await')
 						mimi = await apypykatz.parse_minidump_file(filename, packages = args.packages)
 						results[filename] = mimi
 					except Exception as e:
