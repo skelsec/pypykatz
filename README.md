@@ -1,7 +1,23 @@
+![Supported Python versions](https://img.shields.io/badge/python-3.7+-blue.svg) [![Twitter](https://img.shields.io/twitter/follow/skelsec?label=skelsec&style=social)](https://twitter.com/intent/follow?screen_name=skelsec)
+
+:triangular_flag_on_post: This is the public repository of PyPyKatz, for latest version and updates please consider supporting us through https://porchetta.industries/
+
 # pypykatz
 Mimikatz implementation in pure Python. At least a part of it :)  
 Runs on all OS's which support python>=3.6
 ![pypy_card](https://user-images.githubusercontent.com/19204702/71646030-221fe200-2ce1-11ea-9e2a-e587ea4790d7.jpg)
+
+## :triangular_flag_on_post: Sponsors
+
+If you want to sponsors this project and have the latest updates on this project, latest issues fixed, latest features, please support us on https://porchetta.industries/
+
+## Official Discord Channel
+
+Come hang out on Discord!
+
+[![Porchetta Industries](https://discordapp.com/api/guilds/736724457258745996/widget.png?style=banner3)](https://discord.gg/ycGXUxy)
+
+
 
 ## WIKI
 Since version 0.1.1 the command line changed a little. Worry not, I have an awesome [WIKI](https://github.com/skelsec/pypykatz/wiki) for you.
