@@ -6,7 +6,7 @@
 
 #import io
 #from minidump.win_datatypes import *
-from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild
+from pypykatz.commons.common import KatzSystemArchitecture, WindowsBuild, WindowsMinBuild
 from pypykatz.commons.win_datatypes import LUID, ULONG, POINTER
 from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
@@ -70,13 +70,13 @@ class WdigestTemplate(PackageTemplate):
 				template.primary_offset = 32
 				template.list_entry = PWdigestListEntry
 			
-			elif sysinfo.buildnumber >= WindowsMinBuild.WIN_10.value:
+			elif WindowsMinBuild.WIN_10.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1809.value:
 				template.signature = b'\x74\x15\x8b\x0a\x39\x4e\x10'
 				template.first_entry_offset = -6
 				template.primary_offset = 32
 				template.list_entry = PWdigestListEntry
 				
-			else:
+			else: # sysinfo.buildnumber >= WindowsBuild.WIN_10_1809:
 				template.signature = b'\x74\x15\x8b\x17\x39\x56\x10'
 				template.first_entry_offset = -6
 				template.primary_offset = 32

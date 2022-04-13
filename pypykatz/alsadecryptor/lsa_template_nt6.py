@@ -66,10 +66,13 @@ class LsaTemplate_NT6(PackageTemplate):
 				
 			elif WindowsMinBuild.WIN_10.value <= sysinfo.buildnumber <= WindowsBuild.WIN_10_1507.value:
 				template = templates['nt6']['x86']['5']
-				
-				
-			elif sysinfo.buildnumber > WindowsBuild.WIN_10_1507.value:
+			
+			elif WindowsBuild.WIN_10_1507.value > sysinfo.buildnumber < WindowsBuild.WIN_10_1909.value:
+				#6
 				template = templates['nt6']['x86']['6']
+			else:
+				#7
+				template = templates['nt6']['x86']['7']
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X64:
 		
@@ -218,6 +221,49 @@ class KIWI_BCRYPT_KEY81:
 		res.unk7 = await ULONG.loadvalue(reader)
 		res.unk8 = await ULONG.loadvalue(reader)
 		res.unk9 = await ULONG.loadvalue(reader)
+		res.hardkey = await KIWI_HARD_KEY.load(reader)
+		return res
+		
+	def verify(self):
+		return self.tag == b'KSSM'
+
+
+class KIWI_BCRYPT_KEY81_NEW:
+	def __init__(self):
+		self.size = None
+		self.tag  = None
+		self.type = None 
+		self.unk0 = None 
+		self.unk1 = None 
+		self.unk2 = None  
+		self.unk3 = None 
+		self.unk4 = None 
+		self.unk5 = None	#before, align in x64
+		self.unk6 = None
+		self.unk7 = None
+		self.unk8 = None
+		self.unk9 = None
+		self.unk10 = None
+		self.hardkey = None
+	
+	@staticmethod
+	async def load(reader):
+		res = KIWI_BCRYPT_KEY81_NEW()
+		res.size = await ULONG.loadvalue(reader)
+		res.tag  = await reader.read(4)	# 'MSSK'
+		res.type = await ULONG.loadvalue(reader)
+		res.unk0 = await ULONG.loadvalue(reader)
+		res.unk1 = await ULONG.loadvalue(reader)
+		res.unk2 = await ULONG.loadvalue(reader) 
+		res.unk3 = await ULONG.loadvalue(reader)
+		res.unk4 = await ULONG.loadvalue(reader)
+		await reader.align()
+		res.unk5 = await PVOID.load(reader)	#before, align in x64
+		res.unk6 = await ULONG.loadvalue(reader)
+		res.unk7 = await ULONG.loadvalue(reader)
+		res.unk8 = await ULONG.loadvalue(reader)
+		res.unk9 = await ULONG.loadvalue(reader)
+		res.unk10 = await ULONG.loadvalue(reader)
 		res.hardkey = await KIWI_HARD_KEY.load(reader)
 		return res
 		
@@ -416,7 +462,19 @@ class LSA_x86_6(LsaTemplate_NT6):
 		self.key_struct = KIWI_BCRYPT_KEY81
 		self.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 
+class LSA_x86_7(LsaTemplate_NT6):
+	def __init__(self):
+		LsaTemplate_NT6.__init__(self)
 
+		self.key_pattern = LSADecyptorKeyPattern()
+		self.key_pattern.signature = b'\x6a\x02\x6a\x10\x68'
+		self.key_pattern.IV_length = 16
+		self.key_pattern.offset_to_IV_ptr = 5
+		self.key_pattern.offset_to_DES_key_ptr = -79
+		self.key_pattern.offset_to_AES_key_ptr = -22
+
+		self.key_struct = KIWI_BCRYPT_KEY81_NEW
+		self.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 
 templates = {
 	'nt6' : {
@@ -435,6 +493,7 @@ templates = {
 			'4' : LSA_x86_4(),
 			'5' : LSA_x86_5(),
 			'6' : LSA_x86_6(),
+			'7' : LSA_x86_7(),
 		}
 	}
 }
