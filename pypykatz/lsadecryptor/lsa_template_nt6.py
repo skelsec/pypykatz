@@ -84,7 +84,6 @@ class LsaTemplate_NT6(PackageTemplate):
 				template = templates['nt6']['x86']['7']
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X64:
-		
 			if sysinfo.buildnumber <= WindowsMinBuild.WIN_XP.value:
 				raise Exception("Maybe implemented later")
 			
