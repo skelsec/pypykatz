@@ -99,7 +99,7 @@ Parameter: ```-t```
 Values: ```0``` or ```1```  
 Example:  
 ```
-pypykatz.py rekall <momeory_dump_file> -t 0
+pypykatz.py rekall <memory_dump_file> -t 0
 ```  
 
 ## Rekall usage
