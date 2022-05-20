@@ -106,10 +106,10 @@ class DPAPI_BLOB:
 		
 		cipher = ALGORITHMS_DATA[self.crypto_algorithm][1](derived_key[:ALGORITHMS_DATA[self.crypto_algorithm][0]],
 					mode=ALGORITHMS_DATA[self.crypto_algorithm][2], IV=b'\x00'*ALGORITHMS_DATA[self.crypto_algorithm][3])
-		cleartext = unpad(cipher.decrypt(self.data), cipher.block_size)
+		cleartext = unpad(cipher.decrypt(self.data), ALGORITHMS_DATA[self.crypto_algorithm][3])
 		
 		# Calculate the different HMACKeys
-		hash_block_size = ALGORITHMS_DATA[self.hash_algorithm][1]().block_size
+		hash_block_size = ALGORITHMS_DATA[self.hash_algorithm][4]
 		key_hash_2 = key_hash + b"\x00"*hash_block_size
 		ipad = bytearray([i ^ 0x36 for i in bytearray(key_hash_2)][:hash_block_size])
 		opad = bytearray([i ^ 0x5c for i in bytearray(key_hash_2)][:hash_block_size])

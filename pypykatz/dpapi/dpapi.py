@@ -680,7 +680,10 @@ class DPAPI:
 		return self.decrypt_all_chrome(dbpaths)
 		
 		
-	def decrypt_all_chrome(self, dbpaths):
+	def decrypt_all_chrome(self, dbpaths, throw = False):
+		from unicrypto import use_library, get_cipher_by_name
+		AES = get_cipher_by_name('AES', 'cryptography')
+
 		results = {}
 		results['logins'] = []
 		results['cookies'] = []
@@ -696,6 +699,8 @@ class DPAPI:
 				try:
 					localstate_dec = self.decrypt_blob_bytes(encrypted_key[5:])
 				except:
+					if throw is True:
+						raise Exception('LocalState decryption failed!')
 					# this localstate was encrypted for another user...
 					continue
 			if 'cookies' in dbpaths[username]:
@@ -705,8 +710,8 @@ class DPAPI:
 						nonce = encrypted_value[3:3+12]
 						ciphertext = encrypted_value[3+12:-16]
 						tag = encrypted_value[-16:]
-						cipher = AES(localstate_dec, MODE_GCM)
-						dec_val = cipher.decrypt(nonce, ciphertext, tag, auth_data=b'')
+						cipher = AES(localstate_dec, MODE_GCM, IV=nonce, segment_size = 16)
+						dec_val = cipher.decrypt(ciphertext, b'', tag)
 						results['cookies'].append((dbpaths[username]['cookies'], host_key, name, path, dec_val ))
 						results['fmtcookies'].append(DPAPI.cookieformatter('https://' + host_key, name, path, dec_val))
 					else:
@@ -721,13 +726,13 @@ class DPAPI:
 						nonce = enc_password[3:3+12]
 						ciphertext = enc_password[3+12:-16]
 						tag = enc_password[-16:]
-						cipher = AES(localstate_dec, MODE_GCM)
-						password = cipher.decrypt(nonce, ciphertext, tag, auth_data=b'')
+						cipher = AES(localstate_dec, MODE_GCM, IV=nonce, segment_size = 16)
+						password = cipher.decrypt(ciphertext, b'', tag)
 						results['logins'].append((dbpaths[username]['logindata'], url, user, password))
 					
 					else:
 						password = self.decrypt_blob_bytes(enc_password)
-						results['logins'].append((dbpaths[username]['logindata'], url, user, password ))
+						results['logins'].append((dbpaths[username]['logindata'], url, user, password))
 				
 		return results
 		
