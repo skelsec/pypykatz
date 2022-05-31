@@ -61,14 +61,16 @@ class PackageDecryptor:
 	def log(self, msg, loglevel = 6):
 		self.logger.log('%s' % msg, loglevel)
 		
-	def find_signature(self, module_name, signature):
+	def find_signature(self, module_name, signature = None):
 		"""
 		Searches for a sequence of bytes in the module identified by module_name
 		"""
 		self.log('Searching for key struct signature')
-		fl = self.reader.find_in_module(module_name, self.decryptor_template.signature, find_first = True)
+		if signature is None:
+			signature = self.decryptor_template.signature
+		fl = self.reader.find_in_module(module_name, signature, find_first = True)
 		if len(fl) == 0:
-			raise Exception('Signature was not found in module %s Signature: %s' % (module_name, self.decryptor_template.signature.hex()))
+			raise Exception('Signature was not found in module %s Signature: %s' % (module_name, signature.hex()))
 		return fl[0]
 		
 	def log_ptr(self, ptr, name, datasize = None):

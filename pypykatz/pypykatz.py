@@ -253,9 +253,8 @@ class pypykatz:
 			else:
 				logger.debug('Lucky you! Brutefoce method found a -probably- working template!')
 				return lsa_dec
-	
 	def get_lsa(self):
-		#trying with automatic template detection
+		#trying with automatic template detection		
 		try:
 			lsa_dec_template = LsaTemplate.get_template(self.sysinfo)
 			lsa_dec = LsaDecryptor.choose(self.reader, lsa_dec_template, self.sysinfo)

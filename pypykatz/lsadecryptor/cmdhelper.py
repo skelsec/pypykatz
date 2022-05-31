@@ -11,7 +11,7 @@ import ntpath
 import traceback
 import base64
 
-from pypykatz import logging
+from pypykatz import logger
 from pypykatz.pypykatz import pypykatz
 from pypykatz.commons.common import UniversalEncoder
 from pypykatz.lsadecryptor.packages.msv.decryptor import LogonSession
@@ -139,6 +139,7 @@ class LSACMDHelper:
 						print('== Errors ==')
 						for pkg, err in results[result].errors:
 							err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
+							logger.debug(err_str)
 							err_str = base64.b64encode(err_str.encode()).decode()
 							print('%s %s' % (pkg+'_exception_please_report',err_str))
 							
@@ -152,7 +153,7 @@ class LSACMDHelper:
 		
 		if args.kerberos_dir:
 			dir = os.path.abspath(args.kerberos_dir)
-			logging.info('Writing kerberos tickets to %s' % dir)
+			logger.info('Writing kerberos tickets to %s' % dir)
 			for filename in results:
 				base_filename = ntpath.basename(filename)
 				ccache_filename = '%s_%s.ccache' % (base_filename, os.urandom(4).hex()) #to avoid collisions
@@ -215,9 +216,9 @@ class LSACMDHelper:
 				else:	
 					globdata = os.path.join(dir_fullpath, file_pattern)
 					
-				logging.info('Parsing folder %s' % dir_fullpath)
+				logger.info('Parsing folder %s' % dir_fullpath)
 				for filename in glob.glob(globdata, recursive=args.recursive):
-					logging.info('Parsing file %s' % filename)
+					logger.info('Parsing file %s' % filename)
 					try:
 						if args.kerberos_dir is not None and 'all' not in args.packages:
 							args.packages.append('ktickets')
@@ -227,14 +228,14 @@ class LSACMDHelper:
 							raise Exception('Error in modules!')
 					except Exception as e:
 						files_with_error.append(filename)
-						logging.exception('Error parsing file %s ' % filename)
+						logger.exception('Error parsing file %s ' % filename)
 						if args.halt_on_error == True:
 							raise e
 						else:
 							pass
 					
 			else:
-				logging.info('Parsing file %s' % args.memoryfile)
+				logger.info('Parsing file %s' % args.memoryfile)
 				try:
 					if args.kerberos_dir is not None and 'all' not in args.packages:
 						args.packages.append('ktickets')
@@ -243,7 +244,7 @@ class LSACMDHelper:
 					if args.halt_on_error == True and len(mimi.errors) > 0:
 						raise Exception('Error in modules!')
 				except Exception as e:
-					logging.exception('Error while parsing file %s' % args.memoryfile)
+					logger.exception('Error while parsing file %s' % args.memoryfile)
 					if args.halt_on_error == True:
 						raise e
 					else:

@@ -6,9 +6,8 @@
 import io
 import json
 import base64
-from pypykatz.commons.common import WindowsMinBuild, KatzSystemArchitecture, GenericReader, UniversalEncoder, hexdump
+from pypykatz.commons.common import WindowsBuild, WindowsMinBuild, KatzSystemArchitecture, GenericReader, UniversalEncoder, hexdump
 from pypykatz.commons.filetime import filetime_to_dt
-#from pypykatz.commons.win_datatypes import *
 from pypykatz.lsadecryptor.packages.msv.templates import MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC
 from pypykatz.lsadecryptor.packages.credman.templates import KIWI_CREDMAN_LIST_STARTER, KIWI_CREDMAN_SET_LIST_ENTRY
 from pypykatz.lsadecryptor.package_commons import PackageDecryptor
@@ -285,20 +284,23 @@ class MsvDecryptor(PackageDecryptor):
 
 	def find_first_entry(self):
 		#finding signature
+		#input('sig %s' % self.decryptor_template.signature.hex())
+		#input('sig %s' % self.decryptor_template.first_entry_offset)
 		position = self.find_signature('lsasrv.dll',self.decryptor_template.signature)
 
 		#getting logon session count
-		if self.sysinfo.architecture == KatzSystemArchitecture.X64 and self.sysinfo.buildnumber > WindowsMinBuild.WIN_BLUE.value:
-			ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.offset2)
-			self.reader.move(ptr_entry_loc)
-			self.logon_session_count = int.from_bytes(self.reader.read(1), byteorder = 'big', signed = False)
-		else:
-			self.logon_session_count = 1
+		self.logon_session_count = 1
+		if self.sysinfo.architecture == KatzSystemArchitecture.X64:
+			if self.sysinfo.buildnumber >= WindowsBuild.WIN_8.value or (WindowsMinBuild.WIN_8.value <= self.sysinfo.buildnumber < WindowsMinBuild.WIN_BLUE.value and self.sysinfo.msv_dll_timestamp > 0x60000000):
+				ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.offset2)
+				self.reader.move(ptr_entry_loc)
+				self.logon_session_count = int.from_bytes(self.reader.read(1), byteorder = 'big', signed = False)
 
 		#getting logon session ptr
 		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc
+
 	
 	def add_entry(self, entry):
 		self.current_logonsession = LogonSession.parse(entry, self.reader)
@@ -357,7 +359,7 @@ class MsvDecryptor(PackageDecryptor):
 		self.log('Decrypting credential structure')
 		dec_data, raw_dec = self.decrypt_password(encrypted_credential_data, bytes_expected = True)
 		self.log('%s: \n%s' % (self.decryptor_template.decrypted_credential_struct.__name__, hexdump(dec_data)))
-			
+
 		struct_reader = GenericReader(dec_data, self.sysinfo.architecture)
 		if len(dec_data) == MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC.size and dec_data[4:8] == b'\xcc\xcc\xcc\xcc':
 			creds_struct = MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC(struct_reader)
