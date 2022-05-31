@@ -637,7 +637,7 @@ class DPAPI:
 		return db_paths
 	
 	@staticmethod
-	def get_chrome_encrypted_secret(db_path):
+	def get_chrome_encrypted_secret(db_path, dbtype):
 		results = {}
 		results['logins'] = []
 		results['cookies'] = []
@@ -650,7 +650,7 @@ class DPAPI:
 			logger.debug('Failed to open chrome DB file %s' % db_path)
 			return results
 		
-		if ntpath.basename(db_path).lower() == 'cookies':
+		if dbtype.lower() == 'cookies':
 			try:
 				#totally not stolen from here https://github.com/byt3bl33d3r/chrome-decrypter/blob/master/chrome_decrypt.py
 				cursor.execute('SELECT host_key, name, path, encrypted_value FROM cookies')
@@ -661,7 +661,7 @@ class DPAPI:
 			for host_key, name, path, encrypted_value in cursor.fetchall():
 				results['cookies'].append((host_key, name, path, encrypted_value))
 
-		elif ntpath.basename(db_path).lower() == 'login data':
+		elif dbtype.lower() == 'logindata':
 
 			try:
 				#totally not stolen from here https://github.com/byt3bl33d3r/chrome-decrypter/blob/master/chrome_decrypt.py
@@ -704,7 +704,7 @@ class DPAPI:
 					# this localstate was encrypted for another user...
 					continue
 			if 'cookies' in dbpaths[username]:
-				secrets = DPAPI.get_chrome_encrypted_secret(dbpaths[username]['cookies'])
+				secrets = DPAPI.get_chrome_encrypted_secret(dbpaths[username]['cookies'], 'cookies')
 				for host_key, name, path, encrypted_value in secrets['cookies']:
 					if encrypted_value.startswith(b'v10'):
 						nonce = encrypted_value[3:3+12]
@@ -720,7 +720,7 @@ class DPAPI:
 						results['fmtcookies'].append(DPAPI.cookieformatter('https://' + host_key, name, path, dec_val))
 
 			if 'logindata' in dbpaths[username]:
-				secrets = DPAPI.get_chrome_encrypted_secret(dbpaths[username]['logindata'])
+				secrets = DPAPI.get_chrome_encrypted_secret(dbpaths[username]['logindata'], 'logindata')
 				for url, user, enc_password in secrets['logins']:
 					if enc_password.startswith(b'v10'):
 						nonce = enc_password[3:3+12]
