@@ -4,17 +4,7 @@
 #  Tamas Jos (@skelsec)
 #
 
-import os
-import json
-import glob
-import ntpath
-import traceback
 import argparse
-
-from pypykatz import logging
-from pypykatz.commons.common import UniversalEncoder
-
-
 
 class RemoteCMDHelper:
 	def __init__(self):

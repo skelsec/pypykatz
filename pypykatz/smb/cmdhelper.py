@@ -15,7 +15,7 @@ import argparse
 import base64
 import traceback
 
-from pypykatz import logging
+from pypykatz import logger
 from pypykatz.commons.common import UniversalEncoder
 from pypykatz.alsadecryptor.packages.msv.decryptor import LogonSession
 
@@ -249,7 +249,7 @@ class SMBCMDHelper:
 		if args.verbose == 0:
 			smblog.setLevel(100)
 		elif args.verbose == 1:
-			smblog.setLevel(level=logging.INFO)
+			smblog.setLevel(level=logger.INFO)
 		else:
 			level = 5 - args.verbose
 			smblog.setLevel(level=level)
@@ -294,7 +294,7 @@ class SMBCMDHelper:
 				if mimi is not None:
 					self.process_results({'smbfile':mimi}, [], args, file_prefix='_lsass.txt')
 			except Exception as e:
-				logging.exception('[SECRETSDUMP] Failed to get LSASS secrets')
+				logger.exception('[SECRETSDUMP] Failed to get LSASS secrets')
 			
 			try:
 				po = await regdump(smb_url)
@@ -307,7 +307,7 @@ class SMBCMDHelper:
 						else:
 							print(str(po))
 			except Exception as e:
-				logging.exception('[SECRETSDUMP] Failed to get registry secrets')
+				logger.exception('[SECRETSDUMP] Failed to get registry secrets')
 			
 
 			try:
@@ -321,7 +321,7 @@ class SMBCMDHelper:
 						print(str(secret))
 
 			except Exception as e:
-				logging.exception('[SECRETSDUMP] Failed to perform DCSYNC')
+				logger.exception('[SECRETSDUMP] Failed to perform DCSYNC')
 			finally:
 				if args.outfile is not None:
 					outfile.close()
@@ -423,7 +423,7 @@ class SMBCMDHelper:
 		if args.verbose == 0:
 			smblog.setLevel(100)
 		elif args.verbose == 1:
-			smblog.setLevel(level=logging.INFO)
+			smblog.setLevel(level=logger.INFO)
 		else:
 			level = 5 - args.verbose
 			smblog.setLevel(level=level)
@@ -457,7 +457,7 @@ class SMBCMDHelper:
 				if mimi is not None:
 					self.process_results({'smbfile':mimi}, [], args, file_prefix='_lsass.txt')
 			except Exception as e:
-				logging.exception('[SECRETSDUMP] Failed to get LSASS secrets')
+				logger.exception('[SECRETSDUMP] Failed to get LSASS secrets')
 			
 			try:
 				po = await regdump(args.url)
@@ -470,7 +470,7 @@ class SMBCMDHelper:
 						else:
 							print(str(po))
 			except Exception as e:
-				logging.exception('[SECRETSDUMP] Failed to get registry secrets')
+				logger.exception('[SECRETSDUMP] Failed to get registry secrets')
 			
 
 			try:
@@ -484,7 +484,7 @@ class SMBCMDHelper:
 						print(str(secret))
 
 			except Exception as e:
-				logging.exception('[SECRETSDUMP] Failed to perform DCSYNC')
+				logger.exception('[SECRETSDUMP] Failed to perform DCSYNC')
 			finally:
 				if args.outfile is not None:
 					outfile.close()
@@ -706,7 +706,7 @@ class SMBCMDHelper:
 		
 		if args.kerberos_dir:
 			dir = os.path.abspath(args.kerberos_dir)
-			logging.info('Writing kerberos tickets to %s' % dir)
+			logger.info('Writing kerberos tickets to %s' % dir)
 			for filename in results:
 				base_filename = ntpath.basename(filename)
 				ccache_filename = '%s_%s.ccache' % (base_filename, os.urandom(4).hex()) #to avoid collisions

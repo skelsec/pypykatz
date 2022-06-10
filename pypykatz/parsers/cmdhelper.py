@@ -6,17 +6,8 @@
 #  Tamas Jos (@skelsec)
 #
 
-import os
-import json
-import ntpath
 import asyncio
 import platform
-import argparse
-import base64
-import traceback
-
-from pypykatz import logging
-from pypykatz.commons.common import UniversalEncoder
 
 
 class ParsersCMDHelper:

@@ -1,7 +1,3 @@
-import asyncio
-import os
-
-from pypykatz import logging
 from msldap.commons.url import MSLDAPURLDecoder
 from aiosmb.examples.smbshareenum import SMBFileEnum, ListTargetGen, FileTargetGen
 

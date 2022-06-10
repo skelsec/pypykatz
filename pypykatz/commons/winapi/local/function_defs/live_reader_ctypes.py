@@ -1,8 +1,5 @@
-import os
-import sys
 import ctypes
 import enum
-import logging
 
 from pypykatz import logger
 from .ntdll import *

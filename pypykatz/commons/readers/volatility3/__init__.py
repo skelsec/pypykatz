@@ -1,4 +1,3 @@
-import logging
 from typing import List
 
 from volatility3.framework import interfaces, constants, exceptions, symbols

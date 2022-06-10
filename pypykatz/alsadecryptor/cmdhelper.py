@@ -12,7 +12,7 @@ import traceback
 import asyncio
 import base64
 
-from pypykatz import logging
+from pypykatz import logger
 from pypykatz.apypykatz import apypykatz
 from pypykatz.commons.common import UniversalEncoder
 from pypykatz.alsadecryptor.packages.msv.decryptor import LogonSession
@@ -144,7 +144,7 @@ class LSACMDHelper:
 		
 		if args.kerberos_dir:
 			dir = os.path.abspath(args.kerberos_dir)
-			logging.info('Writing kerberos tickets to %s' % dir)
+			logger.info('Writing kerberos tickets to %s' % dir)
 			for filename in results:
 				base_filename = ntpath.basename(filename)
 				ccache_filename = '%s_%s.ccache' % (base_filename, os.urandom(4).hex()) #to avoid collisions
@@ -175,27 +175,27 @@ class LSACMDHelper:
 				else:	
 					globdata = os.path.join(dir_fullpath, file_pattern)
 					
-				logging.info('Parsing folder %s' % dir_fullpath)
+				logger.info('Parsing folder %s' % dir_fullpath)
 				for filename in glob.glob(globdata, recursive=args.recursive):
-					logging.info('Parsing file %s' % filename)
+					logger.info('Parsing file %s' % filename)
 					try:
 						mimi = await apypykatz.parse_minidump_file(filename, packages = args.packages)
 						results[filename] = mimi
 					except Exception as e:
 						files_with_error.append(filename)
-						logging.exception('Error parsing file %s ' % filename)
+						logger.exception('Error parsing file %s ' % filename)
 						if args.halt_on_error == True:
 							raise e
 						else:
 							pass
 					
 			else:
-				logging.info('Parsing file %s' % args.memoryfile)
+				logger.info('Parsing file %s' % args.memoryfile)
 				try:
 					mimi = await apypykatz.parse_minidump_file(args.memoryfile, packages = args.packages)
 					results[args.memoryfile] = mimi
 				except Exception as e:
-					logging.exception('Error while parsing file %s' % args.memoryfile)
+					logger.exception('Error while parsing file %s' % args.memoryfile)
 					if args.halt_on_error == True:
 						raise e
 					else:

@@ -1,8 +1,5 @@
-import os
-import sys
 import ctypes
 import enum
-import logging
 
 from pypykatz.commons.readers.local.common.kernel32 import *
 from pypykatz.commons.readers.local.common.psapi import *

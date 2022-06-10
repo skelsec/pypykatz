@@ -4,13 +4,10 @@
 #  Tamas Jos (@skelsec)
 #
 
-import os
 import json
-import glob
-import ntpath
 import traceback
 
-from pypykatz import logging
+from pypykatz import logger
 from pypykatz.commons.common import UniversalEncoder
 
 
@@ -56,12 +53,12 @@ class RegistryCMDHelper:
 			lr = LiveRegistry.go_live()
 		except Exception as e:
 			traceback.print_exc()
-			logging.debug('Failed to obtain registry secrets via direct registry reading method. Reason: %s' % str(e))
+			logger.debug('Failed to obtain registry secrets via direct registry reading method. Reason: %s' % str(e))
 			try:
 				from pypykatz.registry.offline_parser import OffineRegistry
 				lr = OffineRegistry.from_live_system()
 			except Exception as e:
-				logging.debug('Failed to obtain registry secrets via filedump method')
+				logger.debug('Failed to obtain registry secrets via filedump method')
 		
 		if lr is not None:
 			self.process_results(lr, args)

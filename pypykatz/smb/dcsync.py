@@ -1,5 +1,5 @@
 import asyncio
-from pypykatz import logging
+from pypykatz import logger
 
 async def dcsync(url, username = None):
 	from aiosmb.commons.connection.url import SMBConnectionURL
@@ -13,13 +13,13 @@ async def dcsync(url, username = None):
 		users.append(username)
 
 	async with connection:
-		logging.debug('[DCSYNC] Connecting to server...')
+		logger.debug('[DCSYNC] Connecting to server...')
 		_, err = await connection.login()
 		if err is not None:
 			raise err
 		
-		logging.debug('[DCSYNC] Connected to server!')
-		logging.debug('[DCSYNC] Running...')
+		logger.debug('[DCSYNC] Connected to server!')
+		logger.debug('[DCSYNC] Running...')
 
 		i = 0
 		async with SMBMachine(connection) as machine:
@@ -28,9 +28,9 @@ async def dcsync(url, username = None):
 					raise err
 				i += 1
 				if i % 1000 == 0:
-					logging.debug('[DCSYNC] Running... %s' % i)
+					logger.debug('[DCSYNC] Running... %s' % i)
 				await asyncio.sleep(0)
 				yield secret
 		
-		logging.debug('[DCSYNC] Finished!')
+		logger.debug('[DCSYNC] Finished!')
 		

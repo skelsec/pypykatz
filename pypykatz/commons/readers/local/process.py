@@ -2,6 +2,7 @@ from .common.version import *
 from .common.live_reader_ctypes import *
 from pypykatz.commons.winapi.local.function_defs.kernel32 import LoadLibraryW, GetProcAddressW, VirtualProtectEx, VirtualAllocEx, VirtualFreeEx, CreateRemoteThread
 from pypykatz.commons.winapi.local.function_defs.advapi32 import OpenProcessToken, DuplicateTokenEx
+from pypykatz import logger
 from minidump.streams.SystemInfoStream import PROCESSOR_ARCHITECTURE
 import ntpath
 import os
@@ -143,7 +144,7 @@ class Process:
 		module_handles = EnumProcessModules(self.phandle)
 		for module_handle in module_handles:
 			module_file_path = GetModuleFileNameExW(self.phandle, module_handle)
-			logging.log(1, module_file_path)
+			logger.log(1, module_file_path)
 			timestamp = 0
 			if ntpath.basename(module_file_path).lower() == 'msv1_0.dll':
 				timestamp = int(os.stat(module_file_path).st_ctime)

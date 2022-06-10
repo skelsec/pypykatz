@@ -4,9 +4,7 @@
 #  Tamas Jos (@skelsec)
 #
 
-import io
 import enum
-import logging
 from minidump.win_datatypes import DWORD, LONG, LONGLONG, \
 	POINTER, UINT8, ULONG, PWSTR, USHORT, PCHAR, SHORT, \
 	BYTE, PVOID, WORD, DWORD64

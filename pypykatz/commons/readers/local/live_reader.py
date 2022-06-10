@@ -12,7 +12,7 @@ from .common.kernel32 import *
 from .common.fileinfo import *
 from minidump.streams.SystemInfoStream import PROCESSOR_ARCHITECTURE
 
-import logging
+from pypykatz import logger
 import sys
 import copy
 import platform
@@ -329,13 +329,13 @@ class LiveReader:
 			raise Exception('Python interpreter must be the same architecure of the OS you are running it on.')
 		
 	def setup(self):
-		logging.log(1, 'Enabling debug privilege')
+		logger.log(1, 'Enabling debug privilege')
 		enable_debug_privilege()
-		logging.log(1, 'Getting generic system info')
+		logger.log(1, 'Getting generic system info')
 		sysinfo = GetSystemInfo()
 		self.processor_architecture = PROCESSOR_ARCHITECTURE(sysinfo.id.w.wProcessorArchitecture)
 		
-		logging.log(1, 'Getting build number')
+		logger.log(1, 'Getting build number')
 		#self.BuildNumber = GetVersionEx().dwBuildNumber #this one doesnt work reliably on frozen binaries :(((
 		key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\')
 		buildnumber, t = winreg.QueryValueEx(key, 'CurrentBuildNumber')
@@ -346,10 +346,10 @@ class LiveReader:
 				if self.process_name is None:
 					raise Exception('Process name or PID or opened handle must be provided')
 				
-				logging.log(1, 'Searching for lsass.exe')
+				logger.log(1, 'Searching for lsass.exe')
 				self.process_pid = pid_for_name(self.process_name)
-				logging.log(1, '%s found at PID %d' % (self.process_name, self.process_pid))
-				logging.log(1, 'Checking Lsass.exe protection status')
+				logger.log(1, '%s found at PID %d' % (self.process_name, self.process_pid))
+				logger.log(1, 'Checking Lsass.exe protection status')
 				#proc_protection_info = get_protected_process_infos(pid)
 				#protection_msg = "Protection Status: No protection"
 				#if proc_protection_info:
@@ -357,19 +357,19 @@ class LiveReader:
 				#	if 'signer' in proc_protection_info:
 				#		protection_msg += f" ({proc_protection_info['signer']})"
 				#	raise Exception('Failed to open lsass.exe Reason: %s' % protection_msg)
-				#logging.log(1, protection_msg)
-			logging.log(1, 'Opening %s' % self.process_name)
+				#logger.log(1, protection_msg)
+			logger.log(1, 'Opening %s' % self.process_name)
 			self.process_handle = OpenProcess(PROCESS_ALL_ACCESS, False, self.process_pid)
 			if self.process_handle is None:
 				raise Exception('Failed to open lsass.exe Reason: %s' % ctypes.WinError())
 		else:
-			logging.debug('Using pre-defined handle')
-		logging.log(1, 'Enumerating modules')
+			logger.debug('Using pre-defined handle')
+		logger.log(1, 'Enumerating modules')
 		module_handles = EnumProcessModules(self.process_handle)
 		for module_handle in module_handles:
 			
 			module_file_path = GetModuleFileNameExW(self.process_handle, module_handle)
-			logging.log(1, module_file_path)
+			logger.log(1, module_file_path)
 			timestamp = 0
 			if ntpath.basename(module_file_path).lower() == 'msv1_0.dll':
 				timestamp = int(os.stat(module_file_path).st_ctime)
@@ -377,7 +377,7 @@ class LiveReader:
 			modinfo = GetModuleInformation(self.process_handle, module_handle)
 			self.modules.append(Module.parse(module_file_path, modinfo, timestamp))
 			
-		logging.log(1, 'Found %d modules' % len(self.modules))
+		logger.log(1, 'Found %d modules' % len(self.modules))
 			
 		current_address = sysinfo.lpMinimumApplicationAddress
 		while current_address < sysinfo.lpMaximumApplicationAddress:
@@ -386,7 +386,7 @@ class LiveReader:
 			
 			current_address += page_info.RegionSize
 			
-		logging.log(1, 'Found %d pages' % len(self.pages))
+		logger.log(1, 'Found %d pages' % len(self.pages))
 		
 		
 		for page in self.pages:
@@ -433,7 +433,7 @@ class LiveReader:
 		return t
 		
 if __name__ == '__main__':
-	logging.basicConfig(level=1)
+	logger.basicConfig(level=1)
 	lr = LiveReader()
 	blr = lr.get_buffered_reader()
 	

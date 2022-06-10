@@ -5,7 +5,7 @@
 #
 
 from abc import ABC, abstractmethod
-import logging
+from pypykatz import logger
 from pypykatz.commons.common import hexdump
 from pypykatz.alsadecryptor.win_datatypes import RTL_AVL_TABLE
 
@@ -14,7 +14,7 @@ class Logger:
 		self.package_name = package_name
 		self.module_name = module_name
 		self.sysinfo = sysinfo
-		self.logger = logging.getLogger('pypykatz')
+		self.logger = logger
 		
 	def get_level(self):
 		return self.logger.getEffectiveLevel()

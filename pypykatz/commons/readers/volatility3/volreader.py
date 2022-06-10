@@ -10,9 +10,6 @@
 # they probably have more important things to deal with :)
 #
 
-import logging
-
-from pypykatz.pypykatz import pypykatz
 from pypykatz.commons.common import *
 
 from . import *

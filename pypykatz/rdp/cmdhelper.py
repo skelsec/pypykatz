@@ -4,15 +4,6 @@
 #  Tamas Jos (@skelsec)
 #
 
-import os
-import json
-import glob
-import ntpath
-import traceback
-import base64
-
-from pypykatz import logging
-from pypykatz.commons.common import UniversalEncoder
 from pypykatz.rdp.parser import RDPCredParser
 
 
