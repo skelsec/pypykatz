@@ -53,11 +53,11 @@ setup(
 	install_requires=[
 		'unicrypto>=0.0.5',
 		'minidump>=0.0.21',
-		'minikerberos>=0.2.20',
+		'minikerberos>=0.3.0',
 		'aiowinreg>=0.0.7',
-		'msldap>=0.3.38',
+		'msldap>=0.4.0',
 		'winacl>=0.1.2',
-		'aiosmb>=0.3.8',
+		'aiosmb>=0.4.0',
 		'aesedb>=0.0.5',
 	],
 	

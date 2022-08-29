@@ -1,25 +1,16 @@
 
-from pypykatz.kerberos.kirbiutils import parse_kirbi, print_kirbi
 from pypykatz import logger
 import os
 import ntpath
 import glob
-import pprint
-import platform
-import datetime
-
-from msldap.commons.url import MSLDAPURLDecoder
 
 from minikerberos.security import KerberosUserEnum, APREPRoast, Kerberoast
-from msldap.authentication.kerberos.gssapi import get_gssapi, GSSWrapToken, KRB5_MECH_INDEP_TOKEN
-from minikerberos.common.url import KerberosClientURL, kerberos_url_help_epilog
+from minikerberos.common.url import KerberosClientURL
 from minikerberos.common.spn import KerberosSPN
 from minikerberos.common.creds import KerberosCredential
 from minikerberos.common.target import KerberosTarget
 from minikerberos.common.keytab import Keytab
 from minikerberos.aioclient import AIOKerberosClient
-from minikerberos.common.utils import TGSTicket2hashcat
-from minikerberos.protocol.asn1_structs import AP_REQ, TGS_REQ, EncryptedData, KrbCredInfo, KRB_CRED, EncKDCRepPart, EncKrbCredPart
 from minikerberos.common.utils import print_table
 from minikerberos.common.ccache import CCACHE, Credential
 from minikerberos.common.utils import tgt_to_kirbi

@@ -1,4 +1,4 @@
-from msldap.commons.url import MSLDAPURLDecoder
+from msldap.commons.factory import LDAPConnectionFactory
 from aiosmb.examples.smbshareenum import SMBFileEnum, ListTargetGen, FileTargetGen
 
 def get_smb_url(authmethod = 'ntlm', protocol_version = '2', host = None):
@@ -27,7 +27,7 @@ class LDAPTargetGen:
 	
 	async def generate(self):
 		try:
-			conn_url = MSLDAPURLDecoder(self.url)
+			conn_url = LDAPConnectionFactory.from_url(self.url)
 			connection = conn_url.get_client()
 			_, err = await connection.connect()
 			if err is not None:

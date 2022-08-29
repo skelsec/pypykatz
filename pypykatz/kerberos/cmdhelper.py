@@ -21,7 +21,7 @@ from pypykatz.kerberos.kerberos import get_TGS, get_TGT, generate_targets, \
 	del_ccache, roast_ccache, ccache_to_kirbi, kirbi_to_ccache
 
 from pypykatz.kerberos.kirbiutils import parse_kirbi, format_kirbi, print_kirbi
-from msldap.commons.url import MSLDAPURLDecoder
+from msldap.commons.factory import LDAPConnectionFactory
 from minikerberos.common.spn import KerberosSPN
 from minikerberos.common.creds import KerberosCredential
 
@@ -379,7 +379,7 @@ async def get_ldap_kerberos_targets(ldap_url, target_type = 'all', authmethod = 
 	if ldap_url == 'auto':
 		ldap_url = get_ldap_url(authmethod = authmethod, host = host)
 	
-	msldap_url = MSLDAPURLDecoder(ldap_url)
+	msldap_url = LDAPConnectionFactory.from_url(ldap_url)
 	client = msldap_url.get_client()
 	_, err = await client.connect()
 	if err is not None:

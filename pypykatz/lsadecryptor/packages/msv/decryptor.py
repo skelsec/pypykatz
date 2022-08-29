@@ -14,6 +14,7 @@ from pypykatz.lsadecryptor.package_commons import PackageDecryptor
 
 class MsvCredential:
 	def __init__(self):
+		self.credtype = 'msv'
 		self.username = None
 		self.domainname = None
 		self.NThash = None
