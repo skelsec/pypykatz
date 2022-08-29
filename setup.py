@@ -51,14 +51,14 @@ setup(
 		"Operating System :: OS Independent",
 	],
 	install_requires=[
-		'unicrypto>=0.0.5',
+		'unicrypto>=0.0.8',
 		'minidump>=0.0.21',
 		'minikerberos>=0.3.0',
 		'aiowinreg>=0.0.7',
 		'msldap>=0.4.0',
 		'winacl>=0.1.2',
 		'aiosmb>=0.4.0',
-		'aesedb>=0.0.5',
+		'aesedb>=0.0.7',
 	],
 	
 	# No more conveinent .exe entry point thanks to some idiot who 
