@@ -53,12 +53,13 @@ setup(
 	install_requires=[
 		'unicrypto>=0.0.8',
 		'minidump>=0.0.21',
-		'minikerberos>=0.3.0',
+		'minikerberos>=0.3.1',
 		'aiowinreg>=0.0.7',
 		'msldap>=0.4.0',
 		'winacl>=0.1.2',
 		'aiosmb>=0.4.0',
-		'aesedb>=0.0.7',
+		'aesedb>=0.1.0',
+		'tqdm',
 	],
 	
 	# No more conveinent .exe entry point thanks to some idiot who 
