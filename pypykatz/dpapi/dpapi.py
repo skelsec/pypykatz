@@ -17,7 +17,7 @@ from hashlib import sha1, pbkdf2_hmac
 import xml.etree.ElementTree as ET
 
 from pypykatz import logger
-from pypykatz.dpapi.structures.masterkeyfile import MasterKeyFile
+from pypykatz.dpapi.structures.masterkeyfile import MasterKeyFile, DomainKey
 from pypykatz.dpapi.structures.credentialfile import CredentialFile, CREDENTIAL_BLOB
 from pypykatz.dpapi.structures.blob import DPAPI_BLOB
 from pypykatz.dpapi.structures.vault import VAULT_VCRD, VAULT_VPOL, VAULT_VPOL_KEYS
@@ -25,6 +25,14 @@ from unicrypto.hashlib import md4 as MD4
 from unicrypto.symmetric import AES, MODE_GCM, MODE_CBC
 
 from pypykatz.commons.common import UniversalEncoder
+
+
+
+# for pvk implementation
+from Cryptodome.PublicKey import RSA
+from Cryptodome.Cipher import PKCS1_v1_5
+
+
 
 if platform.system().lower() == 'windows':
 	from pypykatz.commons.winapi.processmanipulator import ProcessManipulator
@@ -416,6 +424,17 @@ class DPAPI:
 		dec_data = self.decrypt_blob_bytes(cred.data)
 		cb = CREDENTIAL_BLOB.from_bytes(dec_data)
 		return cb
+
+	# decrypt cred file with pvk output key
+	def decrypt_credential_file_with_key(self, file_path, key):
+		with open(file_path, 'rb') as f:
+			data = f.read()
+		cred = CredentialFile.from_bytes(data)
+		dec_data = self.decrypt_blob_bytes(cred.data, bytes.fromhex(key[2:]) )
+		cb = CREDENTIAL_BLOB.from_bytes(dec_data)
+		return cb
+
+
 		
 	def decrypt_blob(self, dpapi_blob, key = None):
 		"""
@@ -809,7 +828,106 @@ class DPAPI:
 	def decrypt_wifi_config_file(self, configfile):
 		wificonfig = DPAPI.parse_wifi_config_file(configfile)
 		return self.decrypt_wifi_config_file_inner(wificonfig)
+
+
 	
+
+	@staticmethod
+	def isPrime(num):
+		for i in range(2,num):
+			if (num % i) == 0:
+				prime = False
+		else:
+			prime = True
+		return prime
+
+
+
+	
+	# pvk decryption
+	def decrypt_mkf_with_pvk(self, mkffile, pvkfile):
+		logger.debug("Opening MasterKey File %s" % mkffile)
+		fp = open(mkffile, 'rb')
+		data = fp.read()
+		mkf = MasterKeyFile.from_bytes(data)
+		dk = mkf.domainkey.secret
+
+		logger.debug("Opening PVK file %s" % pvkfile)
+		pvkfile = open(pvkfile, 'rb').read()
+		# extract private key
+		pvkkey = pvkfile.replace(pvkfile[:24], b'')
+
+		# diagram of elements in the RSA private key BLOB : https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wcce/5cf2e6b9-3195-4f85-bc18-05b50e6d4e11
+		bytes_type = pvkkey[:1] # This field MUST be set to 0x07.
+		bytes_version = pvkkey[1:2] # This field MUST be set to 0x02.
+		bytes_reserved = pvkkey[2:4] # This field MUST be set to 0 and ignored upon receipt.
+		bytes_keyalg = pvkkey[4:8] # Value MUST be 0x0000A400 (RSA_KEYX).
+		bytes_magic = pvkkey[8:12] # Value MUST be 0x32415352 (RSA2).
+		bytes_bitlen = pvkkey[12:16] # The value of this field MUST indicate the number of bits in the Rivest-Shamir-Adleman (RSA) modules.
+		pubexp = 65537 # pvkkey[16:20] / The value of this field MUST be the RSA public key exponent for this key / The client SHOULD set this value to 65,537.
+		bytes_modulus = pvkkey[20:276]
+
+		hex_bitlen = bytes_bitlen.hex() # convert bytes in hex
+		littleendian_bitlen = hex_bitlen[6:8] + hex_bitlen[4:6] + hex_bitlen[2:4] + hex_bitlen[0:2] # convert bitlen in little endian
+		bitlen = int(littleendian_bitlen, 16) # calculate bitlen
+
+		modulus_length = -(-bitlen//8) # This field MUST be of length ceil(bl/8), where bl is the value of the Bitlen field defined in the preceding diagram.
+		modulus_end = modulus_length + 20 # headers = 20 bytes length
+		modulus = pvkkey[20:modulus_end] 
+
+		prime1_length = -(-bitlen//16) # This field MUST be of length ceil(bl/16), where bl is the value of the Bitlen field defined in the preceding diagram.
+		prime1_end = prime1_length + modulus_end
+		prime1 = pvkkey[modulus_end:prime1_end] 
+
+		prime2_length = -(-bitlen//16) # This field MUST be of length ceil(bl/16), where bl is the value of the Bitlen field defined in the preceding diagram.
+		prime2_end = prime2_length + prime1_end
+		prime2 = pvkkey[prime1_end:prime2_end] 
+
+		exponent1_length = -(-bitlen//16) # This field MUST be of length ceil(bl/16), where bl is the value of the Bitlen field defined in the preceding diagram.
+		exponent1_end = exponent1_length + prime2_end
+		exponent1 = pvkkey[prime2_end:exponent1_end] 
+
+		exponent2_length = -(-bitlen//16) # This field MUST be of length ceil(bl/16), where bl is the value of the Bitlen field defined in the preceding diagram.
+		exponent2_end = exponent2_length + exponent1_end
+		exponent2 = pvkkey[exponent1_end:exponent2_end] 
+
+		coefficient_length = -(-bitlen//16) # This field MUST be of length ceil(bl/16), where bl is the value of the Bitlen field defined in the preceding diagram.
+		coefficient_end = coefficient_length + exponent2_end
+		coefficient = pvkkey[exponent2_end:coefficient_end] 
+
+		privateExponent_length = -(-bitlen//8) # This field MUST be of length ceil(bl/8), where bl is the value of the Bitlen field defined in the preceding diagram.
+		privateExponent = pvkkey[coefficient_end:] # take all the bytes to the end
+
+		modulus = int.from_bytes(modulus[::-1], "big") # n
+		prime1 = int.from_bytes(prime1[::-1], "big") # p
+		prime2 = int.from_bytes(prime2[::-1], "big") # q
+		exp1 = int.from_bytes(exponent1[::-1], "big") 
+		exp2 = int.from_bytes(exponent2[::-1], "big") 
+		coefficient = int.from_bytes(coefficient[::-1], "big") 
+		privateExp = int.from_bytes(privateExponent[::-1], "big") # d
+		# pubexp = e
+
+		rsa_tuple = (modulus, pubexp, privateExp, prime1, prime2)
+		# RSA.construct((n,e,d,p,q,u))
+		r = RSA.construct(rsa_tuple)
+
+		# convert to PKCS
+		cipher = PKCS1_v1_5.new(r)
+		
+		# decrypt key
+		decryptedKey = cipher.decrypt(dk[::-1], None)
+
+		# 8 first bytes : 64 bytes + 8 first bytes
+		secret = "0x" + decryptedKey[8:72].hex()
+
+		unprotected_blob = {}
+		unprotected_blob["key"] = secret
+		return unprotected_blob
+		
+		
+	
+
+
 	@staticmethod
 	def cookieformatter(host, name, path, content):
 		"""This is the data format the 'Cookie Quick Manager' uses to load cookies in FireFox"""
