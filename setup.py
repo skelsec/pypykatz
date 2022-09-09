@@ -56,7 +56,7 @@ setup(
 		'minikerberos>=0.3.1',
 		'aiowinreg>=0.0.7',
 		'msldap>=0.4.0',
-		'winacl>=0.1.2',
+		'winacl>=0.1.4',
 		'aiosmb>=0.4.0',
 		'aesedb>=0.1.0',
 		'tqdm',

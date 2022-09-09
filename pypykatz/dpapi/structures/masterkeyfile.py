@@ -5,7 +5,6 @@
 #
 
 import io
-import enum
 import sys
 
 from pypykatz.dpapi.constants import *
@@ -172,10 +171,10 @@ class MasterKeyFile:
 		self.credhist_length = None
 		self.domainkey_length = None
 		
-		self.masterkey = None
-		self.backupkey = None
-		self.credhist = None
-		self.domainkey = None
+		self.masterkey:MasterKey = None
+		self.backupkey:MasterKey = None
+		self.credhist:CredHist = None
+		self.domainkey:DomainKey = None
 	
 	@staticmethod
 	def from_bytes(data):

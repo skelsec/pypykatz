@@ -2,6 +2,10 @@
 #
 # Author:
 #  Tamas Jos (@skelsec)
+# 
+# Kudos:
+#
+#
 #
 
 import os
@@ -23,8 +27,12 @@ from pypykatz.dpapi.structures.blob import DPAPI_BLOB
 from pypykatz.dpapi.structures.vault import VAULT_VCRD, VAULT_VPOL, VAULT_VPOL_KEYS
 from unicrypto.hashlib import md4 as MD4
 from unicrypto.symmetric import AES, MODE_GCM, MODE_CBC
-
+from winacl.dtyp.wcee.pvkfile import PVKFile
 from pypykatz.commons.common import UniversalEncoder
+
+
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
+
 
 if platform.system().lower() == 'windows':
 	from pypykatz.commons.winapi.processmanipulator import ProcessManipulator
@@ -333,6 +341,20 @@ class DPAPI:
 				if shahex is not None and len(shahex) == 40:
 					self.prekeys[bytes.fromhex(shahex)] = 1
 				
+		return self.masterkeys
+
+	def decrypt_masterkey_file_with_pvk(self, mkffile, pvkfile):
+		"""
+		Decrypting the masterkeyfile using the domain backup key in .pvk format
+		"""
+		with open(mkffile, 'rb') as fp:
+			data = fp.read()
+		mkf = MasterKeyFile.from_bytes(data)
+		dk = mkf.domainkey.secret
+		privkey = PVKFile.from_file(pvkfile).get_key()
+		decdk = privkey.decrypt(dk[::-1], PKCS1v15())
+		secret = decdk[8:72] # TODO: proper file format would be good here!!!
+		self.masterkeys[mkf.guid] = secret
 		return self.masterkeys
 			
 	def decrypt_masterkey_file(self, file_path, key = None):
@@ -831,6 +853,7 @@ class DPAPI:
 		}
 
 
+
 # arpparse helper
 def prepare_dpapi_live(methods = [], mkf = None, pkf = None):
 	dpapi = DPAPI()
@@ -848,3 +871,13 @@ def prepare_dpapi_live(methods = [], mkf = None, pkf = None):
 		dpapi.get_masterkeys_from_lsass_live()
 	
 	return dpapi
+
+def main():
+	mkffile = '/mnt/hgfs/!SHARED/feature/masterkeyfile - 170d0d57-e0ae-4877-bab6-6f5af49d3e8e'
+	pvkfile = '/mnt/hgfs/!SHARED/feature/pvkfile - ntds_capi_0_fdf0c850-73d3-48cf-86b6-6beb609206c3.keyx.rsa.pvk'
+	dpapi = DPAPI()
+	dpapi.decrypt_mkf_with_pvk(mkffile, pvkfile)
+
+
+if __name__ == '__main__':
+	main()
