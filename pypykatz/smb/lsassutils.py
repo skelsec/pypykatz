@@ -23,11 +23,11 @@ def natatime(n, iterable, fillvalue = None):
 from pypykatz import logger
 
 async def lsassfile(url, packages = ['all'], chunksize = 64*1024):
-	from aiosmb.commons.connection.url import SMBConnectionURL
+	from aiosmb.commons.connection.factory import SMBConnectionFactory
 	from pypykatz.alsadecryptor.asbmfile import SMBFileReader
 	from pypykatz.apypykatz import apypykatz
 
-	smburl = SMBConnectionURL(url)
+	smburl = SMBConnectionFactory.from_url(url)
 	connection = smburl.get_connection()
 	smbfile = smburl.get_file()
 
@@ -49,9 +49,8 @@ async def lsassfile(url, packages = ['all'], chunksize = 64*1024):
 		logger.debug('[LSASSFILE] LSASS file parsed OK!')
 		return mimi
 
-async def lsassdump(url, method = 'task', remote_base_path = 'C:\\Windows\\Temp\\', remote_share_name = '\\c$\\Windows\\Temp\\',chunksize = 64*1024, packages = ['all'], targets = [], worker_cnt = 5):
-	from aiosmb.commons.connection.url import SMBConnectionURL
-	
+async def lsassdump(url, method = 'task', remote_base_path = 'C:\\Windows\\Temp\\', remote_share_name = '\\c$\\Windows\\Temp\\',chunksize = 64*1024, packages = ['all'], targets = [], worker_cnt = 5):	
+	from aiosmb.commons.connection.factory import SMBConnectionFactory
 	base_url = None
 	base_conn = None
 	mimis = []
@@ -72,11 +71,11 @@ async def lsassdump(url, method = 'task', remote_base_path = 'C:\\Windows\\Temp\
 			if len(notfile) > 0:
 				tgens.append(ListTargetGen(notfile))
 
-	if isinstance(url, SMBConnectionURL):
+	if isinstance(url, SMBConnectionFactory):
 		base_url = url
 		base_conn = url.get_connection()
 	else:
-		base_url = SMBConnectionURL(url)
+		base_url = SMBConnectionFactory.from_url(url)
 		base_conn = base_url.get_connection()
 	
 	lsassdump_coro = lsassdump_single(

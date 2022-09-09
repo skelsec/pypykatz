@@ -51,14 +51,7 @@ class LDAPTargetGen:
 	
 
 async def shareenum(smb_url, ldap_url = None, targets = None, smb_worker_count = 10, depth = 3, out_file = None, progress = False, max_items = None, dirsd = False, filesd = False, authmethod = 'ntlm', protocol_version = '2', output_type = 'str', max_runtime = None, exclude_share = ['print$'], exclude_dir = [], exclude_target = []):
-	from aiosmb.commons.connection.url import SMBConnectionURL
-	from pypykatz.alsadecryptor.asbmfile import SMBFileReader
-	from pypykatz.apypykatz import apypykatz
 
-
-	#if targets is None and ldap_url is None:
-	#	raise Exception('Shareenum needs a list of targets or LDAP connection string')
-	
 	if smb_url == 'auto':
 		smb_url = get_smb_url(authmethod=authmethod, protocol_version=protocol_version)
 	

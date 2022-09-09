@@ -7,7 +7,7 @@ from aiosmb.examples.smbshareenum import SMBFileEnum, ListTargetGen, FileTargetG
 
 
 async def regdump(url, hives = ['HKLM\\SAM', 'HKLM\\SYSTEM', 'HKLM\\SECURITY'], remote_base_path = 'C:\\Windows\\Temp\\', remote_share_name = '\\c$\\Windows\\Temp\\', enable_wait = 3, targets = [], worker_cnt = 5):
-	from aiosmb.commons.connection.url import SMBConnectionURL
+	from aiosmb.commons.connection.factory import SMBConnectionFactory
 	
 	base_url = None
 	base_conn = None
@@ -29,11 +29,11 @@ async def regdump(url, hives = ['HKLM\\SAM', 'HKLM\\SYSTEM', 'HKLM\\SECURITY'], 
 			if len(notfile) > 0:
 				tgens.append(ListTargetGen(notfile))
 
-	if isinstance(url, SMBConnectionURL):
+	if isinstance(url, SMBConnectionFactory):
 		base_url = url
 		base_conn = url.get_connection()
 	else:
-		base_url = SMBConnectionURL(url)
+		base_url = SMBConnectionFactory.from_url(url)
 		base_conn = base_url.get_connection()
 	
 	regdump_coro = regdump_single(
@@ -173,12 +173,12 @@ async def regdump_single(targetid, connection, hives = ['HKLM\\SAM', 'HKLM\\SYST
 			
 
 async def regfile(url, system, sam = None, security = None, software = None, smb_basepath = None):
-	from aiosmb.commons.connection.url import SMBConnectionURL
+	from aiosmb.commons.connection.factory import SMBConnectionFactory
 	from aiosmb.commons.interfaces.file import SMBFile
 	from pypykatz.alsadecryptor.asbmfile import SMBFileReader
 	from pypykatz.registry.aoffline_parser import OffineRegistry
 
-	smburl = SMBConnectionURL(url)
+	smburl = SMBConnectionFactory.from_url(url)
 	connection = smburl.get_connection()
 
 	if smb_basepath is None:

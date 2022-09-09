@@ -5,10 +5,10 @@ from pypykatz import logger
 
 async def printnightmare(url, dll_path, driverpath = None):
     try:
-        from aiosmb.commons.connection.url import SMBConnectionURL
+        from aiosmb.commons.connection.factory import SMBConnectionFactory
         from aiosmb.commons.interfaces.machine import SMBMachine
         
-        smburl = SMBConnectionURL(url)
+        smburl = SMBConnectionFactory.from_url(url)
         connection = smburl.get_connection()
 
         async with connection:
@@ -32,10 +32,10 @@ async def printnightmare(url, dll_path, driverpath = None):
 
 async def parprintnightmare(url, dll_path, driverpath = None):
     try:
-        from aiosmb.commons.connection.url import SMBConnectionURL
+        from aiosmb.commons.connection.factory import SMBConnectionFactory
         from aiosmb.commons.interfaces.machine import SMBMachine
         
-        smburl = SMBConnectionURL(url)
+        smburl = SMBConnectionFactory.from_url(url)
         connection = smburl.get_connection()
 
         async with connection:
