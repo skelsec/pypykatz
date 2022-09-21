@@ -703,9 +703,6 @@ class DPAPI:
 		
 		
 	def decrypt_all_chrome(self, dbpaths, throw = False):
-		from unicrypto import use_library, get_cipher_by_name
-		AES = get_cipher_by_name('AES', 'cryptography')
-
 		results = {}
 		results['logins'] = []
 		results['cookies'] = []
