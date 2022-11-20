@@ -91,7 +91,7 @@ class KerberosTemplate(PackageTemplate):
 				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 				
 
-			elif sysinfo.buildnumber <= WindowsBuild.WIN_10_1607.value < WindowsBuild.WIN_11_2022.value:
+			elif WindowsBuild.WIN_10_1607.value <= sysinfo.buildnumber < WindowsBuild.WIN_11_2022.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
