@@ -3,8 +3,7 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
-
+from typing import List
 #from pypykatz.commons.common import *
 #from pypykatz.commons.filetime import *
 #from .templates import *
@@ -15,15 +14,15 @@ from pypykatz.commons.common import WindowsMinBuild
 
 class KerberosCredential:
 	def __init__(self):
-		self.credtype = 'kerberos'
-		self.username = None
-		self.password = None
-		self.password_raw = b''
-		self.domainname = None
-		self.luid = None
-		self.tickets = []
-		self.pin = None
-		self.pin_raw = None
+		self.credtype:str = 'kerberos'
+		self.username:str = None
+		self.password:str = None
+		self.password_raw:bytes = b''
+		self.domainname:str = None
+		self.luid:int = None
+		self.tickets:List[KerberosTicket] = []
+		self.pin:str = None
+		self.pin_raw:bytes = None
 		self.cardinfo = None
 		
 	def __str__(self):

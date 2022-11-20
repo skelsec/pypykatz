@@ -91,11 +91,20 @@ class KerberosTemplate(PackageTemplate):
 				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 				
 
-			elif sysinfo.buildnumber >= WindowsBuild.WIN_10_1607.value:
+			elif sysinfo.buildnumber <= WindowsBuild.WIN_10_1607.value < WindowsBuild.WIN_11_2022.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_10_1607
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
+			
+			elif sysinfo.buildnumber >= WindowsBuild.WIN_11_2022.value:
+				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
+				template.first_entry_offset = 6
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_11
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
 				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
@@ -1598,6 +1607,104 @@ class KIWI_KERBEROS_INTERNAL_TICKET_10:
 		res.TicketKvno    = await ULONG.loadvalue(reader)
 		await reader.align()
 		res.Ticket = await KIWI_KERBEROS_BUFFER.load(reader)
+
+class PKIWI_KERBEROS_INTERNAL_TICKET_11(POINTER):
+	def __init__(self):
+		super().__init__()
+	
+	@staticmethod
+	async def load(reader):
+		p = PKIWI_KERBEROS_INTERNAL_TICKET_11()
+		p.location = reader.tell()
+		p.value = await reader.read_uint()
+		p.finaltype = KIWI_KERBEROS_INTERNAL_TICKET_11
+		return p
+
+		
+class KIWI_KERBEROS_INTERNAL_TICKET_11:
+	def __init__(self):
+		self.Flink = None
+		self.Blink = None
+		self.unk0 = None
+		self.unk1 = None
+		self.ServiceName = None
+		self.TargetName = None
+		self.DomainName = None
+		self.TargetDomainName = None
+		self.Description = None
+		self.AltTargetDomainName = None
+		self.KDCServer = None
+		self.unk10586_d = None
+		self.ClientName = None
+		self.name0 = None
+		self.TicketFlags = None
+		self.unk2 = None
+		self.unk14393_0 = None
+		self.unk2x = None
+		self.KeyType = None
+		self.Key = None
+		self.unk14393_1 = None
+		self.unk3 = None
+		self.unk4 = None
+		self.unk5 = None
+		self.StartTime = None
+		self.EndTime = None
+		self.RenewUntil = None
+		self.unk6 = None
+		self.unk7 = None
+		self.domain = None
+		self.unk8 = None
+		self.strangeNames = None
+		self.unk9 = None
+		self.TicketEncType = None
+		self.TicketKvno = None
+		self.Ticket = None
+	
+
+	@staticmethod
+	async def load(reader):
+		res = KIWI_KERBEROS_INTERNAL_TICKET_11()
+		res.Flink = await PKIWI_KERBEROS_INTERNAL_TICKET_11.load(reader)
+		res.Blink = await PKIWI_KERBEROS_INTERNAL_TICKET_11.load(reader)
+		res.unk0 = await PVOID.loadvalue(reader)
+		res.unk1 = await PVOID.loadvalue(reader)
+		res.ServiceName = await PKERB_EXTERNAL_NAME.load(reader)
+		res.TargetName  = await PKERB_EXTERNAL_NAME.load(reader)
+		res.DomainName          = await LSA_UNICODE_STRING.load(reader)
+		res.TargetDomainName    = await LSA_UNICODE_STRING.load(reader)
+		res.Description         = await LSA_UNICODE_STRING.load(reader)
+		res.AltTargetDomainName = await LSA_UNICODE_STRING.load(reader)
+		res.KDCServer           = await LSA_UNICODE_STRING.load(reader)    				#	//?(reader).value
+		res.unk10586_d          = await LSA_UNICODE_STRING.load(reader)					#//?(reader).value
+		res.ClientName = await PKERB_EXTERNAL_NAME.load(reader)
+		res.name0 = await PVOID.loadvalue(reader)
+		x = await reader.read(4)
+		res.TicketFlags = int.from_bytes(x, byteorder = 'big', signed = False)
+		res.unk2       = await ULONG.loadvalue(reader)
+		res.unk14393_0 = await PVOID.loadvalue(reader)
+		res.unk2x       = await ULONG.loadvalue(reader)
+		res.KeyType    = await ULONG.loadvalue(reader)
+		res.Key = await KIWI_KERBEROS_BUFFER.load(reader)
+		res.unk14393_1 = await PVOID.loadvalue(reader)
+		res.unk3       = await PVOID.loadvalue(reader)										# // ULONG		KeyType2 = (reader).value
+		res.unk4       = await PVOID.loadvalue(reader)										# // KIWI_KERBEROS_BUFFER	Key2 = (reader).value
+		res.unk5       = await PVOID.loadvalue(reader)										# // up(reader).value
+		res.StartTime  = await FILETIME.loadvalue(reader)
+		res.EndTime    = await FILETIME.loadvalue(reader)
+		res.RenewUntil = await FILETIME.loadvalue(reader)
+		res.unk6 = await ULONG.loadvalue(reader)
+		res.unk7 = await ULONG.loadvalue(reader)
+		res.domain = await PCWSTR.loadvalue(reader)
+		res.unk8 = await ULONG.loadvalue(reader)
+		await reader.align()
+		res.strangeNames  = await PVOID.loadvalue(reader)
+		res.unk9          = await ULONG.loadvalue(reader)
+		res.TicketEncType = await ULONG.loadvalue(reader)
+		res.TicketKvno    = await ULONG.loadvalue(reader)
+		await reader.align()
+		res.Ticket = await KIWI_KERBEROS_BUFFER.load(reader)
+
+		return res
 
 class PKIWI_KERBEROS_INTERNAL_TICKET_10_1607(POINTER):
 	def __init__(self):
