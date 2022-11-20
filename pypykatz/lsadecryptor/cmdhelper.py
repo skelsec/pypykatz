@@ -60,7 +60,7 @@ class LSACMDHelper:
 				json.dump(results, f, cls = UniversalEncoder, indent=4, sort_keys=True)
 
 		elif args.outfile and args.grep:
-			with open(args.outfile, 'w', newline = '') as f:
+			with open(args.outfile, 'w', newline = '', errors='replace') as f:
 				f.write(':'.join(LogonSession.grep_header) + '\r\n')
 				for result in results:
 					for luid in results[result].logon_sessions:
@@ -68,7 +68,7 @@ class LSACMDHelper:
 							f.write(':'.join(row) + '\r\n')
 		
 		elif args.outfile:
-			with open(args.outfile, 'w') as f:
+			with open(args.outfile, 'w', errors='replace') as f:
 				for result in results:
 					f.write('FILE: ======== %s =======\n' % result)
 					
