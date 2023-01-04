@@ -97,17 +97,18 @@ class LsaTemplate_NT6(PackageTemplate):
 					if sysinfo.msv_dll_timestamp < 0x60000000:
 						template = templates['nt6']['x64']['3']
 					else:
-						template = templates['nt6']['x64']['7']				
+						template = templates['nt6']['x64']['7']
 				else:
 					template = templates['nt6']['x64']['4']
 					#win blue
 			
 			elif sysinfo.buildnumber < WindowsBuild.WIN_10_1809.value:
-				template = templates['nt6']['x64']['5']			
+				template = templates['nt6']['x64']['5']
 				
-			#elif sysinfo.buildnumber <= WindowsBuild.WIN_10_1809.value:
-			else:
+			elif WindowsBuild.WIN_10_1809.value >= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
 				template = templates['nt6']['x64']['6']
+			else:
+				template = templates['nt6']['x64']['8']
 			
 		else:
 			raise Exception('Missing LSA decrpytor template for Architecture: %s , Build number %s' % (sysinfo.architecture, sysinfo.buildnumber))
@@ -313,6 +314,19 @@ class LSA_x64_7(LsaTemplate_NT6):
 		self.key_struct = KIWI_BCRYPT_KEY8
 		self.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
 
+class LSA_x64_8(LsaTemplate_NT6):
+	def __init__(self):
+		LsaTemplate_NT6.__init__(self)
+		self.key_pattern = LSADecyptorKeyPattern()
+		self.key_pattern.signature = b'\x83\x64\x24\x30\x00\x48\x8d\x45\xe0\x44\x8b\x4d\xd8\x48\x8d\x15'
+		self.key_pattern.IV_length = 16
+		self.key_pattern.offset_to_IV_ptr = 71
+		self.key_pattern.offset_to_DES_key_ptr = -89
+		self.key_pattern.offset_to_AES_key_ptr = 16
+		
+		self.key_struct = KIWI_BCRYPT_KEY81
+		self.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
+
 class LSA_x86_1(LsaTemplate_NT6):
 	def __init__(self):
 		LsaTemplate_NT6.__init__(self)
@@ -417,6 +431,7 @@ templates = {
 			'5' : LSA_x64_5(),
 			'6' : LSA_x64_6(),
 			'7' : LSA_x64_7(),
+			'8' : LSA_x64_8(),
 		},
 		'x86': {
 			'1' : LSA_x86_1(),
