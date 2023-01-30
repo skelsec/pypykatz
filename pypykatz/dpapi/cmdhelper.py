@@ -76,6 +76,12 @@ class DPAPICMDHelper:
 		prekey_nt.add_argument('nthash', help='NT hash of the user')
 		prekey_nt.add_argument('-o', '--out-file', help= 'Key candidates will be stored in this file. Easier to handle this way in the masterkeyfil command.')
 
+		prekey_sha1 = dpapi_prekey_subparsers.add_parser('sha1', help = 'Generate prekeys from SHA1 hash')
+		prekey_sha1.add_argument('sid', help='SID of the user')
+		prekey_sha1.add_argument('sha1hash', help='SHA1 hash of the user')
+		prekey_sha1.add_argument('-o', '--out-file', help= 'Key candidates will be stored in this file. Easier to handle this way in the masterkeyfil command.')
+
+
 		prekey_registry = dpapi_prekey_subparsers.add_parser('registry', help = 'Generate prekeys from registry secrets')
 		prekey_registry.add_argument('system', help='SYSTEM hive')
 		prekey_registry.add_argument('sam', help='SAM hive')
@@ -173,13 +179,18 @@ class DPAPICMDHelper:
 					pw = getpass.getpass()
 
 				dpapi.get_prekeys_from_password(args.sid, password = pw)
-			
+
 			elif args.prekey_command == 'nt':
 				if args.nthash is None or args.sid is None:
 					raise Exception('NT hash and SID must be specified for generating prekey in this mode')
 
-				dpapi.get_prekeys_from_password(args.sid, nt_hash = args.nthash)
+				dpapi.get_prekeys_from_password(args.sid, nt_hash=args.nthash)
 
+			elif args.prekey_command == 'sha1':
+				if args.sha1hash is None or args.sid is None:
+					raise Exception('SHA1 hash and SID must be specified for generating prekey in this mode')
+
+				dpapi.get_prekeys_from_password(args.sid, sha1_hash=args.sha1hash)
 
 			dpapi.dump_pre_keys(args.out_file)
 
