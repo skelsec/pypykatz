@@ -58,7 +58,7 @@ setup(
 		'msldap>=0.4.1',
 		'winacl>=0.1.5',
 		'aiosmb>=0.4.2',
-		'aesedb>=0.1.0',
+		'aesedb>=0.1.1',
 		'tqdm',
 	],
 	

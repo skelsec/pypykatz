@@ -17,7 +17,7 @@ class CryptoCMDHelper:
 		crypto_subparsers.dest = 'crypto_module'
 
 		group = crypto_subparsers.add_parser('nt', help='Generates NT hash of the password')
-		group.add_argument('password', help= 'Password to be hashed')	
+		group.add_argument('password', help= 'Password to be hashed')
 		
 		group = crypto_subparsers.add_parser('lm', help='Generates LM hash of the password')
 		group.add_argument('password', help= 'Password to be hashed')
