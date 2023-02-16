@@ -60,6 +60,7 @@ setup(
 		'aiosmb>=0.4.2',
 		'aesedb>=0.1.0',
 		'tqdm',
+		'pycparser',
 	],
 	
 	# No more conveinent .exe entry point thanks to some idiot who 
