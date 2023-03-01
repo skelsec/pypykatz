@@ -132,15 +132,16 @@ class MsvTemplate(PackageTemplate):
 				template.signature = b'\x33\xff\x41\x89\x37\x4c\x8b\xf3\x45\x85\xc0\x74'
 				template.first_entry_offset = 23
 				template.offset2 = -4
-				
-			else:
-				#win11
+			
+			elif WindowsBuild.WIN_11_2022.value <= sysinfo.buildnumber < WindowsBuild.WIN_11_2023.value: #20348
 				template.signature = b'\x45\x89\x34\x24\x4c\x8b\xff\x8b\xf3\x45\x85\xc0\x74'
 				template.first_entry_offset = 24
 				template.offset2 = -4
 
-			#BYTE PTRN_WN11_LogonSessionList[]       = {};
-			#logger.debug(template.signature.hex())
+			else:
+				template.signature = b'\x45\x89\x37\x4c\x8b\xf7\x8b\xf3\x45\x85\xc0\x0f'
+				template.first_entry_offset = 27
+				template.offset2 = -4
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
 			if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:

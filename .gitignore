@@ -104,3 +104,4 @@ venv.bak/
 .mypy_cache/
 *.reg
 *.kirbi
+*.exe
