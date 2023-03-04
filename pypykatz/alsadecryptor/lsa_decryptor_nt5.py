@@ -16,12 +16,11 @@ class LsaDecryptor_NT5(PackageDecryptor):
 		self.feedback_offset = None
 		self.des_key = None
 		self.random_key = None
-		self.acquire_crypto_material()
 		
-	def acquire_crypto_material(self):
+	async def acquire_crypto_material(self):
 		self.log('Acquireing crypto stuff...')
-		sigpos = self.find_signature()
-		self.reader.move(sigpos)
+		sigpos = await self.find_signature()
+		await self.reader.move(sigpos)
 		#data = self.reader.peek(0x50)
 		#self.log('Memory looks like this around the signature\n%s' % hexdump(data, start = sigpos))
 		
@@ -29,63 +28,63 @@ class LsaDecryptor_NT5(PackageDecryptor):
 			self.feedback_offset = x
 
 			try:
-				self.feedback = self.get_feedback(sigpos)
+				self.feedback = await self.get_feedback(sigpos)
 				#self.log('Feedback bytes:\n%s' % hexdump(self.feedback, start = 0))
-				self.des_key = self.get_key(sigpos)
-				self.random_key = self.get_random(sigpos)
+				self.des_key = await self.get_key(sigpos)
+				self.random_key = await self.get_random(sigpos)
 				#self.log('randomkey bytes:\n%s' % hexdump(self.random_key, start = 0))
 			except:
 				import traceback
 				traceback.print_exc()
-				input()
+				#input()
 			else:
 				break
 
 
-	def get_feedback(self, sigpos):
+	async def get_feedback(self, sigpos):
 		if self.decryptor_template.arch == 'x86':
-			new_ptr = self.reader.get_ptr_with_offset(sigpos + self.feedback_offset)
-			self.reader.move(new_ptr)
-			return self.reader.read(8)
+			new_ptr = await self.reader.get_ptr_with_offset(sigpos + self.feedback_offset)
+			await self.reader.move(new_ptr)
+			return await self.reader.read(8)
 		else:
-			self.reader.move(sigpos + self.feedback_offset)
-			offset = LONG(self.reader).value
+			await self.reader.move(sigpos + self.feedback_offset)
+			offset = await LONG.loadvalue(self.reader)
 			newpos = sigpos + self.feedback_offset + 4 + offset
-			self.reader.move(newpos)
-			return self.reader.read(8)
+			await self.reader.move(newpos)
+			return await self.reader.read(8)
 
-	def get_key(self, sigpos):
+	async def get_key(self, sigpos):
 		if self.decryptor_template.arch == 'x86':
-			new_ptr = self.reader.get_ptr_with_offset(sigpos + self.decryptor_template.desx_key_ptr_offset)
-			self.reader.move(new_ptr)
-			des_key_ptr = self.decryptor_template.key_struct_ptr(self.reader)
-			des_key = des_key_ptr.read(self.reader)
+			new_ptr = await self.reader.get_ptr_with_offset(sigpos + self.decryptor_template.desx_key_ptr_offset)
+			await self.reader.move(new_ptr)
+			des_key_ptr = await self.decryptor_template.key_struct_ptr.load(self.reader)
+			des_key = await des_key_ptr.read(self.reader)
 		else:
-			self.reader.move(sigpos + self.decryptor_template.desx_key_ptr_offset)
-			offset = LONG(self.reader).value
+			await self.reader.move(sigpos + self.decryptor_template.desx_key_ptr_offset)
+			offset = await LONG.loadvalue(self.reader)
 			newpos = sigpos + self.decryptor_template.desx_key_ptr_offset + 4 + offset
-			self.reader.move(newpos)
-			des_key_ptr = self.decryptor_template.key_struct_ptr(self.reader)
-			des_key = des_key_ptr.read(self.reader)
+			await self.reader.move(newpos)
+			des_key_ptr = await self.decryptor_template.key_struct_ptr.load(self.reader)
+			des_key = await des_key_ptr.read(self.reader)
 
 		return des_key
 	
-	def get_random(self, sigpos):
+	async def get_random(self, sigpos):
 		if self.decryptor_template.arch == 'x86':
-			random_key_ptr = self.reader.get_ptr_with_offset(sigpos + self.decryptor_template.randomkey_ptr_offset)
-			random_key_ptr = self.reader.get_ptr_with_offset(random_key_ptr)
-			self.reader.move(random_key_ptr)
+			random_key_ptr = await self.reader.get_ptr_with_offset(sigpos + self.decryptor_template.randomkey_ptr_offset)
+			random_key_ptr = await self.reader.get_ptr_with_offset(random_key_ptr)
+			await self.reader.move(random_key_ptr)
 		else:
-			self.reader.move(sigpos + self.decryptor_template.randomkey_ptr_offset)
-			offset = LONG(self.reader).value
+			await self.reader.move(sigpos + self.decryptor_template.randomkey_ptr_offset)
+			offset = await LONG.loadvalue(self.reader)
 			newpos = sigpos + self.decryptor_template.desx_key_ptr_offset + 4 + offset
-			self.reader.move(newpos)
+			await self.reader.move(newpos)
 		
-		return self.reader.read(256)
+		return await self.reader.read(256)
 
-	def find_signature(self):
+	async def find_signature(self):
 		self.log('Looking for main struct signature in memory...')
-		fl = self.reader.find_in_module('lsasrv.dll', self.decryptor_template.signature)
+		fl = await self.reader.find_in_module('lsasrv.dll', self.decryptor_template.signature)
 		if len(fl) == 0:
 			self.logger.log('signature not found! %s' % self.decryptor_template.signature.hex())
 			raise Exception('LSA signature not found!')

@@ -8,6 +8,7 @@ from pypykatz.commons.kerberosticket import KerberosTicket, KerberosTicketType
 from pypykatz.alsadecryptor.package_commons import PackageDecryptor
 from pypykatz.alsadecryptor.win_datatypes import PLIST_ENTRY, PRTL_AVL_TABLE
 from pypykatz.commons.common import WindowsMinBuild
+from pypykatz.commons.common import hexdump
 
 class KerberosCredential:
 	def __init__(self):
@@ -97,6 +98,8 @@ class KerberosDecryptor(PackageDecryptor):
 			return
 		
 		if self.sysinfo.buildnumber < WindowsMinBuild.WIN_VISTA.value:
+			#TODO: fix this
+			return
 			await self.reader.move(entry_ptr_loc)
 			entry_ptr = await PLIST_ENTRY.load(self.reader)
 			await self.walk_list(entry_ptr, self.process_session_elist)
@@ -114,6 +117,8 @@ class KerberosDecryptor(PackageDecryptor):
 				await self.process_session(kerberos_logon_session)
 
 	async def process_session_elist(self, elist):
+		#TODO: fix this
+		return
 		await self.reader.move(elist.location)
 		await self.reader.read_uint() #Flink do not remove this line!
 		await self.reader.read_uint() #Blink do not remove this line!

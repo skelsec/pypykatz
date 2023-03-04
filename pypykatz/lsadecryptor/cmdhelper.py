@@ -15,7 +15,8 @@ from pypykatz import logger
 from pypykatz.pypykatz import pypykatz
 from pypykatz.commons.common import UniversalEncoder
 from pypykatz.lsadecryptor.packages.msv.decryptor import LogonSession
-
+from minidump.minidumpfile import MinidumpFile
+from pypykatz.commons.common import KatzSystemInfo
 
 
 class LSACMDHelper:
@@ -35,7 +36,7 @@ class LSACMDHelper:
 
 
 		group = parser.add_parser('lsa', help='Get secrets from memory dump')
-		group.add_argument('cmd', choices=['minidump','rekall'])
+		group.add_argument('cmd', choices=['minidump','rekall','info'])
 		group.add_argument('memoryfile', help='path to the dump file')
 		group.add_argument('-t','--timestamp_override', type=int, help='enforces msv timestamp override (0=normal, 1=anti_mimikatz)')
 		group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
@@ -205,6 +206,23 @@ class LSACMDHelper:
 				args.packages.append('ktickets')
 			mimi = pypykatz.parse_memory_dump_rekall(args.memoryfile, args.timestamp_override, packages=args.packages)
 			results['rekall'] = mimi
+		
+		elif args.cmd == 'info':
+			if args.directory:
+				dir_fullpath = os.path.abspath(args.memoryfile)
+				file_pattern = '*.dmp'
+				if args.recursive == True:
+					globdata = os.path.join(dir_fullpath, '**', file_pattern)
+				else:	
+					globdata = os.path.join(dir_fullpath, file_pattern)
+			else:
+				globdata = args.memoryfile
+			
+			for filename in glob.glob(globdata, recursive=args.recursive):
+				minidump = MinidumpFile.parse(filename)
+				sysinfo = KatzSystemInfo.from_minidump(minidump)
+				print('[%s] %s' % (filename, sysinfo))
+
 	
 		###### Minidump
 		elif args.cmd == 'minidump':

@@ -4,7 +4,7 @@
 #  Tamas Jos (@skelsec)
 #
 
-from pypykatz.alsadecryptor.win_datatypes import POINTER
+from pypykatz.alsadecryptor.win_datatypes import ULONG, PVOID, POINTER
 from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild
 from pypykatz.alsadecryptor.package_commons import PackageTemplate
 
@@ -37,12 +37,19 @@ class LsaTemplate_NT5(PackageTemplate):
 				raise Exception('NT 6 is in another castle!')
 
 class SYMCRYPT_NT5_DES_EXPANDED_KEY:
-	def __init__(self, reader):
+	def __init__(self):
 		self.roundKey = []
+	
+	@staticmethod
+	async def load(reader):
+		s = SYMCRYPT_NT5_DES_EXPANDED_KEY()
 		for _ in range(16):
-			r = int.from_bytes(reader.read(4), 'little', signed = False)
-			l = int.from_bytes(reader.read(4), 'little', signed = False)
-			self.roundKey.append([r, l])
+			x = await reader.read(4)
+			r = int.from_bytes(x, 'little', signed = False)
+			x = await reader.read(4)
+			l = int.from_bytes(x, 'little', signed = False)
+			s.roundKey.append([r, l])
+		return s
 		
 	def __str__(self):
 		t = 'SYMCRYPT_NT5_DES_EXPANDED_KEY\r\n'
@@ -51,10 +58,18 @@ class SYMCRYPT_NT5_DES_EXPANDED_KEY:
 		return t
 		
 class SYMCRYPT_NT5_DESX_EXPANDED_KEY:
-	def __init__(self, reader):
-		self.inputWhitening = reader.read(8)
-		self.outputWhitening = reader.read(8)
-		self.desKey = SYMCRYPT_NT5_DES_EXPANDED_KEY(reader)
+	def __init__(self):
+		self.inputWhitening = None
+		self.outputWhitening = None
+		self.desKey = None
+	
+	@staticmethod
+	async def load(reader):
+		s = SYMCRYPT_NT5_DESX_EXPANDED_KEY()
+		s.inputWhitening = await reader.read(8)
+		s.outputWhitening = await reader.read(8)
+		s.desKey = await SYMCRYPT_NT5_DES_EXPANDED_KEY.load(reader)
+		return s
 
 	def __str__(self):
 		t = 'SYMCRYPT_NT5_DESX_EXPANDED_KEY\r\n'
@@ -64,8 +79,16 @@ class SYMCRYPT_NT5_DESX_EXPANDED_KEY:
 		return t
 
 class PSYMCRYPT_NT5_DESX_EXPANDED_KEY(POINTER):
-	def __init__(self, reader):
-		super().__init__(reader, SYMCRYPT_NT5_DESX_EXPANDED_KEY)
+	def __init__(self):
+		super().__init__()
+	
+	@staticmethod
+	async def load(reader):
+		p = PVOID()
+		p.location = reader.tell()
+		p.value = await reader.read_uint()
+		p.finaltype = SYMCRYPT_NT5_DESX_EXPANDED_KEY
+		return p
 
 class LSA_x64_nt5_1(LsaTemplate_NT5):
 	def __init__(self):

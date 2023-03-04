@@ -22,6 +22,7 @@ from pypykatz import logger
 from pypykatz.commons.common import UniversalEncoder
 from minidump.minidumpfile import MinidumpFile
 from minikerberos.common.ccache import CCACHE
+from minikerberos.common.kirbi import Kirbi
 from pypykatz._version import __version__
 
 class pypykatz:
@@ -325,7 +326,7 @@ class pypykatz:
 		for cred in dec.credentials:
 			for ticket in cred.tickets:
 				for fn in ticket.kirbi_data:
-					self.kerberos_ccache.add_kirbi(ticket.kirbi_data[fn].native)
+					self.kerberos_ccache.add_kirbi(Kirbi(ticket.kirbi_data[fn]))
 			
 			if cred.luid in self.logon_sessions:
 				self.logon_sessions[cred.luid].kerberos_creds.append(cred)
