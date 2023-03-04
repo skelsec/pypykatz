@@ -37,7 +37,7 @@ class LsaDecryptor_NT5(PackageDecryptor):
 			except:
 				import traceback
 				traceback.print_exc()
-				input()
+				#input()
 			else:
 				break
 

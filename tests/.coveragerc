@@ -1,0 +1,2 @@
+[run]
+omit = ../tests/*, ../pypykatz/commons/winapi/*, ../pypykatz/commons/readers/local/*, ../pypykatz/kerberos/functiondefs/*

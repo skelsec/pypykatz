@@ -457,7 +457,7 @@ class KatzSystemInfo:
 		self.major_version = 6
 		
 	def __str__(self):
-		return '%s %s' % (self.architecture.name, self.buildnumber)
+		return 'ARCH:%s BUILD:%s MSV_TS:%s OS(guess): %s' % (self.architecture.name, self.buildnumber, self.msv_dll_timestamp, self.operating_system)
 	
 	@staticmethod
 	def from_live_reader(lr):

@@ -3,7 +3,7 @@
 # Author:
 #  Tamas Jos (@skelsec)
 #
-import io
+from pypykatz import logger
 from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild, WindowsBuild
 from pypykatz.alsadecryptor.win_datatypes import BOOLEAN, HANDLE, USHORT, ULONG, LSA_UNICODE_STRING, LSAISO_DATA_BLOB, \
 	BYTE, PVOID, WORD, DWORD, POINTER, LUID, PSID, ANSI_STRING
@@ -24,6 +24,8 @@ class MsvTemplate(PackageTemplate):
 	
 	@staticmethod
 	def get_template(sysinfo):
+		logger.debug('buildnumber: %s' % sysinfo.buildnumber)
+		logger.debug('msv_dll_timestamp: %s' % sysinfo.msv_dll_timestamp)
 		template = MsvTemplate()
 		template.encrypted_credentials_list_struct = KIWI_MSV1_0_CREDENTIAL_LIST
 		template.log_template('encrypted_credentials_list_struct', template.encrypted_credentials_list_struct)
@@ -66,8 +68,7 @@ class MsvTemplate(PackageTemplate):
 		else:
 			template.decrypted_credential_struct = MSV1_0_PRIMARY_CREDENTIAL_10_1607_DEC
 		
-		template.log_template('decrypted_credential_struct', template.decrypted_credential_struct)
-			
+		template.log_template('decrypted_credential_struct', template.decrypted_credential_struct)			
 		if sysinfo.architecture == KatzSystemArchitecture.X64:
 			if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:
 				template.signature = b'\x4c\x8b\xdf\x49\xc1\xe3\x04\x48\x8b\xcb\x4c\x03\xd8'
@@ -90,9 +91,16 @@ class MsvTemplate(PackageTemplate):
 				template.offset2 = -4	
 				
 			elif WindowsMinBuild.WIN_8.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_BLUE.value:
-				template.signature = b'\x33\xff\x41\x89\x37\x4c\x8b\xf3\x45\x85\xc0\x74'
-				template.first_entry_offset = 16
-				template.offset2 = -4	
+				if sysinfo.msv_dll_timestamp > 0x60000000:
+					# new win2012 update weirdness
+					template.list_entry = PKIWI_MSV1_0_LIST_63
+					template.signature = b'\x8b\xde\x48\x8d\x0c\x5b\x48\xc1\xe1\x05\x48\x8d\x05'
+					template.first_entry_offset = 34
+					template.offset2 = -6
+				else:
+					template.signature = b'\x33\xff\x41\x89\x37\x4c\x8b\xf3\x45\x85\xc0\x74'
+					template.first_entry_offset = 16
+					template.offset2 = -4
 				
 			elif WindowsMinBuild.WIN_BLUE.value <= sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value:
 				template.signature = b'\x8b\xde\x48\x8d\x0c\x5b\x48\xc1\xe1\x05\x48\x8d\x05'
@@ -121,7 +129,7 @@ class MsvTemplate(PackageTemplate):
 				template.signature = b'\x33\xff\x41\x89\x37\x4c\x8b\xf3\x45\x85\xc0\x74'
 				template.first_entry_offset = 23
 				template.offset2 = -4
-				
+			
 			elif WindowsBuild.WIN_11_2022.value <= sysinfo.buildnumber < WindowsBuild.WIN_11_2023.value: #20348
 				template.signature = b'\x45\x89\x34\x24\x4c\x8b\xff\x8b\xf3\x45\x85\xc0\x74'
 				template.first_entry_offset = 24

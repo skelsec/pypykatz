@@ -94,11 +94,13 @@ class LsaDecryptor_NT6(PackageDecryptor):
 		size = len(encrypted)
 		if size:
 			if size % 8:
+				logger.debug('AES-CFB')
 				if not self.aes_key or not self.iv:
 					return cleartext
 				cipher = AES(self.aes_key, MODE_CFB, IV = self.iv, segment_size=128)
 				cleartext = cipher.decrypt(encrypted)
 			else:
+				logger.debug('TDES')
 				if not self.des_key or not self.iv:
 					return cleartext
 				cipher = TDES(self.des_key, MODE_CBC, self.iv[:8])
