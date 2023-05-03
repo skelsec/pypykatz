@@ -93,7 +93,7 @@ class LsaDecryptor_NT5(PackageDecryptor):
 		self.log('Selecting first one @ 0x%08x' % fl[0])
 		return fl[0]
 
-	def decrypt(self, encrypted):
+	def decrypt(self, encrypted, segment_size=128):
 		# TODO: NT version specific, move from here in subclasses.
 		cleartext = b''
 		size = len(encrypted)

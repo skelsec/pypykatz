@@ -102,7 +102,7 @@ class PackageDecryptor:
 		except Exception as e:
 			self.log('%s: Logging failed for position %s' % (name, hex(ptr)))
 		
-	def decrypt_password(self, enc_password, bytes_expected = False, trim_zeroes = True):
+	def decrypt_password(self, enc_password, bytes_expected = False, trim_zeroes = True, segment_size = 128):
 		"""
 		Common decryption method for LSA encrypted passwords. Result be string or hex encoded bytes (for machine accounts).
 		Also supports bad data, as orphaned credentials may contain actual password OR garbage
@@ -113,7 +113,7 @@ class PackageDecryptor:
 		"""
 		
 		dec_password = None
-		temp = self.lsa_decryptor.decrypt(enc_password)
+		temp = self.lsa_decryptor.decrypt(enc_password, segment_size=segment_size)
 		if temp and len(temp) > 0:
 			if bytes_expected == False:
 				try: # normal password

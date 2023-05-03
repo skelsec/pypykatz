@@ -8,6 +8,7 @@
 from minidump.win_datatypes import ULONG, PVOID, POINTER
 from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild, WindowsBuild
 from pypykatz.lsadecryptor.package_commons import PackageTemplate
+from pypykatz import logger
 
 class LsaTemplate_NT6(PackageTemplate):
 	def __init__(self):
@@ -41,12 +42,14 @@ class LsaTemplate_NT6(PackageTemplate):
 				keys = [x for x in templates['nt6']['x64']]
 				keys.sort(reverse = True)
 				for key in keys:
+					logger.debug('BF: using x64 - %s' % key)
 					yield templates['nt6']['x64'][key]
 		
 		
 	@staticmethod
 	def get_template(sysinfo):
 		template = LsaTemplate_NT6()
+		logger.debug('Buildnumber: %s' % sysinfo.buildnumber)
 		
 		if sysinfo.architecture == KatzSystemArchitecture.X86:
 			if sysinfo.buildnumber <= WindowsMinBuild.WIN_XP.value:
@@ -85,35 +88,42 @@ class LsaTemplate_NT6(PackageTemplate):
 			
 			elif sysinfo.buildnumber < WindowsMinBuild.WIN_7.value:
 				#vista
+				logger.debug('using x64 - 1')
 				template = templates['nt6']['x64']['1']
 		
 			elif sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
-				#win 7
+				logger.debug('using x64 - 2')
 				template = templates['nt6']['x64']['2']
 			
 			elif sysinfo.buildnumber < WindowsMinBuild.WIN_10.value:
 				#win 8 and blue
 				if sysinfo.buildnumber < WindowsMinBuild.WIN_BLUE.value:
 					if sysinfo.msv_dll_timestamp < 0x60000000:
+						logger.debug('using x64 - 3')
 						template = templates['nt6']['x64']['3']
 					else:
+						logger.debug('using x64 - 7')
 						template = templates['nt6']['x64']['7']
 				else:
+					logger.debug('using x64 - 4')
 					template = templates['nt6']['x64']['4']
 					#win blue
 			
 			elif sysinfo.buildnumber < WindowsBuild.WIN_10_1809.value:
+				logger.debug('using x64 - 5')
 				template = templates['nt6']['x64']['5']
 				
-			elif WindowsBuild.WIN_10_1809.value >= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
+			elif WindowsBuild.WIN_10_1809.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
+				logger.debug('using x64 - 6')
 				template = templates['nt6']['x64']['6']
 			else:
+				logger.debug('using x64 - 8')
 				template = templates['nt6']['x64']['8']
 			
 		else:
 			raise Exception('Missing LSA decrpytor template for Architecture: %s , Build number %s' % (sysinfo.architecture, sysinfo.buildnumber))
 		
-
+		
 		template.log_template('key_handle_struct', template.key_handle_struct)
 		template.log_template('key_struct', template.key_struct)
 		template.log_template('hard_key_struct', template.hard_key_struct)

@@ -16,9 +16,11 @@ class CloudapTemplate(PackageTemplate):
 			return None
 
 		if sysinfo.architecture == KatzSystemArchitecture.X64:
-			template.signature = b'\x44\x8b\x01\x44\x39\x42\x18\x75'
+			template.signature = b'\x44\x8b\x01\x44\x39\x42'
 			template.first_entry_offset = -9
 			template.list_entry = PKIWI_CLOUDAP_LOGON_LIST_ENTRY
+			if sysinfo.buildnumber > WindowsBuild.WIN_10_1903.value:
+				template.list_entry = PKIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
 			template.signature = b'\x8b\x31\x39\x72\x10\x75'
@@ -132,7 +134,7 @@ class KIWI_CLOUDAP_CACHE_LIST_ENTRY:
 		res.unk13 = await DWORD.load(reader)
 		res.toDetermine = await PKIWI_CLOUDAP_CACHE_UNK.load(reader)
 		res.unk14 = await PVOID.load(reader)
-		res.cbPRT = await DWORD.load(reader)
+		res.cbPRT = await DWORD.loadvalue(reader)
 		await reader.align()
 		res.PRT = await PVOID.load(reader) #PBYTE(reader)
 		return res
@@ -170,5 +172,46 @@ class KIWI_CLOUDAP_LOGON_LIST_ENTRY:
 		res.LocallyUniqueIdentifier = await LUID.loadvalue(reader)
 		res.unk2 = await DWORD64.load(reader)
 		res.unk3 = await DWORD64.load(reader)
+		res.cacheEntry = await PKIWI_CLOUDAP_CACHE_LIST_ENTRY.load(reader)
+		return res
+
+class PKIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2(POINTER):
+	def __init__(self):
+		super().__init__()
+	
+	@staticmethod
+	async def load(reader):
+		p = PKIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2()
+		p.location = reader.tell()
+		p.value = await reader.read_uint()
+		p.finaltype = KIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2
+		return p
+
+class KIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2:
+	def __init__(self):
+		self.Flink = None
+		self.Blink = None
+		self.unk0 = None
+		self.unk1 = None
+		self.unk2 = None
+		self.LocallyUniqueIdentifier = None
+		self.unk3 = None
+		self.unk4 = None
+		self.unk5 = None
+		self.cacheEntry = None
+	
+	@staticmethod
+	async def load(reader):
+		res = KIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2()
+		res.Flink = await PKIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2.load(reader)
+		res.Blink = await PKIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2.load(reader)
+		res.unk0 = await DWORD.load(reader)
+		res.unk1 = await DWORD.load(reader)
+		res.unk2 = await DWORD.load(reader)
+		res.LocallyUniqueIdentifier = await LUID.loadvalue(reader)
+		res.unk3 = await DWORD.load(reader)
+		await reader.align()
+		res.unk4 = await DWORD64.load(reader)
+		res.unk5 = await DWORD64.load(reader)
 		res.cacheEntry = await PKIWI_CLOUDAP_CACHE_LIST_ENTRY.load(reader)
 		return res

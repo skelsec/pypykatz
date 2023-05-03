@@ -2,6 +2,7 @@ import traceback
 import enum
 import json
 import datetime
+import base64
 
 from minidump.streams.SystemInfoStream import PROCESSOR_ARCHITECTURE
 
@@ -499,4 +500,12 @@ class KatzSystemInfo:
 		sysinfo.msv_dll_timestamp = rekallreader.msv_dll_timestamp
 	
 		return sysinfo
-	
+
+
+def base64_decode_url(value: str, bytes_expected=False) -> str:
+	padding = 4 - (len(value) % 4)
+	value = value + ("=" * padding)
+	result = base64.urlsafe_b64decode(value)
+	if bytes_expected is True:
+		return result
+	return result.decode()

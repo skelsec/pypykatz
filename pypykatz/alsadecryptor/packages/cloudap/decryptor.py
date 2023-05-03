@@ -22,6 +22,9 @@ class CloudapCredential:
 		t['dpapi_key'] = self.dpapi_key
 		t['dpapi_key_sha1'] = self.dpapi_key_sha1
 		return t
+
+	def get_masterkey_hex(self):
+		return self.dpapi_key.hex() if isinstance(self.dpapi_key, bytes) else self.dpapi_key
 		
 	def to_json(self):
 		return json.dumps(self.to_dict())
@@ -31,7 +34,7 @@ class CloudapCredential:
 		t += '\t\tcachedir %s\n' % self.cachedir
 		t += '\t\tPRT %s\n' % self.PRT
 		t += '\t\tkey_guid %s\n' % self.key_guid
-		t += '\t\tdpapi_key %s\n' % self.dpapi_key
+		t += '\t\tdpapi_key %s\n' % self.get_masterkey_hex()
 		t += '\t\tdpapi_key_sha1 %s\n' % self.dpapi_key_sha1
 		return t
 
@@ -58,20 +61,20 @@ class CloudapDecryptor(PackageDecryptor):
 			cred.cachedir = cache.toname.decode('utf-16-le').replace('\x00','')
 			if cache.cbPRT != 0 and cache.PRT.value != 0:
 				ptr_enc = await cache.PRT.read_raw(self.reader, cache.cbPRT)
-				temp, raw_dec = self.decrypt_password(ptr_enc, bytes_expected=True)
+				temp, raw_dec = self.decrypt_password(ptr_enc, bytes_expected=True, segment_size=8)
 				try:
 					temp = temp.decode()
 				except:
 					pass
 				
-				cred.PRT = temp
+				cred.PRT = str(temp)
 				
 			if cache.toDetermine != 0:
 				unk = await cache.toDetermine.read(self.reader)
 				if unk is not None:
-					cred.key_guid = unk.guid.value
-					cred.dpapi_key, raw_dec = self.decrypt_password(unk.unk)
-					cred.dpapi_key_sha1 = hashlib.sha1(bytes.fromhex(cred.dpapi_key)).hexdigest()
+					cred.key_guid = unk.guid
+					cred.dpapi_key, raw_dec = self.decrypt_password(unk.unk, bytes_expected = True)
+					cred.dpapi_key_sha1 = hashlib.sha1(cred.dpapi_key).hexdigest()
 
 			if cred.PRT is None and cred.key_guid is None:
 				return
@@ -84,9 +87,9 @@ class CloudapDecryptor(PackageDecryptor):
 		try:
 			entry_ptr_value, entry_ptr_loc = await self.find_first_entry()
 		except Exception as e:
-			self.log('Failed to find structs! Reason: %s' % e)
+			self.log('Failed to find list entry! Reason: %s' % e)
 			return
 		
 		await self.reader.move(entry_ptr_loc)
-		entry_ptr = await self.decryptor_template.list_entry(self.reader)
+		entry_ptr = await self.decryptor_template.list_entry.load(self.reader)
 		await self.walk_list(entry_ptr, self.add_entry)

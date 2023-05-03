@@ -19,6 +19,9 @@ class CloudapTemplate(PackageTemplate):
 			template.signature = b'\x44\x8b\x01\x44\x39\x42'
 			template.first_entry_offset = -9
 			template.list_entry = PKIWI_CLOUDAP_LOGON_LIST_ENTRY
+			if sysinfo.buildnumber > WindowsBuild.WIN_10_1903.value:
+				template.list_entry = PKIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2
+			
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
 			template.signature = b'\x8b\x31\x39\x72\x10\x75'
@@ -95,25 +98,21 @@ class KIWI_CLOUDAP_LOGON_LIST_ENTRY:
 		self.unk3 = DWORD64(reader)
 		self.cacheEntry = PKIWI_CLOUDAP_CACHE_LIST_ENTRY(reader)
 
-
-#### THIS IS FOR TESTING!!!
-class PKIWI_CLOUDAP_LOGON_LIST_ENTRY_11(POINTER):
+class PKIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2(POINTER):
 	def __init__(self, reader):
-		super().__init__(reader, KIWI_CLOUDAP_LOGON_LIST_ENTRY_11)
+		super().__init__(reader, KIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2)
 
-class KIWI_CLOUDAP_LOGON_LIST_ENTRY_11:
+class KIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2:
 	def __init__(self, reader):
-		self.Flink = PKIWI_CLOUDAP_LOGON_LIST_ENTRY_11(reader)
-		self.Blink = PKIWI_CLOUDAP_LOGON_LIST_ENTRY_11(reader)
-		self.LocallyUniqueIdentifier = 1
-		reader.read(8*11)
-		#self.unk0 = DWORD(reader)
-		#self.unk1 = DWORD(reader)
-		#self.unk2 = DWORD(reader)
-		#reader.align()
-		#self.LocallyUniqueIdentifier = LUID(reader).value
-		#self.unk3 = DWORD64(reader)
-		#self.unk4 = DWORD64(reader)
-		#self.unk5 = DWORD64(reader)
-		#self.unk6 = DWORD64(reader)
+		self.Flink = PKIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2(reader)
+		self.Blink = PKIWI_CLOUDAP_LOGON_LIST_ENTRY_21H2(reader)
+		self.unk0 = DWORD(reader)
+		self.unk1 = DWORD(reader)
+		self.unk2 = DWORD(reader)
+		#reader.align() #there should be an aloignment here, but it's not???
+		self.LocallyUniqueIdentifier = LUID(reader).value
+		self.unk3 = DWORD(reader)
+		reader.align()
+		self.unk4 = DWORD64(reader)
+		self.unk5 = DWORD64(reader)
 		self.cacheEntry = PKIWI_CLOUDAP_CACHE_LIST_ENTRY(reader)

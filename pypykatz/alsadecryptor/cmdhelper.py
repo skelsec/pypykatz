@@ -169,25 +169,25 @@ class LSACMDHelper:
 		if args.cmd == 'minidump':
 			if args.directory:
 				dir_fullpath = os.path.abspath(args.memoryfile)
-				file_pattern = '*.dmp'
-				if args.recursive == True:
-					globdata = os.path.join(dir_fullpath, '**', file_pattern)
-				else:	
-					globdata = os.path.join(dir_fullpath, file_pattern)
+				for file_pattern in ['*.dmp', '*.DMP']:
+					if args.recursive == True:
+						globdata = os.path.join(dir_fullpath, '**', file_pattern)
+					else:
+						globdata = os.path.join(dir_fullpath, file_pattern)
 					
-				logger.info('Parsing folder %s' % dir_fullpath)
-				for filename in glob.glob(globdata, recursive=args.recursive):
-					logger.info('Parsing file %s' % filename)
-					try:
-						mimi = await apypykatz.parse_minidump_file(filename, packages = args.packages)
-						results[filename] = mimi
-					except Exception as e:
-						files_with_error.append(filename)
-						logger.exception('Error parsing file %s ' % filename)
-						if args.halt_on_error == True:
-							raise e
-						else:
-							pass
+					logger.info('Parsing folder %s' % dir_fullpath)
+					for filename in glob.glob(globdata, recursive=args.recursive):
+						logger.info('Parsing file %s' % filename)
+						try:
+							mimi = await apypykatz.parse_minidump_file(filename, packages = args.packages)
+							results[filename] = mimi
+						except Exception as e:
+							files_with_error.append(filename)
+							logger.exception('Error parsing file %s ' % filename)
+							if args.halt_on_error == True:
+								raise e
+							else:
+								pass
 					
 			else:
 				logger.info('Parsing file %s' % args.memoryfile)
