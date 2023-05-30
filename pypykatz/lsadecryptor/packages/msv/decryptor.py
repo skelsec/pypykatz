@@ -137,6 +137,7 @@ class LogonSession:
 		t['kerberos_creds']  = []
 		t['credman_creds']  = []
 		t['tspkg_creds']  = []
+		t['cloudap_creds'] = []
 		for cred in self.msv_creds:
 			t['msv_creds'].append(cred.to_dict())
 		for cred in self.wdigest_creds:
@@ -153,6 +154,8 @@ class LogonSession:
 			t['credman_creds'].append(cred.to_dict())
 		for cred in self.tspkg_creds:
 			t['tspkg_creds'].append(cred.to_dict())
+		for cred in self.cloudap_creds:
+			t['cloudap_creds'].append(cred.to_dict())
 		return t
 		
 	def to_json(self):
@@ -195,6 +198,9 @@ class LogonSession:
 		if len(self.dpapi_creds) > 0:
 			for cred in self.dpapi_creds:
 				t+= str(cred)
+		if len(self.cloudap_creds) > 0:
+			for cred in self.cloudap_creds:
+				t+= str(cred)
 		return t
 
 	def to_row(self):
@@ -225,6 +231,11 @@ class LogonSession:
 		for cred in self.tspkg_creds:
 			t = cred.to_dict()
 			yield [self.luid, t['credtype'], self.session_id, self.sid, t['credtype'], '', self.domainname, self.username, 'plaintext', t['password']]
+		for cred in self.cloudap_creds:
+			t = cred.to_dict()
+			yield [self.luid, t['credtype'], self.session_id, self.sid, t['credtype'], '', self.domainname, self.username, 'masterkey', str(cred.get_masterkey_hex())]
+			yield [self.luid, t['credtype'], self.session_id, self.sid, t['credtype'], '', self.domainname, self.username, 'sha1', str(t['dpapi_key_sha1'])]
+			yield [self.luid, t['credtype'], self.session_id, self.sid, t['credtype'], '', self.domainname, self.username, 'PRT', str(t['PRT'])]
 
 	def to_grep_rows(self):
 		for cred in self.msv_creds:
@@ -264,8 +275,7 @@ class LogonSession:
 		
 		for cred in self.cloudap_creds:
 			t = cred.to_dict()
-			#print(t)
-			yield [str(t['credtype']), '', '', '', '', '', str(t['dpapi_key']), str(t['dpapi_key_sha1']), str(t['key_guid']), base64.b64encode(str(t['PRT']).encode()).decode()]
+			yield [str(t['credtype']), '', '', '', '', '', str(cred.get_masterkey_hex()), str(t['dpapi_key_sha1']), str(t['key_guid']), str(t['PRT'])]
 
 
 

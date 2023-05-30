@@ -8,6 +8,7 @@
 from minidump.win_datatypes import ULONG, PVOID, POINTER
 from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild, WindowsBuild
 from pypykatz.lsadecryptor.package_commons import PackageTemplate
+from pypykatz import logger
 
 class LsaTemplate_NT6(PackageTemplate):
 	def __init__(self):
@@ -41,12 +42,14 @@ class LsaTemplate_NT6(PackageTemplate):
 				keys = [x for x in templates['nt6']['x64']]
 				keys.sort(reverse = True)
 				for key in keys:
+					logger.debug('BF: using x64 - %s' % key)
 					yield templates['nt6']['x64'][key]
 		
 		
 	@staticmethod
 	def get_template(sysinfo):
 		template = LsaTemplate_NT6()
+		logger.debug('Buildnumber: %s' % sysinfo.buildnumber)
 		
 		if sysinfo.architecture == KatzSystemArchitecture.X86:
 			if sysinfo.buildnumber <= WindowsMinBuild.WIN_XP.value:
@@ -85,35 +88,42 @@ class LsaTemplate_NT6(PackageTemplate):
 			
 			elif sysinfo.buildnumber < WindowsMinBuild.WIN_7.value:
 				#vista
+				logger.debug('using x64 - 1')
 				template = templates['nt6']['x64']['1']
 		
 			elif sysinfo.buildnumber < WindowsMinBuild.WIN_8.value:
-				#win 7
+				logger.debug('using x64 - 2')
 				template = templates['nt6']['x64']['2']
 			
 			elif sysinfo.buildnumber < WindowsMinBuild.WIN_10.value:
 				#win 8 and blue
 				if sysinfo.buildnumber < WindowsMinBuild.WIN_BLUE.value:
 					if sysinfo.msv_dll_timestamp < 0x60000000:
+						logger.debug('using x64 - 3')
 						template = templates['nt6']['x64']['3']
 					else:
+						logger.debug('using x64 - 7')
 						template = templates['nt6']['x64']['7']
 				else:
+					logger.debug('using x64 - 4')
 					template = templates['nt6']['x64']['4']
 					#win blue
 			
 			elif sysinfo.buildnumber < WindowsBuild.WIN_10_1809.value:
+				logger.debug('using x64 - 5')
 				template = templates['nt6']['x64']['5']
 				
-			elif WindowsBuild.WIN_10_1809.value >= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
+			elif WindowsBuild.WIN_10_1809.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
+				logger.debug('using x64 - 6')
 				template = templates['nt6']['x64']['6']
 			else:
+				logger.debug('using x64 - 8')
 				template = templates['nt6']['x64']['8']
 			
 		else:
 			raise Exception('Missing LSA decrpytor template for Architecture: %s , Build number %s' % (sysinfo.architecture, sysinfo.buildnumber))
 		
-
+		
 		template.log_template('key_handle_struct', template.key_handle_struct)
 		template.log_template('key_struct', template.key_struct)
 		template.log_template('hard_key_struct', template.hard_key_struct)
@@ -320,8 +330,21 @@ class LSA_x64_8(LsaTemplate_NT6):
 		self.key_pattern = LSADecyptorKeyPattern()
 		self.key_pattern.signature = b'\x83\x64\x24\x30\x00\x48\x8d\x45\xe0\x44\x8b\x4d\xd8\x48\x8d\x15'
 		self.key_pattern.IV_length = 16
-		#self.key_pattern.offset_to_IV_ptr = 71
 		self.key_pattern.offset_to_IV_ptr = 58
+		self.key_pattern.offset_to_DES_key_ptr = -89
+		self.key_pattern.offset_to_AES_key_ptr = 16
+		
+		self.key_struct = KIWI_BCRYPT_KEY81
+		self.key_handle_struct = KIWI_BCRYPT_HANDLE_KEY
+
+class LSA_x64_9(LsaTemplate_NT6):
+	"""Same as LSA_x64_8 but with a different IV offset"""
+	def __init__(self):
+		LsaTemplate_NT6.__init__(self)
+		self.key_pattern = LSADecyptorKeyPattern()
+		self.key_pattern.signature = b'\x83\x64\x24\x30\x00\x48\x8d\x45\xe0\x44\x8b\x4d\xd8\x48\x8d\x15'
+		self.key_pattern.IV_length = 16
+		self.key_pattern.offset_to_IV_ptr = 71
 		self.key_pattern.offset_to_DES_key_ptr = -89
 		self.key_pattern.offset_to_AES_key_ptr = 16
 		
@@ -433,6 +456,7 @@ templates = {
 			'6' : LSA_x64_6(),
 			'7' : LSA_x64_7(),
 			'8' : LSA_x64_8(),
+			'9' : LSA_x64_9(), #same as 8 but fidderent IV offset
 		},
 		'x86': {
 			'1' : LSA_x86_1(),

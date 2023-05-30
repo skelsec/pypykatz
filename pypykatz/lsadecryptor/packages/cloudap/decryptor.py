@@ -1,6 +1,7 @@
 import json
 import hashlib
 from pypykatz.lsadecryptor.package_commons import PackageDecryptor
+from pypykatz.dpapi.dpapi import DPAPI
 
 class CloudapCredential:
 	def __init__(self):
@@ -25,13 +26,16 @@ class CloudapCredential:
 		
 	def to_json(self):
 		return json.dumps(self.to_dict())
+	
+	def get_masterkey_hex(self):
+		return self.dpapi_key.hex() if isinstance(self.dpapi_key, bytes) else self.dpapi_key
 		
 	def __str__(self):
 		t = '\t== Cloudap [%x]==\n' % self.luid
 		t += '\t\tcachedir %s\n' % self.cachedir
 		t += '\t\tPRT %s\n' % self.PRT
 		t += '\t\tkey_guid %s\n' % self.key_guid
-		t += '\t\tdpapi_key %s\n' % self.dpapi_key
+		t += '\t\tdpapi_key %s\n' % self.get_masterkey_hex()
 		t += '\t\tdpapi_key_sha1 %s\n' % self.dpapi_key_sha1
 		return t
 
@@ -57,13 +61,13 @@ class CloudapDecryptor(PackageDecryptor):
 			cache = cloudap_entry.cacheEntry.read(self.reader)
 			cred.cachedir = cache.toname.decode('utf-16-le').replace('\x00','')
 			if cache.cbPRT != 0 and cache.PRT.value != 0:
-				temp, raw_dec = self.decrypt_password(cache.PRT.read_raw(self.reader, cache.cbPRT), bytes_expected=True)
+				temp, raw_dec = self.decrypt_password(cache.PRT.read_raw(self.reader, cache.cbPRT), bytes_expected=True, segment_size=8)
 				try:
 					temp = temp.decode()
 				except:
 					pass
 				
-				cred.PRT = temp
+				cred.PRT = str(temp)
 				
 			if cache.toDetermine != 0:
 				unk = cache.toDetermine.read(self.reader)
@@ -74,6 +78,7 @@ class CloudapDecryptor(PackageDecryptor):
 
 			if cred.PRT is None and cred.key_guid is None:
 				return
+			
 			self.credentials.append(cred)
 		except Exception as e:
 			self.log('CloudAP entry parsing error! Reason %s' % e)
