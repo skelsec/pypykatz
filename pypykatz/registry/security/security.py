@@ -198,9 +198,9 @@ class SECURITY:
 				username = blob.read(record.UserLength).decode('utf-16-le')
 				blob.seek(self.__pad(record.UserLength) + self.__pad(record.DomainNameLength))
 				domain = blob.read(record.DnsDomainNameLength).decode('utf-16-le')
-				
+
 				version = 2 if self.lsa_secret_key_vista_type is True else 1
-				secret = LSADCCSecret(version, domain, username, dcc_hash, iteration = self.dcc_iteration_count)
+				secret = LSADCCSecret(version, domain, username, dcc_hash, iteration = self.dcc_iteration_count, last_write_ts=record.LastWrite)
 				self.dcc_hashes.append(secret)
 				
 		return self.dcc_hashes	

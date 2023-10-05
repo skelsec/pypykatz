@@ -173,11 +173,16 @@ class PackageDecryptor:
 		max_walk = max_walk
 		self.log_ptr(entry_ptr.value, 'List entry -%s-' % entry_ptr.finaltype.__name__ if not override_ptr else override_ptr.__name__)
 		while True:
-			if override_ptr:
-				entry = entry_ptr.read(self.reader, override_ptr)
-			else:
-				entry = entry_ptr.read(self.reader)
-
+			try:
+				if override_ptr:
+					entry = entry_ptr.read(self.reader, override_ptr)
+				else:
+					entry = entry_ptr.read(self.reader)
+			except Exception as e:
+				self.log('Exception while reading list entry: %s' % e)
+				break # uncomment this line to discard the exception and continue parsing
+				raise
+			
 			if not entry:
 				break
 				
