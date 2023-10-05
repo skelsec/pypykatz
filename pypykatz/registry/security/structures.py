@@ -5,6 +5,7 @@
 #
 import enum
 import io
+from pypykatz.commons.filetime import filetime_to_dt
 
 class LSA_SECRET_BLOB:
 	def __init__(self):
@@ -157,6 +158,11 @@ class NL_RECORD:
 		nl.IV = buff.read(16)
 		nl.CH = buff.read(16)
 		nl.EncryptedData = buff.read()
+
+		try:
+			nl.LastWrite = filetime_to_dt(nl.LastWrite)
+		except Exception as e:
+			nl.LastWrite = None
 		
 		return nl
 		
