@@ -100,7 +100,7 @@ class LsaTemplate_NT6(PackageTemplate):
 			elif sysinfo.buildnumber < WindowsBuild.WIN_10_1809.value:
 				template = templates['nt6']['x64']['5']
 				
-			elif WindowsBuild.WIN_10_1809.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
+			elif WindowsBuild.WIN_10_1809.value <= sysinfo.buildnumber <= WindowsMinBuild.WIN_11.value:
 				template = templates['nt6']['x64']['6']
 			else:
 				template = templates['nt6']['x64']['8']
