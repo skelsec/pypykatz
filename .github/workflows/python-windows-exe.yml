@@ -1,0 +1,65 @@
+name: Build Windows Executable - PyInstaller
+# Description:
+# Most of my projects come with a build.bat script that uses PyInstaller to freeze the examples
+# to an executable file. This Action will set up the envrionment and run this build.bat script,
+# then upload the resulting executables to a google cloud bucket.
+# Additionally the executables will be compressed and encrypted using 7z
+
+on:
+  push:
+    branches:
+      - main # Trigger on push to master branch
+
+jobs:
+  build:
+    runs-on: windows-latest # Use a Windows runner
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    
+    steps:        
+    - uses: 'actions/checkout@v4'
+      with:
+        fetch-depth: 0
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: '${{ secrets.GCLOUD_BUCKET_SERVICE_USER_SECRET }}'
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller virtualenv
+
+    - name: Run Batch File to Build Executable
+      run: builder\pyinstaller\build.bat
+
+    - name: Compress executables
+      run: |
+        "C:\Program Files\7-Zip\7z.exe" a secure.7z *.exe -pprotected
+      working-directory: ${{ github.workspace }}/builder/pyinstaller
+      shell: cmd
+    
+    #- name: Upload Executable
+    #  uses: actions/upload-artifact@v2
+    #  with:
+    #    name: executable
+    #    path: builder\pyinstaller\*.exe
+        
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v1'
+      with:
+        version: '>= 390.0.0'
+
+    - name: Upload Executables to GCS
+      run: |
+        $PROJVERSION = python -c "import sys; sys.path.append('${{ github.event.repository.name }}'); import _version; print(_version.__version__)"
+        Write-Host "Detected Version: $PROJVERSION"
+        gsutil cp builder\pyinstaller\*.exe gs://skelsec-github-foss/${{ github.event.repository.name }}/$PROJVERSION/
+        gsutil cp builder\pyinstaller\*.7z gs://skelsec-github-foss/${{ github.event.repository.name }}/$PROJVERSION/
+      shell: powershell
