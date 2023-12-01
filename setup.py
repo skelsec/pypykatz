@@ -59,7 +59,7 @@ setup(
 		'winacl>=0.1.7,<=0.2.0',
 		'aiosmb>=0.4.8,<=0.5.0',
 		'aesedb>=0.1.4,<=0.2.0',
-		'tqdm',
+		'tqdm', 
 	],
 	
 	# No more conveinent .exe entry point thanks to some idiot who 
