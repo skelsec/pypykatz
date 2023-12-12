@@ -75,7 +75,7 @@ async def regdump_single(targetid, connection, hives = ['HKLM\\SAM', 'HKLM\\SYST
 	try:
 		from aiosmb.commons.interfaces.machine import SMBMachine
 		from aiosmb.commons.interfaces.file import SMBFile
-		from aiosmb.dcerpc.v5.common.service import SMBServiceStatus
+		from aiosmb.dcerpc.v5.common.service import ServiceStatus
 		from pypykatz.alsadecryptor.asbmfile import SMBFileReader
 		from pypykatz.registry.aoffline_parser import OffineRegistry
 
@@ -102,7 +102,7 @@ async def regdump_single(targetid, connection, hives = ['HKLM\\SAM', 'HKLM\\SYST
 					raise err
 				
 				logger.debug('[REGDUMP] Remote registry service status: %s' % status.name)
-				if status != SMBServiceStatus.RUNNING:
+				if status != ServiceStatus.RUNNING:
 					logger.debug('[REGDUMP] Enabling Remote registry service')
 					_, err = await machine.enable_service('RemoteRegistry')
 					if err is not None:
