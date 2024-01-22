@@ -113,7 +113,7 @@ class LsaTemplate_NT6(PackageTemplate):
 				logger.debug('using x64 - 5')
 				template = templates['nt6']['x64']['5']
 				
-			elif WindowsBuild.WIN_10_1809.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
+			elif WindowsBuild.WIN_10_1809.value <= sysinfo.buildnumber <= WindowsMinBuild.WIN_11.value:
 				logger.debug('using x64 - 6')
 				template = templates['nt6']['x64']['6']
 			else:
