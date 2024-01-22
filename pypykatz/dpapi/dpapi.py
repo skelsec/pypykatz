@@ -153,7 +153,7 @@ class DPAPI:
 			self.masterkeys[guid] = bytes.fromhex(data['masterkeys'][guid])
 
 		
-	def get_prekeys_from_password(self, sid, password = None, nt_hash = None):
+	def get_prekeys_from_password(self, sid, password = None, nt_hash = None, sha1_hash=None):
 		"""
 		Creates pre-masterkeys from user SID and password of nt hash.
 		If NT hash is provided the function can only generate 2 out of the 3 possible keys, 
@@ -163,38 +163,40 @@ class DPAPI:
 		password: user's password. optional. if not provided, then NT hash must be provided
 		nt_hash: user's NT hash. optional if not provided, the password must be provided
 		"""
-		if password is None and nt_hash is None:
-			raise Exception('Provide either password or NT hash!')
+		if password is None and nt_hash is None and sha1_hash is None:
+			raise Exception('Provide either password, NT hash or SHA1 hash!')
 		
-		if password is None and nt_hash:
-			if isinstance(nt_hash, str):
+		if password is None:
+			# Will generate two keys, one with SHA1 and another with MD4
+			if nt_hash and isinstance(nt_hash, str):
 				nt_hash = bytes.fromhex(nt_hash)
-			key1 = None
+			if sha1_hash and isinstance(sha1_hash, str):
+				sha1_hash = bytes.fromhex(sha1_hash)
+
 		
+		key1 = key2 = key3 = key4 = None
 		if password or password == '':
 			ctx = MD4(password.encode('utf-16le'))
 			nt_hash = ctx.digest()
+			sha1_hash = sha1(password.encode('utf-16le')).digest()
+		if sha1_hash:
+			key1 = hmac.new(sha1_hash, (sid + '\0').encode('utf-16le'), sha1).digest()
+			key4 = sha1_hash
+		if nt_hash:
+			key2 = hmac.new(nt_hash, (sid + '\0').encode('utf-16le'), sha1).digest()
+			# For Protected users
+			tmp_key = pbkdf2_hmac('sha256', nt_hash, sid.encode('utf-16le'), 10000)
+			tmp_key_2 = pbkdf2_hmac('sha256', tmp_key, sid.encode('utf-16le'), 1)[:16]
+			key3 = hmac.new(tmp_key_2, (sid + '\0').encode('utf-16le'), sha1).digest()[:20]
+		
+		count = 1
+		for key in [key1, key2, key3, key4]:
+			if key is not None:
+				self.prekeys[key] = 1
+				logger.debug('Prekey_%d %s %s %s %s' % (count, sid, password, nt_hash, key.hex()))
+			count += 1
 
-			# Will generate two keys, one with SHA1 and another with MD4
-			key1 = hmac.new(sha1(password.encode('utf-16le')).digest(), (sid + '\0').encode('utf-16le'), sha1).digest()
-		
-		key2 = hmac.new(nt_hash, (sid + '\0').encode('utf-16le'), sha1).digest()
-		# For Protected users
-		tmp_key = pbkdf2_hmac('sha256', nt_hash, sid.encode('utf-16le'), 10000)
-		tmp_key_2 = pbkdf2_hmac('sha256', tmp_key, sid.encode('utf-16le'), 1)[:16]
-		key3 = hmac.new(tmp_key_2, (sid + '\0').encode('utf-16le'), sha1).digest()[:20]
-		
-		if key1 is not None:
-			self.prekeys[key1] = 1
-		self.prekeys[key2] = 1
-		self.prekeys[key3] = 1
-		
-		if key1 is not None:
-			logger.debug('Prekey_1 %s %s %s %s' % (sid, password, nt_hash, key1.hex()))
-		logger.debug('Prekey_2 %s %s %s %s' % (sid, password, nt_hash, key2.hex()))
-		logger.debug('Prekey_3 %s %s %s %s' % (sid, password, nt_hash, key3.hex()))
-		
-		return key1, key2, key3
+		return key1, key2, key3, key4
 				
 	def __get_registry_secrets(self, lr):
 		"""
@@ -221,7 +223,7 @@ class DPAPI:
 			for secret in lr.sam.secrets:
 				if secret.nt_hash:
 					sid = '%s-%s' % (lr.sam.machine_sid, secret.rid)
-					x, key2, key3 = self.get_prekeys_from_password(sid, nt_hash = secret.nt_hash)
+					x, key2, key3, y = self.get_prekeys_from_password(sid, nt_hash = secret.nt_hash)
 					logger.debug('[DPAPI] NT hash method. Calculated user key for user %s! Key2: %s Key3: %s' % (sid, key2, key3))
 					user.append(key2)
 					user.append(key3)
