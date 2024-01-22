@@ -42,6 +42,7 @@ def generate_targets(targets, realm = None, to_spn = True):
 	"""
 	Takes a list of files or strings and generates a list of targets in <username>@<realm> format
 	"""
+	results = []
 	for target in targets:
 		target = target.strip()
 		try:
@@ -49,13 +50,14 @@ def generate_targets(targets, realm = None, to_spn = True):
 		except:
 			x = process_target_line(target, realm = realm, to_spn = to_spn)
 			if x:
-				yield x
+				results.append(x)
 		else:
 			with open(target, 'r') as f:
 				for line in f:
 					x = process_target_line(line, realm = realm, to_spn = to_spn)
 					if x:
-						yield x
+						results.append(x)
+	return results
 
 def process_keytab(keytablfile):
 	with open(keytablfile, 'rb') as f:
