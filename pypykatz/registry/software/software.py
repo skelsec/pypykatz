@@ -62,4 +62,6 @@ class SOFTWARE:
 	def __str__(self):
 		t  = '============== SOFTWARE hive secrets ==============\r\n'
 		t += 'default_logon_user: %s\r\n' % self.default_logon_user
+		t += 'default_logon_domain: %s\r\n' % self.default_logon_domain
+		t += 'default_logon_password: %s\r\n' % self.default_logon_password
 		return t
