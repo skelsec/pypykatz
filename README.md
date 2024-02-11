@@ -40,7 +40,7 @@ python3 setup.py install
 ## Features
 
 ### General
-Platform idependent - all commands have a "live" and a normal version where applicable. The "live" version will use the current system and only works on Windows. The normal commands are platform independent.  
+Platform independent - all commands have a "live" and a normal version where applicable. The "live" version will use the current system and only works on Windows. The normal commands are platform independent.  
 Can be used as a library for your projects.  
 
 ### LSASS processing
@@ -48,7 +48,7 @@ Can parse the secrets hidden in the LSASS process. This is just like mimikatz's 
 The main difference here is that all the parsing logic is separated from the data source, so if you define a new reader object you can basically perform the parsing of LSASS from anywhere.  
 
 Currently supported data sources:  
-1. live - reads the LSASS porcess' memory directly  
+1. live - reads the LSASS process' memory directly  
 2. minidump - processes a minidump file created by dumping the LSASS process 
 3. rekall (volatility fork) - processes basically ANY windows memory dumps that rekall can parse 
 4. pcileech - can dump secrets DIRECTLY via DMA of a live computer 
@@ -56,7 +56,7 @@ Currently supported data sources:
 6. `your project here` seriously, it's super-simple to integrate.
 
 ### Registry processing
-Parses the registry hives to obtain stroed credentials, like NT and LM hashes, domain cached credentials (DCC/DCC2) and LSA secrets.
+Parses the registry hives to obtain stored credentials, like NT and LM hashes, domain cached credentials (DCC/DCC2) and LSA secrets.
 
 Currently supported data sources: 
 1. live - has two techniques to parse live registry. First it's in-memory doesn't touch disk, the second is dumping the hives and parsing them with the offline parser 
@@ -69,21 +69,21 @@ The results are not 100% correct, as there is not much documentation on most of 
 
 Currently supported data sources: 
 1. live - obtains masterkeys directly from LSASS -OR- the user/machine keys from live registry and decrypts the masterkeyfile. 
-2. hive files (offline)- the user/machine keys from live registry and decrypts the masterkeyfile  
+2. hive files (offline)- the user/machine keys from local registry files and decrypts the masterkeyfile  
 3. valid credentials (offline) - can decrypt masterkey files by letting you type in the correct SID and password.
 4. `pls don't integrate this part to your project, it's beta`
 
 ### Impersonating users
 Can spawn a new process as any user who has a process running on the machine.  
-Can assign any available token of choise to your thread  
-This is just a basic stuff really. Reson is there that I hate to constanly use psexec to get a system shell from admin...  
+Can assign any available token of choice to your thread  
+This is just a basic stuff really. Reason is that I hate to constantly use psexec to get a system shell from admin...  
 
 ### other stuff
 yeah... check the code. it has comments and stuff...  
 
 ### Rekall command options 
 #### Timestamp override
-Reason for this parameter to exist: In order to choose the correct structure for parsing we need the timestamp info of the msv dll file. Rekall sadly doesnt always have this info for some reason, therefore the parsing may be failing.  
+Reason for this parameter to exist: In order to choose the correct structure for parsing we need the timestamp info of the msv dll file. Rekall sadly doesn't always have this info for some reason, therefore the parsing may be failing.  
 If the parsing is failing this could solve the issue.  
   
 Parameter: ```-t```  
@@ -111,15 +111,15 @@ If everything is okay you can use the ```pypykatz``` command from the ```rekall`
 # HELP WANTED
 If you want to help me getting this project into a stable release you can send mindiumps of the lsass.exe process to the following link: https://nx5494.your-storageshare.de/s/SJteWj3PPbg8jBA
 IMPORTANT: please *DO NOT* send dumps of your own machine's lsass process!!! I will be able to see your secrets including hashes/passwords! Send dump files from machines like virtual test systems on which you don't mind that someone will see the credentials. (if you have a test domain system where kerberos is set up that would be the best)  
-Also I'd apprechiate if you wouldn't spam me...  
+Also I'd appreciate if you wouldn't spam me...  
 ### Why do I need these dumps files?
-In order to create mimikatz in Python one would have to create structure definitions of a gazillion different structures (check the original code) without the help of the build-in parser that you'd naturally get from using a native compiler. Now, the problem is that even a single byte misalignemt will render the parsing of these structures run to an error. Problem is mostly revolving around 32 - 64 aligments, so 32 bit Windows version lsass dumps are apprechiated as well!  
+In order to create mimikatz in Python one would have to create structure definitions of a gazillion different structures (check the original code) without the help of the build-in parser that you'd naturally get from using a native compiler. Now, the problem is that even a single byte misalignment will render the parsing of these structures run to an error. Problem is mostly revolving around 32 - 64 alignments, so 32 bit Windows version lsass dumps are appreciated as well!  
 ### Summary
 I need data I can verify the code on and administer necessary changes on the parsers until everything works fine.  
 Submitting issues on this github page wouldn't help at all without the actual file and github wouldn't like 40-300Mb file attachments.
 
 ## Prerequisites
-Most of my big python projects are aiming for maximum protability, meaning I only use 3rd party packages where absolutely necessary. 
+Most of my big python projects are aiming for maximum portability, meaning I only use 3rd party packages where absolutely necessary. 
 As of this point three additional packages are used, and I intend to keep it this way.
 
 Python>=3.6  
@@ -134,7 +134,7 @@ Alberto Solino (@agsolino) for [impacket](https://github.com/SecureAuthCorp/impa
   
 ### Crypto
 Richard Moore for the [AES module](https://github.com/ricmoo/pyaes/blob/master/pyaes/aes.py)  
-Todd Whiteman for teh [DES module](http://twhiteman.netfirms.com/des.html)  
+Todd Whiteman for the [DES module](http://twhiteman.netfirms.com/des.html)  
   
 ### Utils
 David Buxton for the timestamp conversion script  
