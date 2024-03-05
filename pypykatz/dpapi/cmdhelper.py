@@ -100,6 +100,8 @@ class DPAPICMDHelper:
 		dpapi_minidump_group.add_argument('minidumpfile', help='path to minidump file')
 		dpapi_minidump_group.add_argument('-o', '--out-file', help= 'Master and Backup keys will be stored in this file. Easier to handle in other commands.')
 
+		dpapi_preferredkey_group = dpapi_subparsers.add_parser('preferredkey', help='Get preferred masterkey GUID')
+		dpapi_preferredkey_group.add_argument('preferredkeyfile', help='path to preferred masterkey file')
 
 		dpapi_masterkey_group = dpapi_subparsers.add_parser('masterkey', help='Decrypt masterkey file')
 		dpapi_masterkey_group.add_argument('masterkeyfile', help='path to masterkey file')
@@ -210,6 +212,8 @@ class DPAPICMDHelper:
 			else:
 				dpapi.dump_pre_keys()
 
+		elif args.dapi_module == 'preferredkey':
+			dpapi.dump_preferred_masterkey_guid(args.preferredkeyfile)
 
 		elif args.dapi_module == 'masterkey':
 			if args.prekey is None:
