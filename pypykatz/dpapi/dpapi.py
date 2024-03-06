@@ -131,6 +131,15 @@ class DPAPI:
 					line = line.strip()
 					self.prekeys[bytes.fromhex(line)] = 1
 
+	def dump_preferred_masterkey_guid(self, filename):
+		from uuid import UUID
+
+		with open(filename, 'rb') as f:
+			b = f.read()[:16]
+
+		guid = UUID(bytes_le = b)
+		print('[GUID] %s' % guid)
+
 	def dump_masterkeys(self, filename = None):
 		if filename is None:
 			for x in self.masterkeys:
