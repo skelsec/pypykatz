@@ -48,7 +48,7 @@ Can parse the secrets hidden in the LSASS process. This is just like mimikatz's 
 The main difference here is that all the parsing logic is separated from the data source, so if you define a new reader object you can basically perform the parsing of LSASS from anywhere.  
 
 Currently supported data sources:  
-1. live - reads the LSASS porcess' memory directly  
+1. live - reads the LSASS process' memory directly  
 2. minidump - processes a minidump file created by dumping the LSASS process 
 3. rekall (volatility fork) - processes basically ANY windows memory dumps that rekall can parse 
 4. pcileech - can dump secrets DIRECTLY via DMA of a live computer 
