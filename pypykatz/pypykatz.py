@@ -213,9 +213,9 @@ class pypykatz:
 		return mimi
 
 	@staticmethod
-	def go_volatility3(vol3_obj, packages = ['all']):
+	def go_volatility3(vol3_obj, framework_version = 2, packages = ['all']):
 		from pypykatz.commons.readers.volatility3.volreader import Vol3Reader, vol3_treegrid
-		reader = Vol3Reader(vol3_obj)
+		reader = Vol3Reader(vol3_obj, framework_version)
 		sysinfo = reader.get_sysinfo()
 		mimi = pypykatz(reader, sysinfo)
 		mimi.start(packages)
