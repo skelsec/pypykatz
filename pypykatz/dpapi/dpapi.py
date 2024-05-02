@@ -16,7 +16,7 @@ import glob
 import sqlite3
 import base64
 import platform
-from hashlib import sha1, pbkdf2_hmac
+from hashlib import sha1, pbkdf2_hmac, sha512
 
 import xml.etree.ElementTree as ET
 
@@ -25,9 +25,14 @@ from pypykatz.dpapi.structures.masterkeyfile import MasterKeyFile
 from pypykatz.dpapi.structures.credentialfile import CredentialFile, CREDENTIAL_BLOB
 from pypykatz.dpapi.structures.blob import DPAPI_BLOB
 from pypykatz.dpapi.structures.vault import VAULT_VCRD, VAULT_VPOL, VAULT_VPOL_KEYS
+from pypykatz.dpapi.finders.ngc import NGCProtectorFinder, NGCProtector
+from pypykatz.dpapi.finders.cryptokeys import CryptoKeysFinder
+
 from unicrypto.hashlib import md4 as MD4
 from unicrypto.symmetric import AES, MODE_GCM, MODE_CBC
 from winacl.dtyp.wcee.pvkfile import PVKFile
+from winacl.dtyp.wcee.cryptoapikey import CryptoAPIKeyFile, CryptoAPIKeyProperties
+
 from pypykatz.commons.common import UniversalEncoder, base64_decode_url
 
 
@@ -376,7 +381,27 @@ class DPAPI:
 		returns: CREDENTIAL_BLOB object
 		"""
 		with open(file_path, 'rb') as f:
-			return self.decrypt_masterkey_bytes(f.read(), key = key)
+			mks, bks = self.decrypt_masterkey_bytes(f.read(), key = key)
+			self.masterkeys.update(mks)
+			self.masterkeys.update(bks)
+			return mks, bks
+		
+	def decrypt_masterkey_directory(self, directory, ignore_errors: bool = True):
+		"""
+		Decrypts all Masterkeyfiles in a directory
+		directory: path to directory
+		ignore_errors: if set to True, the function will not raise exceptions if a file cannot be decrypted
+		returns: dictionary of guid->keybytes
+		"""
+		for filename in glob.glob(os.path.join(directory, '**'), recursive = True):
+			if os.path.isfile(filename):
+				try:
+					self.decrypt_masterkey_file(filename)
+				except Exception as e:
+					if ignore_errors is False:
+						raise e
+					logger.debug('Failed to decrypt %s Reason: %s' % (filename, e))
+		return self.masterkeys
 	
 	def decrypt_masterkey_bytes(self, data, key = None):
 		"""
@@ -435,8 +460,18 @@ class DPAPI:
 		"""
 		with open(file_path, 'rb') as f:
 			return self.decrypt_credential_bytes(f.read())
+		
+	def get_key_for_blob(self, blob):
+		"""
+		Looks up the masterkey for a given DPAPI_BLOB object
+		blob: DPAPI_BLOB object
+		returns: bytes of the decryption key
+		"""
+		if blob.masterkey_guid not in self.masterkeys:
+			raise Exception('No matching masterkey was found for the blob!')
+		return self.masterkeys[blob.masterkey_guid]
 	
-	def decrypt_credential_bytes(self, data):
+	def decrypt_credential_bytes(self, data, entropy = None):
 		"""
 		Decrypts CredentialFile bytes
 		CredentialFile holds one DPAPI blob, so the decryption is straightforward, and it also has a known structure for the cleartext.
@@ -446,11 +481,11 @@ class DPAPI:
 		returns: CREDENTIAL_BLOB object
 		"""
 		cred = CredentialFile.from_bytes(data)
-		dec_data = self.decrypt_blob_bytes(cred.data)
+		dec_data = self.decrypt_blob_bytes(cred.data, entropy = entropy)
 		cb = CREDENTIAL_BLOB.from_bytes(dec_data)
 		return cb
 		
-	def decrypt_blob(self, dpapi_blob, key = None):
+	def decrypt_blob(self, dpapi_blob, key = None, entropy = None):
 		"""
 		Decrypts a DPAPI_BLOB object
 		The DPAPI blob has a GUID attributes which indicates the masterkey to be used, also it has integrity check bytes so it is possible to tell is decryption was sucsessfull.
@@ -464,9 +499,9 @@ class DPAPI:
 			if dpapi_blob.masterkey_guid not in self.masterkeys:
 				raise Exception('No matching masterkey was found for the blob!')
 			key = self.masterkeys[dpapi_blob.masterkey_guid]
-		return dpapi_blob.decrypt(key)
+		return dpapi_blob.decrypt(key, entropy = entropy)
 		
-	def decrypt_blob_bytes(self, data, key = None):
+	def decrypt_blob_bytes(self, data, key = None, entropy = None):
 		"""
 		Decrypts DPAPI_BLOB bytes.
 		
@@ -479,7 +514,7 @@ class DPAPI:
 		
 		blob = DPAPI_BLOB.from_bytes(data)
 		logger.debug(str(blob))
-		return self.decrypt_blob(blob, key = key)
+		return self.decrypt_blob(blob, key = key, entropy = entropy)
 		
 	def decrypt_vcrd_file(self, file_path):
 		"""
@@ -532,7 +567,7 @@ class DPAPI:
 				res[attr].append(cleartext)
 		return res
 					
-	def decrypt_vpol_bytes(self, data):
+	def decrypt_vpol_bytes(self, data, entropy = None):
 		"""
 		Decrypts the VPOL file, and returns the two keys' bytes
 		A VPOL file stores two encryption keys.
@@ -541,7 +576,7 @@ class DPAPI:
 		returns touple of bytes, describing two keys
 		"""
 		vpol = VAULT_VPOL.from_bytes(data)
-		res = self.decrypt_blob_bytes(vpol.blobdata)
+		res = self.decrypt_blob_bytes(vpol.blobdata, entropy = entropy)
 		
 		keys = VAULT_VPOL_KEYS.from_bytes(res)
 		
@@ -562,8 +597,8 @@ class DPAPI:
 		with open(file_path, 'rb') as f:
 			return self.decrypt_vpol_bytes(f.read())
 
-	def decrypt_securestring_bytes(self, data):
-		return self.decrypt_blob_bytes(data)
+	def decrypt_securestring_bytes(self, data, entropy = None):
+		return self.decrypt_blob_bytes(data, entropy = entropy)
 		
 	def decrypt_securestring_hex(self, hex_str):
 		return self.decrypt_securestring_bytes(bytes.fromhex(hex_str))
@@ -815,6 +850,17 @@ class DPAPI:
 	@staticmethod
 	def get_all_wifi_settings_live():
 		return DPAPI.get_all_wifi_settings_offline(DPAPI.get_windows_drive_live())
+	
+	@staticmethod
+	def strongentropy(password:str, entropy = None, dtype = 2):
+		"""This function generates the "extra" entropy based on the password and the provided entropy (opt)."""
+		res = b'' if entropy is None else entropy
+		if dtype == 2:
+			res += sha512(password.encode('utf-16-le')).digest()
+		else:
+			res += sha1(password.encode('utf-16-le')).digest()
+		return res
+
 
 	def decrypt_wifi_live(self):
 		# key is encrypted as system!!!
@@ -874,6 +920,29 @@ class DPAPI:
 
 		keyvalue_dec = self.decrypt_cloudap_key(keyvalue)
 		return keyvalue_dec
+	
+	def winhello_pin_hash_offline(self, ngc_dir, cryptokeys_dir):
+		"""This function presupposes that the DPAPI object already has all necessary keys loaded."""
+		results = []
+		pin_guids = []
+		for entry in NGCProtectorFinder.from_dir(ngc_dir):
+			pin_guids.append(entry.guid)
+
+		for entry in CryptoKeysFinder.from_dir(cryptokeys_dir):
+			if entry.description in pin_guids:
+				print(f'Found matching GUID: {entry.description}')
+				properties_raw = self.decrypt_blob_bytes(entry.fields[1], entropy=b'6jnkd5J3ZdQDtrsu\x00')
+				properties = CryptoAPIKeyProperties.from_bytes(properties_raw)
+				blob = DPAPI_BLOB.from_bytes(entry.fields[2])
+
+				salt = properties['NgcSoftwareKeyPbkdf2Salt'].value
+				iterations = properties['NgcSoftwareKeyPbkdf2Round'].value
+
+				entropy = b'\x78\x54\x35\x72\x5a\x57\x35\x71\x56\x56\x62\x72\x76\x70\x75\x41\x00'
+				hashcat_format = f'$WINHELLO$*SHA512*{iterations}*{salt.hex()}*{blob.signature.hex()}*{self.get_key_for_blob(blob).hex()}*{blob.HMAC.hex()}*{blob.to_sign.hex()}*{entropy.hex()}'
+
+				results.append(hashcat_format)
+		return results
 
 
 
