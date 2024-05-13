@@ -35,8 +35,14 @@ class WdigestTemplate(PackageTemplate):
 				template.primary_offset = 48
 				template.list_entry = PWdigestListEntry
 
-			elif sysinfo.buildnumber >= WindowsMinBuild.WIN_VISTA.value:
+			elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
 				template.signature = b'\x48\x3b\xd9\x74'
+				template.first_entry_offset = -4
+				template.primary_offset = 48
+				template.list_entry = PWdigestListEntry
+
+			elif sysinfo.buildnumber >= WindowsMinBuild.WIN_11.value:
+				template.signature = b'\x48\x3b\xd8\x74'
 				template.first_entry_offset = -4
 				template.primary_offset = 48
 				template.list_entry = PWdigestListEntry
