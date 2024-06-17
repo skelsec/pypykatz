@@ -6,8 +6,10 @@
 import io
 import json
 import base64
+import struct
 from pypykatz.commons.common import WindowsBuild, WindowsMinBuild, KatzSystemArchitecture, GenericReader, UniversalEncoder, hexdump
 from pypykatz.commons.filetime import filetime_to_dt
+from pypykatz.commons.win_datatypes import PVOID
 from pypykatz.lsadecryptor.packages.msv.templates import MSV1_0_PRIMARY_CREDENTIAL_STRANGE_DEC
 from pypykatz.lsadecryptor.packages.credman.templates import KIWI_CREDMAN_LIST_STARTER, KIWI_CREDMAN_SET_LIST_ENTRY
 from pypykatz.lsadecryptor.package_commons import PackageDecryptor
@@ -41,9 +43,16 @@ class MsvCredential:
 		t = '\t== MSV ==\n'
 		t += '\t\tUsername: %s\n' % (self.username if self.username else 'NA')
 		t += '\t\tDomain: %s\n' % (self.domainname if self.domainname else 'NA')
-		t += '\t\tLM: %s\n' % (self.LMHash.hex() if self.LMHash else 'NA')
-		t += '\t\tNT: %s\n' % (self.NThash.hex() if self.NThash else 'NA')
-		t += '\t\tSHA1: %s\n' % (self.SHAHash.hex() if self.SHAHash else 'NA')
+		if self.isoProt:
+			t += '\t\t\t[LSA Isolated Data]\n'
+			t += '\t\t\tIs NT Present: %s\n' % (bool(self.isNtOwfPassword))
+			t += '\t\t\tContext Handle: %s\n' % (hex(self.contextHandle) if self.contextHandle else 'NA')
+			t += '\t\t\tProxy Info: %s\n' % (hex(self.proxyInfo) if self.proxyInfo else 'NA')
+			t += '\t\t\tEncrypted blob: %s\n' % (self.encryptedBlob.hex() if self.encryptedBlob else 'NA')
+		else:
+			t += '\t\tLM: %s\n' % (self.LMHash.hex() if self.LMHash else 'NA')
+			t += '\t\tNT: %s\n' % (self.NThash.hex() if self.NThash else 'NA')
+			t += '\t\tSHA1: %s\n' % (self.SHAHash.hex() if self.SHAHash else 'NA')
 		t += '\t\tDPAPI: %s\n' % (self.DPAPI.hex() if self.DPAPI else 'NA')
 		return t
 		
@@ -358,6 +367,23 @@ class MsvDecryptor(PackageDecryptor):
 			
 		self.current_logonsession.credman_creds.append(c)
 		
+	def get_proxy_info(self, msv1_0_module):
+		old_pos = self.reader.tell()
+
+		msv1_0_module = self.reader.reader.get_module_by_name("msv1_0.dll")
+
+		try:
+			position = self.find_signature('msv1_0.dll', b'\xe0zRE}*\xecL\xb2\x14s\x9fAY\xc3\x92')
+			position = self.find_signature('msv1_0.dll', struct.pack('<Q', position - 4))
+			position = self.find_signature('msv1_0.dll', struct.pack('<Q', position))
+		except:
+			position = 0
+
+		msv1_0_module.proxyInfo = position
+
+		self.reader.move(old_pos)
+
+		return position
 	
 	def add_primary_credentials(self, primary_credentials_entry):
 		encrypted_credential_data = primary_credentials_entry.encrypted_credentials.read_data(self.reader)
@@ -397,24 +423,28 @@ class MsvDecryptor(PackageDecryptor):
 		
 		if hasattr(creds_struct, 'isIso'):
 			cred.isoProt = bool(creds_struct.isIso[0])
-		#	
-		#	if cred.isoProt is True:
-		#		cred.NThash = None
-		#		cred.LMHash = None
-		#		cred.SHAHash = None
-		#
-		#else:
-		#	cred.NThash = creds_struct.NtOwfPassword
-		#	
-		#	if creds_struct.LmOwfPassword and creds_struct.LmOwfPassword != b'\x00'*16:
-		#		cred.LMHash = creds_struct.LmOwfPassword
-		#	cred.SHAHash = creds_struct.ShaOwPassword
-
-		cred.NThash = creds_struct.NtOwfPassword
+		
+		if cred.isoProt is True and hasattr(creds_struct, 'encryptedBlob'):
+			if creds_struct.pNtlmCredIsoInProc:
+				old_pos = self.reader.tell()
+				self.reader.move(creds_struct.pNtlmCredIsoInProc + 0x10)
+				cred.contextHandle = PVOID(self.reader).value
+				self.reader.move(old_pos)
 			
-		if creds_struct.LmOwfPassword and creds_struct.LmOwfPassword != b'\x00'*16:
-			cred.LMHash = creds_struct.LmOwfPassword
-		cred.SHAHash = creds_struct.ShaOwPassword
+			cred.encryptedBlob = creds_struct.encryptedBlob
+			cred.isNtOwfPassword = creds_struct.isNtOwfPassword
+
+			msv1_0_module = self.reader.reader.get_module_by_name("msv1_0.dll")
+			if hasattr(msv1_0_module, 'proxyInfo'):
+				cred.proxyInfo = msv1_0_module.proxyInfo
+			else:
+				cred.proxyInfo = self.get_proxy_info(msv1_0_module)
+		else:
+			cred.NThash = creds_struct.NtOwfPassword
+				
+			if creds_struct.LmOwfPassword and creds_struct.LmOwfPassword != b'\x00'*16:
+				cred.LMHash = creds_struct.LmOwfPassword
+			cred.SHAHash = creds_struct.ShaOwPassword
 		
 		self.current_logonsession.msv_creds.append(cred)
 	

@@ -260,15 +260,16 @@ class MSV1_0_PRIMARY_CREDENTIAL_10_1607_DEC:
 		self.align0 = BYTE(reader).value
 		self.align1 = BYTE(reader).value
 		self.align2 = BYTE(reader).value
-		self.unkD = DWORD(reader).value # // 1/2
-		# stuff to be done! #pragma pack(push, 2)
-		self.isoSize = WORD(reader).value #// 0000
-		self.DPAPIProtected = reader.read(16)
-		self.align3 = DWORD(reader).value #// 00000000
-		# stuff to be done! #pragma pack(pop) 
-		self.NtOwfPassword = reader.read(16)
-		self.LmOwfPassword = reader.read(16)
-		self.ShaOwPassword = reader.read(20)
+		self.credKeyType = DWORD(reader).value
+		self.isoSize = WORD(reader).value
+		self.DPAPIProtected = reader.read(20)
+
+		if bool(self.isIso[0]):
+			self.encryptedBlob = reader.read(self.isoSize)
+		else:
+			self.NtOwfPassword = reader.read(16)
+			self.LmOwfPassword = reader.read(16)
+			self.ShaOwPassword = reader.read(20)
 		
 class KIWI_MSV1_0_PRIMARY_CREDENTIAL_ENC:
 	def __init__(self, reader):
