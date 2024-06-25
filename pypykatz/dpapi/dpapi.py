@@ -779,7 +779,7 @@ class DPAPI:
 						dec_val = cipher.decrypt(ciphertext, b'', tag)
 						results['cookies'].append((dbpaths[username]['cookies'], host_key, name, path, dec_val ))
 						results['fmtcookies'].append(DPAPI.cookieformatter('https://' + host_key, name, path, dec_val))
-					else:
+					elif encrypted_value:
 						dec_val = self.decrypt_blob_bytes(encrypted_value)
 						results['cookies'].append((dbpaths[username]['cookies'], host_key, name, path, dec_val ))
 						results['fmtcookies'].append(DPAPI.cookieformatter('https://' + host_key, name, path, dec_val))
