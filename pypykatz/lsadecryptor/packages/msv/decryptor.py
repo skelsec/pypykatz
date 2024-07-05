@@ -371,6 +371,9 @@ class MsvDecryptor(PackageDecryptor):
 		old_pos = self.reader.tell()
 
 		msv1_0_module = self.reader.reader.get_module_by_name("msv1_0.dll")
+		if msv1_0_module is None:
+			self.reader.move(old_pos)
+			return 0
 
 		try:
 			position = self.find_signature('msv1_0.dll', b'\xe0zRE}*\xecL\xb2\x14s\x9fAY\xc3\x92')
