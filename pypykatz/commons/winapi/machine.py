@@ -32,13 +32,13 @@ class LiveMachine:
 		
 	def get_hostname(self):
 		if self.hostname is None:
-			params = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters')
+			params = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters')
 			self.hostname = winreg.QueryValueEx(params, 'NV Hostname')[0]
 		return self.hostname
 		
 	def get_domain(self):
 		if self.domain is None:
-			params = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters')
+			params = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters')
 			self.domain = winreg.QueryValueEx(params, 'Domain')[0]
 		return self.domain
 		
