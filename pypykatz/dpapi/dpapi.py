@@ -42,7 +42,7 @@ from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 if platform.system().lower() == 'windows':
 	from pypykatz.commons.winapi.processmanipulator import ProcessManipulator
 
-"""
+r"""
 So! DPAPI...
 
 In order to decrpyt a file/blob/data of any kind you must obtain a masterkey.
@@ -517,7 +517,7 @@ class DPAPI:
 		return self.decrypt_blob(blob, key = key, entropy = entropy)
 		
 	def decrypt_vcrd_file(self, file_path):
-		"""
+		r"""
 		Decrypts a VCRD file
 		Location: %APPDATA%\Local\Microsoft\Vault\%GUID%\<>.vcrd
 		
@@ -586,7 +586,7 @@ class DPAPI:
 		return keys.key1.get_key(), keys.key2.get_key()
 		
 	def decrypt_vpol_file(self, file_path):
-		"""
+		r"""
 		Decrypts a VPOL file
 		Location: %APPDATA%\Local\Microsoft\Vault\%GUID%\<>.vpol
 		
