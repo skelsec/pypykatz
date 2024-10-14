@@ -51,7 +51,7 @@ Currently supported data sources:
 1. live - reads the LSASS porcess' memory directly  
 2. minidump - processes a minidump file created by dumping the LSASS process 
 3. rekall (volatility fork) - processes basically ANY windows memory dumps that rekall can parse 
-4. pcileech - can dump secrets DIRECTLY via DMA of a live computer 
+4. pcileech - not supported anymore
 5. remote - this is another project. TBD :)
 6. `your project here` seriously, it's super-simple to integrate.
 
