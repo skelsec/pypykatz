@@ -63,7 +63,7 @@ class SYSTEM:
 		
 		try:
 			key = '%s\\Services\\%s\\ObjectName' % (self.currentcontrol, service_name)
-			return self.hive.get_value(key)[1].decode('utf-16-le')
+			return self.hive.get_value(key)[1]
 		except:
 			return None
 
