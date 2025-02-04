@@ -362,7 +362,8 @@ class WindowsBuild(enum.Enum):
 	WIN_10_20H2 = 19042
 	WIN_11_2022 = 20348
 	WIN_11_2023 = 22621
-	
+	WIN_11_23H2 = 22631
+
 class WindowsMinBuild(enum.Enum):
 	WIN_XP = 2500
 	WIN_2K3 = 3000

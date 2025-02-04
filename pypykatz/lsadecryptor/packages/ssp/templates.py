@@ -31,10 +31,14 @@ class SspTemplate(PackageTemplate):
 				template.signature = b'\xc7\x47\x24\x43\x72\x64\x41\x48\x89\x47\x78\xff\x15'
 				template.first_entry_offset = 20
 				
-			elif sysinfo.buildnumber >= WindowsBuild.WIN_10_1507.value:
+			elif WindowsBuild.WIN_10_1507.value <= sysinfo.buildnumber < WindowsBuild.WIN_11_2022.value:
 				template.signature = b'\x24\x43\x72\x64\x41\xff\x15'
 				template.first_entry_offset = 14
 			
+			elif sysinfo.buildnumber > WindowsBuild.WIN_11_2022.value:
+				template.signature = b'\x24\x43\x72\x64\x41\x48\xff\x15'
+				template.first_entry_offset = 20
+
 			else:
 				#currently this doesnt make sense, but keeping it here for future use
 				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (sysinfo.architecture, sysinfo.buildnumber))
