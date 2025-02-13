@@ -1119,3 +1119,71 @@ class KIWI_KERBEROS_BUFFER:
 	def read(self, reader):
 		self.Data = self.Value.read_raw(reader, self.Length)
 		return self.Data
+
+class KerberosHashPassword:
+	def __init__(self):
+		self.salt = None  # Unicode string
+		self.iterations = None  # Usually 4096 for AES
+		self.aes128 = None
+		self.aes256 = None
+
+class KerberosCredential:
+	def __init__(self):
+		self.luid = None
+		self.username = None
+		self.domainname = None
+		self.password = None
+		self.password_raw = None
+		self.aes_key128 = None
+		self.aes_key256 = None
+		
+	def __str__(self):
+		t = '\t\t== Kerberos ==\n'
+		t += '\t\tUsername: %s\n' % self.username
+		t += '\t\tDomain: %s\n' % self.domainname
+		if self.password:
+			t += '\t\tPassword: %s\n' % self.password
+		if self.aes_key128:
+			t += '\t\tAES128 Key: %s\n' % self.aes_key128.hex()
+		if self.aes_key256:
+			t += '\t\tAES256 Key: %s\n' % self.aes_key256.hex()
+		return t
+		
+	def to_dict(self):
+		t = {}
+		t['credtype'] = 'kerberos'
+		t['username'] = self.username
+		t['domainname'] = self.domainname
+		t['password'] = self.password
+		t['password_raw'] = self.password_raw
+		if self.aes_key128:
+			t['aes128'] = self.aes_key128.hex()
+		if self.aes_key256:
+			t['aes256'] = self.aes_key256.hex()
+		return t
+
+	def to_grep_line(self):
+		lines = []
+		if self.aes_key128:
+			lines.append('kerberos\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % (
+				self.username, 
+				self.domainname, 
+				'', 
+				'', 
+				'', 
+				self.aes_key128.hex(),
+				'',
+				''
+			))
+		if self.aes_key256:
+			lines.append('kerberos\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % (
+				self.username,
+				self.domainname,
+				'',
+				'',
+				'',
+				'',
+				self.aes_key256.hex(),
+				''
+			))
+		return lines
