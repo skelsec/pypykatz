@@ -163,9 +163,11 @@ class SECURITY:
 			else:
 				self.dcc_iteration_count = record * 1024
 				
+		if self.lsa_key is None:
+			await self.get_lsa_key()
 		
-		await self.get_lsa_key()
-		await self.get_NKLM_key()
+		if self.NKLM_key is None:
+			await self.get_NKLM_key()
 		
 		for value in values:
 			logger.debug('[SECURITY] DCC Checking value: %s' % value)
@@ -211,8 +213,10 @@ class SECURITY:
 				
 	async def get_secrets(self):
 		logger.debug('[SECURITY] get_secrets')
-		await self.get_lsa_key()
+		if self.lsa_key is None:
+			await self.get_lsa_key()
 		
+
 		await self.dump_dcc()
 		
 		# Let's first see if there are cached entries
@@ -253,6 +257,13 @@ class SECURITY:
 					
 				else:
 					logger.debug('[SECURITY] Could not open %s, skipping!' % key_path)
+		
+	def set_default_user(self, username, domain):
+		for secret in self.cached_secrets:
+			if isinstance(secret, LSASecretDefaultPassword):
+				secret.username = username
+				secret.domain = domain
+					
 	
 	def to_dict(self):
 		t = {}

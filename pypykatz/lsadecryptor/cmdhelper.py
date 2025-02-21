@@ -36,7 +36,7 @@ class LSACMDHelper:
 
 
 		group = parser.add_parser('lsa', help='Get secrets from memory dump')
-		group.add_argument('cmd', choices=['minidump','rekall','info'])
+		group.add_argument('cmd', choices=['minidump','rekall','info', 'zipdump'])
 		group.add_argument('memoryfile', help='path to the dump file')
 		group.add_argument('-t','--timestamp_override', type=int, help='enforces msv timestamp override (0=normal, 1=anti_mimikatz)')
 		group.add_argument('--json', action='store_true',help = 'Print credentials in JSON format')
@@ -273,5 +273,22 @@ class LSACMDHelper:
 						raise e
 					else:
 						traceback.print_exc()
+
+		elif args.cmd == 'zipdump':
+			logger.info('Parsing file %s' % args.memoryfile)
+			try:
+				if args.kerberos_dir is not None and 'all' not in args.packages:
+					args.packages.append('ktickets')
+				mimi = pypykatz.parse_zipdump_file(args.memoryfile, packages=args.packages)
+				results[args.memoryfile] = mimi
+				if args.halt_on_error == True and len(mimi.errors) > 0:
+					raise Exception('Error in modules!')
+			except Exception as e:
+				logger.exception('Error while parsing file %s' % args.memoryfile)
+				if args.halt_on_error == True:
+					raise e
+				else:
+					traceback.print_exc()
+
 						
 		self.process_results(results, files_with_error, args)

@@ -76,9 +76,14 @@ class KerberosDecryptor(PackageDecryptor):
 		self.current_cred = None
 
 	def find_first_entry(self):
+		self.log('Scanning for Kerberos signature! %s' % self.decryptor_template.signature.hex())
 		position = self.find_signature('kerberos.dll',self.decryptor_template.signature)
+		self.log('Signature @ %s' % hex(position))
+		self.log('Signature (corrected) @ %s' % hex(position + self.decryptor_template.first_entry_offset))
 		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
+		self.log('First entry ptr @ %s' % hex(ptr_entry_loc))
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
+		self.log('First entry -> %s' % hex(ptr_entry))
 		return ptr_entry, ptr_entry_loc
 	
 	def handle_ticket(self, kerberos_ticket):
@@ -144,9 +149,9 @@ class KerberosDecryptor(PackageDecryptor):
 		if kerberos_logon_session.pKeyList.value != 0:
 			key_list = kerberos_logon_session.pKeyList.read(self.reader, override_finaltype = self.decryptor_template.keys_list_struct)
 			#print(key_list.cbItem)
-			key_list.read(self.reader, self.decryptor_template.hash_password_struct)
-			for key in key_list.KeyEntries:
-				pass
+			#key_list.read(self.reader, self.decryptor_template.hash_password_struct)
+			#for key in key_list.KeyEntries:
+				#pass
 				### GOOD
 				#keydata_enc = key.generic.Checksump.read_raw(self.reader, key.generic.Size)
 				#print(keydata_enc)

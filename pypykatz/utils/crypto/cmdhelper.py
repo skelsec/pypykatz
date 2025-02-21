@@ -37,6 +37,8 @@ class CryptoCMDHelper:
 		group = crypto_subparsers.add_parser('ofscan', help='Decrypt TrendMicro OfficeScan config file')
 		group.add_argument('enc', help='Encrypted password string or path to ofcscan.ini file')
 		
+		group = crypto_subparsers.add_parser('vnc', help='Decrypt VNC password')
+		group.add_argument('enc', help='Encrypted password string')
 		
 	def execute(self, args):
 		if args.command in self.keywords:
@@ -49,6 +51,7 @@ class CryptoCMDHelper:
 		from pypykatz.utils.crypto.winhash import NT, LM, MSDCC, MSDCCv2
 		from pypykatz.utils.crypto.gppassword import gppassword
 		from pypykatz.utils.crypto.ofcdecrypt import ofscan_decrypt_data
+		from pypykatz.utils.crypto.others import vncdecrypt
 
 		if args.crypto_module == 'nt':
 			print(NT(args.password).hex())
@@ -68,3 +71,6 @@ class CryptoCMDHelper:
 		elif args.crypto_module == 'ofscan':
 			for param, res in ofscan_decrypt_data(args.enc):
 				print('%s: %s' % (param, res))
+		
+		elif args.crypto_module == 'vnc':
+			print(vncdecrypt(args.enc))

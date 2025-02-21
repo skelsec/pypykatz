@@ -92,6 +92,9 @@ class SAM:
 		# https://social.technet.microsoft.com/Forums/en-US/de8ff30b-6986-4aad-bcde-12bb5e66fe86/the-computer-sid-with-windows-7?forum=winserverDS
 		# TODO: implement this
 		try:
+			if self.machine_sid is not None:
+				return self.machine_sid
+			
 			uac_data = await self.hive.get_value('SAM\\Domains\\Account\\V')
 			uac_data = uac_data[1]
 			uac_data = uac_data[-12:]

@@ -212,7 +212,7 @@ class DPAPI:
 
 		return key1, key2, key3, key4
 				
-	def __get_registry_secrets(self, lr):
+	def get_registry_secrets(self, lr):
 		"""
 		Gets the pre-keys from an already parsed OffineRegistry or LiveRegistry object, populates the userkey/machinekey lists, returns the obtained keys
 		
@@ -222,10 +222,11 @@ class DPAPI:
 		user = []
 		machine = []
 		from pypykatz.registry.security.common import LSASecretDPAPI
+		from pypykatz.registry.security.acommon import LSASecretDPAPI as ALSASecretDPAPI
 
 		if lr.security:
 			for secret in lr.security.cached_secrets:
-				if isinstance(secret, LSASecretDPAPI):
+				if isinstance(secret, (LSASecretDPAPI, ALSASecretDPAPI)):
 					logger.debug('[DPAPI] Found DPAPI user key in registry! Key: %s' % secret.user_key)
 					logger.debug('[DPAPI] Found DPAPI machine key in registry! Key: %s' % secret.machine_key)
 					self.prekeys[secret.user_key] = 1
@@ -263,7 +264,7 @@ class DPAPI:
 				logger.debug('[DPAPI] Failed to obtain registry secrets via filedump method')
 		
 		if lr is not None:
-			return self.__get_registry_secrets(lr)
+			return self.get_registry_secrets(lr)
 
 		else:
 			raise Exception('Registry parsing failed!')
@@ -281,7 +282,7 @@ class DPAPI:
 			logger.error('[DPAPI] Failed to obtain registry secrets via direct registry reading method. Reason: %s' %e)
 		
 		if lr is not None:
-			return self.__get_registry_secrets(lr)
+			return self.get_registry_secrets(lr)
 
 		else:
 			raise Exception('[DPAPI] Registry parsing failed!')
@@ -497,7 +498,7 @@ class DPAPI:
 		if key is None:
 			logger.debug('[DPAPI] Looking for master key with GUID %s' % dpapi_blob.masterkey_guid)
 			if dpapi_blob.masterkey_guid not in self.masterkeys:
-				raise Exception('No matching masterkey was found for the blob!')
+				raise Exception('No matching masterkey was found for the blob! Looking for GUID %s' % dpapi_blob.masterkey_guid)
 			key = self.masterkeys[dpapi_blob.masterkey_guid]
 		return dpapi_blob.decrypt(key, entropy = entropy)
 		

@@ -257,9 +257,9 @@ def trendmicro_decrypt(encdata:str):
         return 'Decrypting CRYPTNG is not supported'
 
 def parse_ofscan_ini_file(filepath):
-    pattern = re.compile(r'^([^=]+?)=((!CRYPTEX!|!CRYPT!|!CRYPTEX3!|!CRYPTNG!)[^=]+?)$')
+    pattern = re.compile(r'^([^=]+?)=\s*((!CRYPTEX!|!CRYPT!|!CRYPTEX3!|!CRYPTNG!)[^=]+)$')
     result = []
-    with open(filepath, 'r') as f:
+    with open(filepath, 'r', encoding='latin-1') as f:
         for line in f:
             line = line.strip()
             if line == '':
@@ -281,6 +281,8 @@ def ofscan_decrypt_data(filepath_or_data):
             decdata = trendmicro_decrypt(line[1])
             if decdata is None:
                 continue
+            if decdata.startswith('!CRYPTEX!') is True:
+                decdata = trendmicro_decrypt(decdata)
             results.append((line[0], decdata))
         except Exception as e:
             results.append((line[0], 'Failed to decrypt: %s Reason: %s' % (line[1], e)))

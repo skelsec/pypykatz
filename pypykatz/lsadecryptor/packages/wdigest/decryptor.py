@@ -45,9 +45,14 @@ class WdigestDecryptor(PackageDecryptor):
 		self.credentials = []
 
 	def find_first_entry(self):
+		self.log('Scanning for Wdigest structs! %s' % self.decryptor_template.signature.hex())
 		position = self.find_signature('wdigest.dll',self.decryptor_template.signature)
+		self.log('Signature @ %s' % hex(position))
+		self.log('Signature (corrected) @ %s' % hex(position + self.decryptor_template.first_entry_offset))
 		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
+		self.log('First entry ptr @ %s' % hex(ptr_entry_loc))
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
+		self.log('First entry -> %s' % hex(ptr_entry))
 		return ptr_entry, ptr_entry_loc
 		
 	def add_entry(self, wdigest_entry):

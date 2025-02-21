@@ -130,7 +130,7 @@ class MsvTemplate(PackageTemplate):
 				template.first_entry_offset = 23
 				template.offset2 = -4
 			
-			elif WindowsBuild.WIN_11_2022.value <= sysinfo.buildnumber < WindowsBuild.WIN_11_2023.value: #20348
+			elif WindowsBuild.WIN_11_2022.value <= sysinfo.buildnumber < WindowsBuild.WIN_11_24H2: #WindowsBuild.WIN_11_2023.value: #20348
 				template.signature = b'\x45\x89\x34\x24\x4c\x8b\xff\x8b\xf3\x45\x85\xc0\x74'
 				template.first_entry_offset = 24
 				template.offset2 = -4

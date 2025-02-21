@@ -2,13 +2,18 @@
 
 ## :triangular_flag_on_post: Sponsors
 
-If you like this project, consider sponsoring it on GitHub! [Sponsors](https://github.com/sponsors/skelsec/)
+If you like this project, consider purchasing licenses of [OctoPwn](https://octopwn.com/), our full pentesting suite that runs in your browser!  
+For notifications on new builds/releases and other info, hop on to our [Discord](https://discord.gg/PM8utcNxMS)
 
 # pypykatz
 Mimikatz implementation in pure Python. At least a part of it :)  
 Runs on all OS's which support python>=3.6
 ![pypy_card](https://user-images.githubusercontent.com/19204702/71646030-221fe200-2ce1-11ea-9e2a-e587ea4790d7.jpg)
 
+## :triangular_flag_on_post: Runs in the browser
+
+This project, alongside with many other pentester tools runs in the browser with the power of OctoPwn!  
+Check out the community version at [OctoPwn - Live](https://live.octopwn.com/)
 
 ## WIKI
 Since version 0.1.1 the command line changed a little. Worry not, I have an awesome [WIKI](https://github.com/skelsec/pypykatz/wiki) for you.

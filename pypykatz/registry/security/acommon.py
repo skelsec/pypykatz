@@ -46,7 +46,7 @@ class LSASecret:
 			lss.process_secret()
 			
 		elif kn.startswith('$MACHINE.ACC'):
-			lss = LSASecretMachineAccount(kn, raw_secret, history)
+			lss = LSASecretMachineAccount(kn, raw_secret, history, username=system_hive.machinename)
 			lss.process_secret()
 		
 		else:
@@ -104,6 +104,7 @@ class LSASecretDefaultPassword(LSASecret):
 	def __init__(self, key_name, raw_secret, history):
 		LSASecret.__init__(self, key_name, raw_secret, history)
 		self.username = None
+		self.domain = None
 		self.secret = None
 		
 	def process_secret(self):
@@ -125,6 +126,7 @@ class LSASecretDefaultPassword(LSASecret):
 		t['key_name'] = self.key_name
 		t['history'] = self.history
 		t['username'] = self.username
+		t['domain'] = self.domain
 		t['secret'] = self.secret
 		return t
 		
@@ -153,12 +155,12 @@ class LSASecretASPNET(LSASecret):
 		return t
 
 class LSASecretMachineAccount(LSASecret):
-	def __init__(self, key_name, raw_secret, history):
+	def __init__(self, key_name, raw_secret, history, username = None):
 		LSASecret.__init__(self, key_name, raw_secret, history)
-		self.username = None
+		self.username = username
 		self.secret = None
 		self.kerberos_password = None
-	
+
 	def process_secret(self):
 		#only the NT hash is calculated here
 		ctx = MD4(self.raw_secret)#hashlib.new('md4')

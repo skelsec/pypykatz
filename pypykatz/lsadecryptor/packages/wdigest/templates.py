@@ -10,6 +10,9 @@ from pypykatz.commons.common import KatzSystemArchitecture, WindowsBuild, Window
 from pypykatz.commons.win_datatypes import LUID, ULONG, POINTER
 from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
+from pypykatz.commons.common import hexdump
+
+
 class WdigestTemplate(PackageTemplate):
 	def __init__(self):
 		super().__init__('Wdigest')
@@ -41,14 +44,17 @@ class WdigestTemplate(PackageTemplate):
 				template.primary_offset = 48
 				template.list_entry = PWdigestListEntry
 
-			elif sysinfo.buildnumber >= WindowsMinBuild.WIN_11.value:
+			elif WindowsMinBuild.WIN_11.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
 				template.signature = b'\x48\x3b\xd8\x74'
 				template.first_entry_offset = -4
 				template.primary_offset = 48
 				template.list_entry = PWdigestListEntry
-				
+			
 			else:
-				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (sysinfo.architecture, sysinfo.buildnumber))
+				template.signature = b'\x48\x3b\xc6\x74\x11\x8b\x4b\x20\x39\x48'
+				template.first_entry_offset = -4
+				template.primary_offset = 48
+				template.list_entry = PWdigestListEntry
 			
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
@@ -82,11 +88,12 @@ class WdigestTemplate(PackageTemplate):
 				template.primary_offset = 32
 				template.list_entry = PWdigestListEntry
 				
-			else: # sysinfo.buildnumber >= WindowsBuild.WIN_10_1809:
+			else:
 				template.signature = b'\x74\x15\x8b\x17\x39\x56\x10'
 				template.first_entry_offset = -6
 				template.primary_offset = 32
 				template.list_entry = PWdigestListEntry
+				
 		
 		else:
 			raise Exception('Unknown architecture! %s' % sysinfo.architecture)

