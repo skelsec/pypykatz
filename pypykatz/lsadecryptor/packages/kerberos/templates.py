@@ -10,6 +10,7 @@ from pypykatz.commons.win_datatypes import POINTER, PVOID, ULONG, LIST_ENTRY, \
 	DWORD, LSA_UNICODE_STRING, PKERB_EXTERNAL_NAME, KIWI_GENERIC_PRIMARY_CREDENTIAL, \
 	LUID, PLSAISO_DATA_BLOB
 from pypykatz.lsadecryptor.package_commons import PackageTemplate
+from pypykatz.commons.common import hexdump
 
 class KerberosTemplate(PackageTemplate):
 	def __init__(self, sysinfo):
@@ -101,10 +102,19 @@ class KerberosTemplate(PackageTemplate):
 				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
 				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 			
-			elif sysinfo.buildnumber >= WindowsBuild.WIN_11_2022.value:
+			#elif sysinfo.buildnumber >= WindowsBuild.WIN_11_2022.value:
+			#	template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
+			#	template.first_entry_offset = 6
+			#	template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
+			#	template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_11
+			#	template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+			#	template.hash_password_struct = KERB_HASHPASSWORD_6_1607
+			#	template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
+
+			elif sysinfo.buildnumber >= WindowsBuild.WIN_11_24H2.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
-				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_24H2
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_11
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
@@ -607,7 +617,6 @@ class PKIWI_KERBEROS_LOGON_SESSION_10_1607(POINTER):
 		
 class KIWI_KERBEROS_LOGON_SESSION_10_1607:
 	def __init__(self, reader):
-		#input('aaaaaaaaa\n' + hexdump(reader.peek(0x300)))
 		self.UsageCount = ULONG(reader).value
 		reader.align()
 		self.unk0 = LIST_ENTRY(reader)
@@ -644,6 +653,62 @@ class KIWI_KERBEROS_LOGON_SESSION_10_1607:
 		reader.align()
 		#reader.read(8+12)
 		#input('pkeylist  \n' + hexdump(reader.peek(0x50)))
+		self.pKeyList = PVOID(reader)
+		self.unk26 = PVOID(reader).value
+		self.Tickets_1 = LIST_ENTRY(reader)
+		self.unk27 = FILETIME(reader).value
+		self.Tickets_2 = LIST_ENTRY(reader)
+		self.unk28 = FILETIME(reader).value
+		self.Tickets_3 = LIST_ENTRY(reader)
+		self.unk29 = FILETIME(reader).value
+		self.SmartcardInfos = PVOID(reader)
+
+
+# looks the same as the 10_1607
+class KIWI_KERBEROS_24H2_PRIMARY_CREDENTIAL:
+	def __init__(self, reader):
+		self.UserName = LSA_UNICODE_STRING(reader)
+		self.Domaine = LSA_UNICODE_STRING(reader)
+		self.unkFunction = PVOID(reader).value
+		self.type = DWORD(reader).value # // or flags 2 = normal, 1 = ISO(reader).value
+		reader.align()
+		self.Password = LSA_UNICODE_STRING(reader) #	union {
+		self.IsoPassword = KIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607_ISO(reader)
+
+class KIWI_KERBEROS_LOGON_SESSION_24H2:
+	def __init__(self, reader):
+		#input('aaaaaaaaa\n' + hexdump(reader.peek(0x300), start = reader.tell()))
+		self.UsageCount = ULONG(reader).value
+		reader.align()
+		self.unk0 = LIST_ENTRY(reader)
+		#self.unk1 = PVOID(reader).value
+		self.unk1b = ULONG(reader).value
+		reader.align()
+		self.unk2 = FILETIME(reader).value
+		self.unk4 = PVOID(reader).value
+		self.unk5 = PVOID(reader).value
+		self.unk6 = PVOID(reader).value
+		self.LocallyUniqueIdentifier = LUID(reader).value
+		self.unk7 = FILETIME(reader).value
+		self.unk8 = PVOID(reader).value
+		self.unk8b = ULONG(reader).value
+		reader.align()
+		self.unk9 = FILETIME(reader).value
+		self.unk11 = PVOID(reader).value
+		self.unk12 = PVOID(reader).value
+		reader.align(8)	
+		self.credentials = KIWI_KERBEROS_24H2_PRIMARY_CREDENTIAL(reader)
+		self.unk14 = ULONG(reader).value
+		self.unk15 = ULONG(reader).value
+		self.unk16 = ULONG(reader).value
+		self.unk17 = ULONG(reader).value
+		self.unk18 = PVOID(reader).value
+		self.unk19 = PVOID(reader).value
+		self.unk20 = PVOID(reader).value
+		self.unk21 = PVOID(reader).value
+		self.unk22 = PVOID(reader).value
+		self.unk23 = PVOID(reader).value
+		reader.align()
 		self.pKeyList = PVOID(reader)
 		self.unk26 = PVOID(reader).value
 		self.Tickets_1 = LIST_ENTRY(reader)

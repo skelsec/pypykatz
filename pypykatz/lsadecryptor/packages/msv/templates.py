@@ -152,11 +152,10 @@ class MsvTemplate(PackageTemplate):
 				template.offset2 = -4
 			
 			else:
-				print(11111)
 				template.signature = b'\x45\x89\x34\x24\x8b\xfb\x45\x85\xc0\x0f'
 				template.first_entry_offset = 25
 				template.offset2 = -16
-				template.first_entry_offset_correction = 0x184250
+				template.first_entry_offset_correction = 34
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
 			if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:

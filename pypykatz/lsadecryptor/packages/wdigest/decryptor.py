@@ -8,6 +8,7 @@ import json
 
 from pypykatz.lsadecryptor.package_commons import PackageDecryptor
 from pypykatz.commons.win_datatypes import LSA_UNICODE_STRING
+from pypykatz.commons.common import hexdump
 
 class WdigestCredential:
 	def __init__(self):
@@ -72,6 +73,7 @@ class WdigestDecryptor(PackageDecryptor):
 		wc.username = UserName.read_string(self.reader)
 		wc.domainname = DomainName.read_string(self.reader)
 		wc.encrypted_password = Password.read_maxdata(self.reader)
+
 		if wc.username.endswith('$') is True:
 			wc.password, wc.password_raw = self.decrypt_password(wc.encrypted_password, bytes_expected=True)
 			if wc.password is not None:

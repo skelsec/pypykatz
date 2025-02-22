@@ -323,7 +323,16 @@ class MsvDecryptor(PackageDecryptor):
 
 		#getting logon session ptr
 		self.log('Logon session PTR @ %s' % hex(position + self.decryptor_template.first_entry_offset))
-		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset) + self.decryptor_template.first_entry_offset_correction
+		additional_offset = 0
+		if self.decryptor_template.first_entry_offset_correction != 0:
+			self.log('This template uses offset correction!')
+			offsetpos = position + self.decryptor_template.first_entry_offset_correction
+			self.log('Fetching additional offset from %s' % hex(offsetpos))
+			self.reader.move(offsetpos)
+			additional_offset = int.from_bytes(self.reader.read(4), byteorder = 'little', signed = False)
+			self.log('Additional offset value: %s' % hex(additional_offset))
+			
+		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset) + additional_offset		
 		self.log('Logon session PTR -> %s' % hex(ptr_entry_loc))
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc) 
 		self.log('Logon session @ %s' % hex(ptr_entry))
