@@ -99,7 +99,6 @@ class KerberosDecryptor(PackageDecryptor):
 		try:
 			kt = KerberosTicket.parse(kerberos_ticket, self.reader, self.decryptor_template.sysinfo, self.current_ticket_type)
 			self.current_cred.tickets.append(kt)
-			#print(str(kt))
 		except Exception as e:
 			raise e
 	

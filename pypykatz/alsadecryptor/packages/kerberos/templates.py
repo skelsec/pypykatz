@@ -100,10 +100,19 @@ class KerberosTemplate(PackageTemplate):
 				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
 				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 			
-			elif sysinfo.buildnumber >= WindowsBuild.WIN_11_2022.value:
+			elif WindowsBuild.WIN_11_2022.value <= sysinfo.buildnumber < WindowsBuild.WIN_11_24H2.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
 				template.first_entry_offset = 6
 				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_11
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
+			
+			elif sysinfo.buildnumber >= WindowsBuild.WIN_11_24H2.value:
+				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
+				template.first_entry_offset = 6
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_24H2
 				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_11
 				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
 				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
@@ -1078,6 +1087,88 @@ class KIWI_KERBEROS_LOGON_SESSION_10_1607:
 		res.SmartcardInfos = await PVOID.load(reader)
 		return res
 		
+
+class KIWI_KERBEROS_LOGON_SESSION_24H2:
+	def __init__(self):
+		self.UsageCount = None
+		self.unk0 = None
+		self.unk1 = None
+		self.unk2 = None
+		self.unk4 = None
+		self.unk5 = None
+		self.unk6 = None
+		self.LocallyUniqueIdentifier = None
+		self.unk7 = None
+		self.unk8 = None
+		self.unk8b = None
+		self.unk9 = None
+		self.unk11 = None
+		self.unk12 = None
+		self.credentials = None
+		self.unk14 = None
+		self.unk15 = None
+		self.unk16 = None
+		self.unk17 = None
+		self.unk18 = None
+		self.unk19 = None
+		self.unk20 = None
+		self.unk21 = None
+		self.unk22 = None
+		self.unk23 = None
+		self.pKeyList = None
+		self.unk26 = None
+		self.Tickets_1 = None
+		self.unk27 = None
+		self.Tickets_2 = None
+		self.unk28 = None
+		self.Tickets_3 = None
+		self.unk29 = None
+		self.SmartcardInfos = None
+	
+	@staticmethod
+	async def load(reader):
+		res = KIWI_KERBEROS_LOGON_SESSION_24H2()
+		res.UsageCount = await ULONG.loadvalue(reader)
+		await reader.align()
+		res.unk0 = await LIST_ENTRY.load(reader)
+		res.unk1  = await PVOID.loadvalue(reader)
+		await reader.align()
+		res.unk2 = await FILETIME.loadvalue(reader)
+		res.unk4 = await PVOID.loadvalue(reader)
+		res.unk5 = await PVOID.loadvalue(reader)
+		res.unk6 = await PVOID.loadvalue(reader)
+		res.LocallyUniqueIdentifier = await LUID.loadvalue(reader)
+		res.unk7  = await FILETIME.loadvalue(reader)
+		res.unk8  = await PVOID.loadvalue(reader)
+		res.unk8b = await ULONG.loadvalue(reader)
+		await reader.align()
+		res.unk9  = await FILETIME.load(reader)
+		res.unk11 = await PVOID.loadvalue(reader)
+		res.unk12 = await PVOID.loadvalue(reader)
+		await reader.align(8)
+		res.credentials = await KIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607.load(reader)
+		res.unk14 = await ULONG.loadvalue(reader)
+		res.unk15 = await ULONG.loadvalue(reader)
+		res.unk16 = await ULONG.loadvalue(reader)
+		res.unk17 = await ULONG.loadvalue(reader)
+		res.unk18 = await PVOID.loadvalue(reader)
+		res.unk19 = await PVOID.loadvalue(reader)
+		res.unk20 = await PVOID.loadvalue(reader)
+		res.unk21 = await PVOID.loadvalue(reader)
+		res.unk22 = await PVOID.loadvalue(reader)
+		res.unk23 = await PVOID.loadvalue(reader)
+		await reader.align()
+		res.pKeyList = await PVOID.load(reader)
+		res.unk26 = await PVOID.loadvalue(reader)
+		res.Tickets_1 = await LIST_ENTRY.load(reader)
+		res.unk27 = await FILETIME.loadvalue(reader)
+		res.Tickets_2 = await LIST_ENTRY.load(reader)
+		res.unk28 = await FILETIME.loadvalue(reader)
+		res.Tickets_3 = await LIST_ENTRY.load(reader)
+		res.unk29 = await FILETIME.loadvalue(reader)
+		res.SmartcardInfos = await PVOID.load(reader)
+		return res
+
 class KIWI_KERBEROS_LOGON_SESSION_10_1607_X86:
 	def __init__(self):
 		self.UsageCount = None
@@ -1827,7 +1918,7 @@ class KERB_HASHPASSWORD_GENERIC:
 		res.Type = await DWORD.loadvalue(reader)
 		await reader.align()
 		res.Size      = await SIZE_T.loadvalue(reader)
-		res.Checksump = await PVOID.loadvalue(reader)
+		res.Checksump = await PVOID.load(reader) #loadvalue before?
 		return res
 	
 

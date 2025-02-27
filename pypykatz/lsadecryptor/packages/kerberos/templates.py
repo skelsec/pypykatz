@@ -102,14 +102,14 @@ class KerberosTemplate(PackageTemplate):
 				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
 				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 			
-			#elif sysinfo.buildnumber >= WindowsBuild.WIN_11_2022.value:
-			#	template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
-			#	template.first_entry_offset = 6
-			#	template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
-			#	template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_11
-			#	template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
-			#	template.hash_password_struct = KERB_HASHPASSWORD_6_1607
-			#	template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
+			elif WindowsBuild.WIN_11_2022.value <= sysinfo.buildnumber < WindowsBuild.WIN_11_24H2.value:
+				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
+				template.first_entry_offset = 6
+				template.kerberos_session_struct = KIWI_KERBEROS_LOGON_SESSION_10_1607
+				template.kerberos_ticket_struct = KIWI_KERBEROS_INTERNAL_TICKET_11
+				template.keys_list_struct = KIWI_KERBEROS_KEYS_LIST_6
+				template.hash_password_struct = KERB_HASHPASSWORD_6_1607
+				template.csp_info_struct = KIWI_KERBEROS_CSP_INFOS_10
 
 			elif sysinfo.buildnumber >= WindowsBuild.WIN_11_24H2.value:
 				template.signature = b'\x48\x8b\x18\x48\x8d\x0d'
@@ -665,15 +665,15 @@ class KIWI_KERBEROS_LOGON_SESSION_10_1607:
 
 
 # looks the same as the 10_1607
-class KIWI_KERBEROS_24H2_PRIMARY_CREDENTIAL:
-	def __init__(self, reader):
-		self.UserName = LSA_UNICODE_STRING(reader)
-		self.Domaine = LSA_UNICODE_STRING(reader)
-		self.unkFunction = PVOID(reader).value
-		self.type = DWORD(reader).value # // or flags 2 = normal, 1 = ISO(reader).value
-		reader.align()
-		self.Password = LSA_UNICODE_STRING(reader) #	union {
-		self.IsoPassword = KIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607_ISO(reader)
+#class KIWI_KERBEROS_24H2_PRIMARY_CREDENTIAL:
+#	def __init__(self, reader):
+#		self.UserName = LSA_UNICODE_STRING(reader)
+#		self.Domaine = LSA_UNICODE_STRING(reader)
+#		self.unkFunction = PVOID(reader).value
+#		self.type = DWORD(reader).value # // or flags 2 = normal, 1 = ISO(reader).value
+#		reader.align()
+#		self.Password = LSA_UNICODE_STRING(reader) #	union {
+#		self.IsoPassword = KIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607_ISO(reader)
 
 class KIWI_KERBEROS_LOGON_SESSION_24H2:
 	def __init__(self, reader):
@@ -681,8 +681,7 @@ class KIWI_KERBEROS_LOGON_SESSION_24H2:
 		self.UsageCount = ULONG(reader).value
 		reader.align()
 		self.unk0 = LIST_ENTRY(reader)
-		#self.unk1 = PVOID(reader).value
-		self.unk1b = ULONG(reader).value
+		self.unk1 = ULONG(reader).value
 		reader.align()
 		self.unk2 = FILETIME(reader).value
 		self.unk4 = PVOID(reader).value
@@ -696,8 +695,8 @@ class KIWI_KERBEROS_LOGON_SESSION_24H2:
 		self.unk9 = FILETIME(reader).value
 		self.unk11 = PVOID(reader).value
 		self.unk12 = PVOID(reader).value
-		reader.align(8)	
-		self.credentials = KIWI_KERBEROS_24H2_PRIMARY_CREDENTIAL(reader)
+		reader.align(8)
+		self.credentials = KIWI_KERBEROS_10_PRIMARY_CREDENTIAL_1607(reader) #KIWI_KERBEROS_24H2_PRIMARY_CREDENTIAL(reader)
 		self.unk14 = ULONG(reader).value
 		self.unk15 = ULONG(reader).value
 		self.unk16 = ULONG(reader).value

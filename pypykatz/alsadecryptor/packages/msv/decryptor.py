@@ -108,18 +108,23 @@ class LogonSession:
 		"""
 		Converts KIWI_MSV1_0_LIST type objects into a unified class
 		"""
-		lsc = LogonSession()
-		lsc.authentication_id = entry.LocallyUniqueIdentifier
-		lsc.session_id = entry.Session
-		lsc.username = await entry.UserName.read_string(reader)
-		lsc.domainname = await entry.Domaine.read_string(reader)
-		lsc.logon_server = await entry.LogonServer.read_string(reader)
-		if entry.LogonTime != 0:
-			lsc.logon_time = filetime_to_dt(entry.LogonTime).isoformat()
-		ts = await entry.pSid.read(reader)
-		lsc.sid = str(ts)
-		lsc.luid = entry.LocallyUniqueIdentifier
-		return lsc
+		try:
+			lsc = LogonSession()
+			lsc.authentication_id = entry.LocallyUniqueIdentifier
+			lsc.session_id = entry.Session
+			lsc.username = await entry.UserName.read_string(reader)
+			lsc.domainname = await entry.Domaine.read_string(reader)
+			lsc.logon_server = await entry.LogonServer.read_string(reader)
+			if entry.LogonTime != 0:
+				lsc.logon_time = filetime_to_dt(entry.LogonTime).isoformat()
+			ts = await entry.pSid.read(reader)
+			lsc.sid = str(ts)
+			lsc.luid = entry.LocallyUniqueIdentifier
+			return lsc
+		except Exception as e:
+			import traceback
+			traceback.print_exc()
+			input()
 		
 	def to_dict(self):
 		t = {}
@@ -308,8 +313,16 @@ class MsvDecryptor(PackageDecryptor):
 				t = await self.reader.read(1)
 				self.logon_session_count = int.from_bytes(t, byteorder = 'big', signed = False)
 
+		additional_offset = 0
+		if self.decryptor_template.first_entry_offset_correction != 0:
+			offsetpos = position + self.decryptor_template.first_entry_offset_correction
+			await self.reader.move(offsetpos)
+			t = await self.reader.read(4)
+			additional_offset = int.from_bytes(t, byteorder = 'little', signed = False)
+
 		#getting logon session ptr
 		ptr_entry_loc = await self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
+		ptr_entry_loc += additional_offset
 		ptr_entry = await self.reader.get_ptr(ptr_entry_loc)
 		return ptr_entry, ptr_entry_loc
 	

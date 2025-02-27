@@ -35,15 +35,24 @@ class WdigestTemplate(PackageTemplate):
 				template.primary_offset = 48
 				template.list_entry = PWdigestListEntry
 
-			elif sysinfo.buildnumber >= WindowsMinBuild.WIN_VISTA.value:
+			elif WindowsMinBuild.WIN_VISTA.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
 				template.signature = b'\x48\x3b\xd9\x74'
 				template.first_entry_offset = -4
 				template.primary_offset = 48
 				template.list_entry = PWdigestListEntry
-				
-			else:
-				raise Exception('Could not identify template! Architecture: %s sysinfo.buildnumber: %s' % (sysinfo.architecture, sysinfo.buildnumber))
+
+			elif WindowsMinBuild.WIN_11.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
+				template.signature = b'\x48\x3b\xd8\x74'
+				template.first_entry_offset = -4
+				template.primary_offset = 48
+				template.list_entry = PWdigestListEntry
 			
+			else:
+				template.signature = b'\x48\x3b\xc6\x74\x11\x8b\x4b\x20\x39\x48'
+				template.first_entry_offset = -4
+				template.primary_offset = 48
+				template.list_entry = PWdigestListEntry
+				
 		
 		elif sysinfo.architecture == KatzSystemArchitecture.X86:
 			if WindowsMinBuild.WIN_XP.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_2K3.value:

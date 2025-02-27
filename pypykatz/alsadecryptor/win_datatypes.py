@@ -94,7 +94,7 @@ class BOOLEAN:
 	async def load(reader):
 		res = BOOLEAN()
 		t = await reader.read(1)
-		res.value = bool(t)
+		res.value = bool(t[0])
 		return res
 		
 class BYTE:
