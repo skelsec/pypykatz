@@ -121,10 +121,12 @@ class CREDENTIAL_BLOB:
 		self.description_length = None
 		self.description = None
 		self.unknown3_length = None
+		self.unknown3_raw = None
 		self.unknown3 = None
 		self.username_length = None
 		self.username = None
 		self.unknown4_length = None
+		self.unknown4_raw = None
 		self.unknown4 = None
 		
 		self.attributes = []
@@ -175,7 +177,12 @@ class CREDENTIAL_BLOB:
 			except:
 				pass
 		sk.unknown3_length = int.from_bytes(buff.read(4), 'little', signed = False)
-		sk.unknown3 = buff.read(sk.unknown3_length)
+		sk.unknown3_raw = buff.read(sk.unknown3_length)
+		if sk.unknown3_length > 0:
+			try:
+				sk.unknown3 = sk.unknown3_raw.decode('utf-16-le')
+			except:
+				sk.unknown3 = sk.unknown3_raw.hex()
 		sk.username_length = int.from_bytes(buff.read(4), 'little', signed = False)
 		sk.username = buff.read(sk.username_length)
 		if sk.username_length > 0:
@@ -184,13 +191,13 @@ class CREDENTIAL_BLOB:
 			except:
 				pass
 		sk.unknown4_length = int.from_bytes(buff.read(4), 'little', signed = False)
-		sk.unknown4 = buff.read(sk.unknown4_length)
+		sk.unknown4_raw = buff.read(sk.unknown4_length)
 		
 		if sk.unknown4_length > 0:
 			try:
-				sk.unknown4 = sk.unknown4.decode('utf-16-le')
+				sk.unknown4 = sk.unknown4_raw.decode('utf-16-le')
 			except:
-				pass
+				sk.unknown4 = sk.unknown4_raw.hex()
 		
 		for _ in range(sk.attributes_count):
 			attr = CREDENTIAL_ATTRIBUTE.from_buffer(buff)
