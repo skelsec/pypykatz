@@ -188,7 +188,7 @@ class CREDENTIAL_BLOB:
 		
 		if sk.unknown4_length > 0:
 			try:
-				sk.unknown4_length = sk.unknown4_length.decode('utf-16-le')
+				sk.unknown4 = sk.unknown4.decode('utf-16-le')
 			except:
 				pass
 		
