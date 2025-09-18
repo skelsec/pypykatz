@@ -83,21 +83,30 @@ class Vol3Reader:
 		return sysinfo
 
 	def find_lsass(self):
+		if self.framework_version != 1 and self.framework_version != 2:
+			raise Exception('Unsupported Volatility Framework Version')
+
 		filter_func = pslist.PsList.create_name_filter(['lsass.exe'])
+
 		if self.framework_version == 1:
 			layer_name = self.vol_obj.config['primary']
 			symbol_table = self.vol_obj.config['nt_symbols']
-		elif self.framework_version == 2:
-			layer_name = self.vol_obj.context.modules[self.vol_obj.config['kernel']].layer_name
-			symbol_table = self.vol_obj.context.modules[self.vol_obj.config['kernel']].symbol_table_name
-		else:
-			raise Exception('Unsupported Volatility Framework Version')
-		for proc in pslist.PsList.list_processes(
+
+			proc_list = pslist.PsList.list_processes(
 					context = self.vol_obj.context,
-					layer_name = layer_name,
-					symbol_table = symbol_table,
-					filter_func = filter_func
-				):
+					layer_name=layer_name,
+					symbol_table=symbol_table,
+					filter_func=filter_func
+				)
+
+		elif self.framework_version == 2:
+			proc_list = pslist.PsList.list_processes(
+				context=self.vol_obj.context,
+				kernel_module_name=self.vol_obj.config['kernel'],
+				filter_func=filter_func
+			)
+		
+		for proc in proc_list:
 			self.lsass_process = proc
 			self.proc_layer_name = self.lsass_process.add_process_layer()
 			self.proc_layer = self.vol_obj.context.layers[self.proc_layer_name]
