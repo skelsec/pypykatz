@@ -35,6 +35,7 @@ class OffineRegistry:
 	def get_secrets(self):
 		self.system = SYSTEM(self.system_hive)
 		bootkey = self.system.get_bootkey()
+		self.system.get_secrets()
 		
 		if self.sam_hive:
 			self.sam = SAM(self.sam_hive, bootkey)

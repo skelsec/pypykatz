@@ -123,14 +123,22 @@ class KerberosDecryptor(PackageDecryptor):
 				self.log_ptr(ptr, self.decryptor_template.kerberos_session_struct.__name__)
 				self.reader.move(ptr)
 				kerberos_logon_session = self.decryptor_template.kerberos_session_struct(self.reader)
-				self.process_session(kerberos_logon_session)
+				try:
+					self.process_session(kerberos_logon_session)
+				except Exception as e:
+					self.log('Failed to process session! Reason: %s' % e)
+					return
 
 	def process_session_elist(self, elist):
 		self.reader.move(elist.location)
 		self.reader.read_uint() #Flink do not remove this line!
 		self.reader.read_uint() #Blink do not remove this line!
 		kerberos_logon_session = self.decryptor_template.kerberos_session_struct(self.reader)
-		self.process_session(kerberos_logon_session)
+		try:
+			self.process_session(kerberos_logon_session)
+		except Exception as e:
+			self.log('Failed to process session! Reason: %s' % e)
+			return
 
 	def process_session(self, kerberos_logon_session):
 		self.current_cred = KerberosCredential()

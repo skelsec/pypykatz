@@ -43,9 +43,13 @@ class LiveSspDecryptor(PackageDecryptor):
 		self.credentials = []
 
 	def find_first_entry(self):
-		position = self.find_signature('msv1_0.dll',self.decryptor_template.signature)
+		position = self.find_signature('msv1_0.dll', self.decryptor_template.signature)
+		self.log('Signature @ %s' % hex(position))
+		self.log('Signature (corrected) @ %s' % hex(position + self.decryptor_template.first_entry_offset))
 		ptr_entry_loc = self.reader.get_ptr_with_offset(position + self.decryptor_template.first_entry_offset)
+		self.log('First entry ptr @ %s' % hex(ptr_entry_loc))
 		ptr_entry = self.reader.get_ptr(ptr_entry_loc)
+		self.log('First entry -> %s' % hex(ptr_entry))
 		return ptr_entry, ptr_entry_loc
 		
 	def add_entry(self, ssp_entry):

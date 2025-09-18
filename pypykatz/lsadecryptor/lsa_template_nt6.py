@@ -113,12 +113,15 @@ class LsaTemplate_NT6(PackageTemplate):
 				logger.debug('using x64 - 5')
 				template = templates['nt6']['x64']['5']
 				
-			elif WindowsBuild.WIN_10_1809.value <= sysinfo.buildnumber <= WindowsMinBuild.WIN_11.value:
+			elif WindowsBuild.WIN_10_1809.value <= sysinfo.buildnumber < WindowsMinBuild.WIN_11.value:
 				logger.debug('using x64 - 6')
 				template = templates['nt6']['x64']['6']
-			else:
+			elif WindowsMinBuild.WIN_11.value <= sysinfo.buildnumber < WindowsBuild.WIN_11_24H2.value:
 				logger.debug('using x64 - 8')
 				template = templates['nt6']['x64']['8']
+			else:
+				logger.debug('using x64 - 9')
+				template = templates['nt6']['x64']['9']
 			
 		else:
 			raise Exception('Missing LSA decrpytor template for Architecture: %s , Build number %s' % (sysinfo.architecture, sysinfo.buildnumber))

@@ -232,7 +232,12 @@ class SECURITY:
 			for vl in ['CurrVal', 'OldVal']:
 				key_path = 'Policy\\Secrets\\{}\\{}\\default'.format(key_name,vl)
 				logger.debug('[SECURITY] Parsing secrets in %s' % key_path)
-				v = await self.hive.get_value(key_path, False)
+				try:
+					v = await self.hive.get_value(key_path, False)
+				except Exception as e:
+					logger.debug('[SECURITY] Could not open %s, skipping!' % key_path)
+					continue
+				
 				if v and v[1] != 0:
 					logger.log(1, '[SECURITY] Key %s Value %s' % (key_path, v[1]))
 					if self.lsa_secret_key_vista_type is True:

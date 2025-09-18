@@ -110,6 +110,7 @@ class LSASecretDefaultPassword(LSASecret):
 	def process_secret(self):
 		try:
 			self.secret = self.raw_secret.decode('utf-16-le')
+			self.secret = self.secret.replace('\x00', '')
 		except:
 			pass
 		else:
@@ -160,6 +161,7 @@ class LSASecretMachineAccount(LSASecret):
 		self.username = username
 		self.secret = None
 		self.kerberos_password = None
+		self.raw_secret = raw_secret
 
 	def process_secret(self):
 		#only the NT hash is calculated here
@@ -181,7 +183,7 @@ class LSASecretMachineAccount(LSASecret):
 		return t
 		
 	def __str__(self):
-		return '=== LSA Machine account password ===\r\nHistory: %s\r\nNT: %s\r\nPassword(hex): %s\r\nKerberos password(hex): %s' % (self.history, self.secret.hex(), self.raw_secret.hex(), self.kerberos_password.hex())
+		return '=== LSA Machine account password ===\r\nHistory: %s\r\nUsername: %s\r\nNT: %s\r\nPassword(hex): %s\r\nKerberos password(hex): %s' % (self.history, self.username, self.secret.hex(), self.raw_secret.hex(), self.kerberos_password.hex())
 	
 		
 class LSASecretDPAPI(LSASecret):

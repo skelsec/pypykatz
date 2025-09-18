@@ -68,7 +68,9 @@ class SYSTEM:
 		try:
 			key = '%s\\Services\\%s\\ObjectName' % (self.currentcontrol, service_name)
 			val = await self.hive.get_value(key)
-			return val[1].decode('utf-16-le')
+			val = val[1].decode('utf-16-le')
+			val = val.replace('\x00', '')
+			return val
 		except:
 			return None
 	
@@ -80,12 +82,19 @@ class SYSTEM:
 			if self.machinename is not None:
 				return self.machinename
 			
-			key = '%s\\Control\\ComputerName\\ActiveComputerName' % self.currentcontrol
+			#key = '%s\\Control\\ComputerName\\ActiveComputerName\\ComputerName' % self.currentcontrol
+			key = '%s\\Control\\ComputerName\\ComputerName\\ComputerName' % self.currentcontrol
 			val = await self.hive.get_value(key)
-			self.machinename =  val[1].decode('utf-16-le')
+			if isinstance(val[1], bytes):
+				self.machinename = val[1].decode('utf-16-le')
+			else:
+				self.machinename = val[1]
+			if self.machinename is not None:
+				self.machinename = self.machinename.replace('\x00', '')
 			return self.machinename
-		except:
-			return None 
+		except Exception as e:
+			print('[SYSTEM] get_machine_name error: %s' % e)
+			return None
 		
 	def to_dict(self):
 		t = {}

@@ -49,6 +49,13 @@ class SOFTWARE:
 					self.default_logon_password = data.decode('utf-16-le')
 				else:
 					self.default_logon_password = data
+		
+		if isinstance(self.default_logon_password, str):
+			self.default_logon_password = self.default_logon_password.replace('\x00', '')
+		if isinstance(self.default_logon_user, str):
+			self.default_logon_user = self.default_logon_user.replace('\x00', '')
+		if isinstance(self.default_logon_domain, str):
+			self.default_logon_domain = self.default_logon_domain.replace('\x00', '')
 				
 		return self.default_logon_user
 		

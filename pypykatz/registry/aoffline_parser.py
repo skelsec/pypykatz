@@ -34,6 +34,7 @@ class OffineRegistry:
 		
 	async def get_secrets(self):
 		self.system = SYSTEM(self.system_hive)
+		await self.system.get_secrets()
 		bootkey = await self.system.get_bootkey()
 		
 		if self.sam_hive:

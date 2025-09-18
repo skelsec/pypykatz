@@ -92,6 +92,7 @@ class RemoteRegistry:
 			await self.print_cb('[+] Parsing SYSTEM hive...')
 			self.system = SYSTEM(self.system_hive)
 			bootkey = await self.system.get_bootkey()
+			await self.system.get_secrets()
 
 			await self.print_cb('[+] Parsing SAM hive...')
 			self.sam = SAM(self.sam_hive, bootkey)
