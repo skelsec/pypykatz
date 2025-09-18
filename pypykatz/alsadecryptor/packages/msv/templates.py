@@ -65,7 +65,11 @@ class MsvTemplate(PackageTemplate):
 			template.list_entry = PKIWI_MSV1_0_LIST_63
 		
 		else:
-			template.list_entry = PKIWI_MSV1_0_LIST_64
+			#input(sysinfo.msv_dll_timestamp)
+			if sysinfo.msv_dll_timestamp == 28698614: #experimental
+				template.list_entry = PKIWI_MSV1_0_LIST_65
+			else:
+				template.list_entry = PKIWI_MSV1_0_LIST_64
 		
 		template.log_template('list_entry', template.list_entry)
 		if sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value:
@@ -1125,7 +1129,7 @@ class KIWI_MSV1_0_LIST_63:
 		res.unk29 = await PVOID.loadvalue(reader)
 		res.CredentialManager = await PVOID.load(reader)
 		return res
-	
+
 class PKIWI_MSV1_0_LIST_64(POINTER):
 	def __init__(self):
 		super().__init__()
@@ -1214,6 +1218,128 @@ class KIWI_MSV1_0_LIST_64:
 		res.waza = await reader.read(12)
 		await reader.align()
 		res.unkXX = await PVOID.loadvalue(reader)
+
+		res.UserName = await LSA_UNICODE_STRING.load(reader)
+		res.Domaine = await LSA_UNICODE_STRING.load(reader)
+		res.unk14 = await PVOID.loadvalue(reader)
+		res.unk15 = await PVOID.loadvalue(reader)
+		res.Type = await LSA_UNICODE_STRING.load(reader)
+		res.pSid = await PSID.load(reader)
+		res.LogonType = await ULONG.loadvalue(reader)
+		await reader.align()
+		res.unk18 = await PVOID.loadvalue(reader)
+		res.Session = await ULONG.loadvalue(reader)
+		await reader.align(8)
+		t = await reader.read(8)
+		res.LogonTime =  int.from_bytes(t, byteorder = 'little', signed = False) #autoalign x86
+		res.LogonServer = await LSA_UNICODE_STRING.load(reader)
+		res.Credentials_list_ptr = await PKIWI_MSV1_0_CREDENTIAL_LIST.load(reader)
+		res.unk19 = await PVOID.loadvalue(reader)
+		res.unk20 = await PVOID.loadvalue(reader)
+		res.unk21 = await PVOID.loadvalue(reader)
+		res.unk22 = await ULONG.loadvalue(reader)
+		res.unk23 = await ULONG.loadvalue(reader)
+		res.unk24 = await ULONG.loadvalue(reader)
+		res.unk25 = await ULONG.loadvalue(reader)
+		res.unk26 = await ULONG.loadvalue(reader)
+		await reader.align()
+		res.unk27 = await PVOID.loadvalue(reader)
+		res.unk28 = await PVOID.loadvalue(reader)
+		res.unk29 = await PVOID.loadvalue(reader)
+		res.CredentialManager = await PVOID.load(reader)
+		return res
+
+
+class PKIWI_MSV1_0_LIST_65(POINTER):
+	def __init__(self):
+		super().__init__()
+	
+	@staticmethod
+	async def load(reader):
+		p = PKIWI_MSV1_0_LIST_65()
+		p.location = reader.tell()
+		p.value = await reader.read_uint()
+		p.finaltype = KIWI_MSV1_0_LIST_65
+		return p
+	
+	
+class KIWI_MSV1_0_LIST_65:
+	def __init__(self):
+		self.Flink = None
+		self.Blink = None
+		self.unk0 = None
+		self.unk1 = None
+		self.unk2 = None
+		self.unk3 = None
+		self.unk4 = None
+		self.unk5 = None
+		self.hSemaphore6 = None
+		self.unk7 = None
+		self.hSemaphore8 = None
+		self.unk9  = None
+		self.unk10 = None
+		self.unk11 = None
+		self.unk12 = None
+		self.unk13 = None
+		self.LocallyUniqueIdentifier = None
+		self.SecondaryLocallyUniqueIdentifier = None
+		self.waza = None
+		self.unkXX = None
+		self.unkXX2 = None
+		self.UserName = None
+		self.Domaine = None
+		self.unk14 = None
+		self.unk15 = None
+		self.Type = None
+		self.pSid = None
+		self.LogonType = None
+		self.unk18 = None
+		self.Session = None
+		self.LogonTime =  None
+		self.LogonServer = None
+		self.Credentials_list_ptr = None
+		self.unk19 = None
+		self.unk20 = None
+		self.unk21 = None
+		self.unk22 = None
+		self.unk23 = None
+		self.unk24 = None
+		self.unk25 = None
+		self.unk26 = None
+		self.unk27 = None
+		self.unk28 = None
+		self.unk29 = None
+		self.CredentialManager = None
+
+	@staticmethod
+	async def load(reader):
+		res = KIWI_MSV1_0_LIST_65()
+		res.Flink = await PKIWI_MSV1_0_LIST_65.load(reader)
+		res.Blink = await PKIWI_MSV1_0_LIST_65.load(reader)
+		res.unk0 = await PVOID.loadvalue(reader)
+		res.unk1 = await ULONG.loadvalue(reader)
+		await reader.align()
+		res.unk2 = await PVOID.loadvalue(reader)
+		res.unk3 = await ULONG.loadvalue(reader)
+		res.unk4 = await ULONG.loadvalue(reader)
+		res.unk5 = await ULONG.loadvalue(reader)
+		await reader.align()
+		res.hSemaphore6 = await HANDLE.loadvalue(reader)
+		res.unk7 = await PVOID.loadvalue(reader)
+		res.hSemaphore8 = await HANDLE.loadvalue(reader)
+		res.unk9 = await PVOID.loadvalue(reader)
+		res.unk10 = await PVOID.loadvalue(reader)
+		res.unk11 = await ULONG.loadvalue(reader)
+		res.unk12 = await ULONG.loadvalue(reader)
+		res.unk13 = await PVOID.loadvalue(reader)
+		await reader.align()
+		
+		res.LocallyUniqueIdentifier = await LUID.loadvalue(reader)
+		res.SecondaryLocallyUniqueIdentifier = await LUID.loadvalue(reader)
+		res.waza = await reader.read(12)
+		await reader.align()
+		res.unkXX = await PVOID.loadvalue(reader)
+		res.unkXX2 = await PVOID.loadvalue(reader) #reader.read(8)
 
 		res.UserName = await LSA_UNICODE_STRING.load(reader)
 		res.Domaine = await LSA_UNICODE_STRING.load(reader)

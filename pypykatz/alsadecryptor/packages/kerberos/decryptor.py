@@ -34,7 +34,6 @@ class KerberosCredential:
 			t += '\t\tpassword (hex)%s\n' % self.password_raw.hex()
 		if self.pin is not None:
 			t += '\t\tPIN: %s\n' % self.pin
-			t += '\t\tPIN (hex): %s\n' % self.pin_raw.hex()
 		if self.cardinfo is not None:
 			t += '\t\tCARDINFO: \n'
 			t += '\t\t\tCardName: %s\n' % self.cardinfo['CardName']
