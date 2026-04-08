@@ -7,6 +7,9 @@
 from unicrypto.symmetric import DES, expand_DES_key
 from unicrypto.pbkdf2 import pbkdf2
 from unicrypto.hashlib import md4 as MD4
+from unicrypto.hashlib import md5 as MD5
+from unicrypto.hmac import new as hmac_new
+
 
 def LM(password):
 	if password is None or password == '':
@@ -31,7 +34,12 @@ def NT(password):
 	password_bytes = password.encode('utf-16-le')
 	md4 = MD4(password_bytes)
 	return md4.digest()
-	
+
+def NTLMV2(username, domain, password):
+	message = (username.upper()+domain).encode('utf-16-le')
+	h = hmac_new(NT(password), message, digestmod='md5')
+	return h.digest()
+
 def MSDCC(username, password):
 	nt_hash_of_password = NT(password)
 	username_lower = username.lower()
@@ -51,3 +59,8 @@ def MSDCCv2(username, password, iterations = 10240):
 	hashcat_format = '$DCC2$%s#%s#%s' % (iterations, username, msdcc_v2.hex())
 
 	return msdcc_v2
+
+def NETNTLMV2(username, password, domain, challenge, blob):
+	key = NTLMV2(username, domain, password)
+	h = hmac_new(key, bytes.fromhex(challenge + blob), digestmod='md5')
+	return h.digest()
