@@ -63,6 +63,8 @@ class SYSTEM:
 		if self.currentcontrol is None:
 			self.get_currentcontrol()
 		
+		val = None
+
 		try:
 			key = '%s\\Services\\%s\\ObjectName' % (self.currentcontrol, service_name)
 			val = self.hive.get_value(key)[1]
@@ -70,7 +72,7 @@ class SYSTEM:
 			val = val.replace('\x00', '')
 			return val
 		except:
-			return None
+			return val
 	
 	def get_machine_name(self):
 		if self.currentcontrol is None:
