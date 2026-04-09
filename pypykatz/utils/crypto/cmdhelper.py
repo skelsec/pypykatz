@@ -22,6 +22,9 @@ class CryptoCMDHelper:
 		group = crypto_subparsers.add_parser('lm', help='Generates LM hash of the password')
 		group.add_argument('password', help= 'Password to be hashed')
 		
+		group = crypto_subparsers.add_parser('netntlmv2', help="Generates NTLMv2-SSP hash given parameters from network exchange.\nExpects a Responder-like input on stdin")
+		group.add_argument('password', help='password to be hashed')
+		
 		group = crypto_subparsers.add_parser('dcc', help='Generates DCC v1 (domain cached credentials version 1) hash of the password')
 		group.add_argument('username', help= 'username')
 		group.add_argument('password', help= 'Password to be hashed')
@@ -48,7 +51,7 @@ class CryptoCMDHelper:
 			#self.run_live(args)
 			
 	def run(self, args):
-		from pypykatz.utils.crypto.winhash import NT, LM, MSDCC, MSDCCv2
+		from pypykatz.utils.crypto.winhash import NT, LM, MSDCC, MSDCCv2, NETNTLMV2
 		from pypykatz.utils.crypto.gppassword import gppassword
 		from pypykatz.utils.crypto.ofcdecrypt import ofscan_decrypt_data
 		from pypykatz.utils.crypto.others import vncdecrypt
@@ -58,7 +61,11 @@ class CryptoCMDHelper:
 		
 		elif args.crypto_module == 'lm':
 			print(LM(args.password).hex())
-			
+		
+		elif args.crypto_module == 'netntlmv2':
+			(username, _, domain, challenge, _, blob )=input().split(':')
+			print(NETNTLMV2(username, args.password, domain, challenge, blob).hex())
+		
 		elif args.crypto_module == 'dcc':
 			print(MSDCC(args.username, args.password).hex())
 			
