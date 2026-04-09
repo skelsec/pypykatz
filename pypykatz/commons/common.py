@@ -489,8 +489,12 @@ class KatzSystemInfo:
 		
 		sysinfo.msv_dll_timestamp = 0
 		for module in minidump.modules.modules:
-			if module.name.find('lsasrv.dll') != -1:
+			if module.name.find('msv1_0.dll') != -1:
 				sysinfo.msv_dll_timestamp = module.timestamp
+		if sysinfo.msv_dll_timestamp == 0:
+			for module in minidump.modules.modules:
+				if module.name.find('lsasrv.dll') != -1:
+					sysinfo.msv_dll_timestamp = module.timestamp
 	
 		return sysinfo
 
