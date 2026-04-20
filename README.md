@@ -120,11 +120,11 @@ Also I'd apprechiate if you wouldn't spam me...
 ### Why do I need these dumps files?
 In order to create mimikatz in Python one would have to create structure definitions of a gazillion different structures (check the original code) without the help of the build-in parser that you'd naturally get from using a native compiler. Now, the problem is that even a single byte misalignemt will render the parsing of these structures run to an error. Problem is mostly revolving around 32 - 64 aligments, so 32 bit Windows version lsass dumps are apprechiated as well!  
 ### Summary
-I need data I can verify the code on and administer necessary changes on the parsers until everything works fine.  
+I need data that I can verify the code on, and administer necessary changes on the parsers until everything works fine.  
 Submitting issues on this github page wouldn't help at all without the actual file and github wouldn't like 40-300Mb file attachments.
 
 ## Prerequisites
-Most of my big python projects are aiming for maximum protability, meaning I only use 3rd party packages where absolutely necessary. 
+Most of my big python projects are aiming for maximum portability, meaning I only use 3rd party packages where absolutely necessary. 
 As of this point three additional packages are used, and I intend to keep it this way.
 
 Python>=3.6  
@@ -139,8 +139,8 @@ Alberto Solino (@agsolino) for [impacket](https://github.com/SecureAuthCorp/impa
   
 ### Crypto
 Richard Moore for the [AES module](https://github.com/ricmoo/pyaes/blob/master/pyaes/aes.py)  
-Todd Whiteman for teh [DES module](http://twhiteman.netfirms.com/des.html)  
+Todd Whiteman for the [DES module](http://twhiteman.netfirms.com/des.html)  
   
 ### Utils
-David Buxton for the timestamp conversion script  
+David Buxton for the timestamp conversion script.  
 
