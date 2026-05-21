@@ -8,7 +8,9 @@ from pypykatz import logger
 from minidump.win_datatypes import BOOLEAN, HANDLE
 from pypykatz.commons.common import KatzSystemArchitecture, WindowsMinBuild, WindowsBuild
 from pypykatz.commons.win_datatypes import USHORT, ULONG, LSA_UNICODE_STRING, LSAISO_DATA_BLOB, \
-	BYTE, PVOID, WORD, DWORD, POINTER, LUID, PSID, ANSI_STRING
+	BYTE, PVOID, WORD, DWORD, POINTER, LUID, PSID, ANSI_STRING, IMAGE_DOS_HEADER, IMAGE_NT_HEADERS, IMAGE_DIRECTORY_ENTRY_RESOURCE, \
+	IMAGE_RESOURCE_DIRECTORY, IMAGE_RESOURCE_DIRECTORY_ENTRY, IMAGE_RESOURCE_DIRECTORY_SIZE, IMAGE_RESOURCE_DIRECTORY_ENTRY_SIZE, \
+	IMAGE_RESOURCE_DATA_ENTRY, VS_VERSIONINFO
 from pypykatz.lsadecryptor.package_commons import PackageTemplate
 
 from pypykatz.commons.common import hexdump
@@ -28,9 +30,85 @@ class MsvTemplate(PackageTemplate):
 		self.decrypted_credential_struct = None
 	
 	@staticmethod
+	def read_versioninfo_MSV(reader):
+		msv1_0_timedatestamp = None
+		msv1_0_version_revision = None
+
+		baseaddress = None
+		for module in reader.reader.modules:
+			if module.name.lower().find("msv1_0.dll") != -1:
+				baseaddress = module.baseaddress
+		
+		if baseaddress:
+			reader.move(baseaddress)
+			dos_header = IMAGE_DOS_HEADER(reader)
+
+			if dos_header.e_magic == 0x5A4D:
+				new_header_base = baseaddress + dos_header.e_lfanew
+				reader.move(new_header_base)
+				nt_headers = IMAGE_NT_HEADERS(reader)
+				if nt_headers.Signature == 0x4550:
+					msv1_0_timedatestamp = nt_headers.FileHeader.TimeDateStamp
+					
+					rsrc_rva = nt_headers.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress
+					rsrc_size = nt_headers.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].Size
+
+					rsrc_base = baseaddress + rsrc_rva
+
+					if rsrc_size > 0:
+						reader.move(rsrc_base)
+						rsrc_directory = IMAGE_RESOURCE_DIRECTORY(reader)
+
+						if rsrc_directory.NumberOfIdEntries > 0:
+							current_address = rsrc_base + IMAGE_RESOURCE_DIRECTORY_SIZE
+							reader.move(current_address) # 16 = sizeof(image_resource_directory)
+							current_rsrc_entry = IMAGE_RESOURCE_DIRECTORY_ENTRY(reader)
+
+							# Skip named entries
+							current_address += IMAGE_RESOURCE_DIRECTORY_ENTRY_SIZE * rsrc_directory.NumberOfNamedEntries
+
+							for _ in range(rsrc_directory.NumberOfIdEntries):
+								reader.move(current_address)
+								current_rsrc_entry = IMAGE_RESOURCE_DIRECTORY_ENTRY(reader)
+
+								if current_rsrc_entry.Id == 0x10:
+									break
+
+								current_address += IMAGE_RESOURCE_DIRECTORY_ENTRY_SIZE
+								
+							if current_rsrc_entry.Id == 0x10:
+								
+								version_data_entry = None
+
+								for _ in range(3):
+									if current_rsrc_entry.DataIsDirectory:
+										current_address = rsrc_base + current_rsrc_entry.OffsetToDirectory + IMAGE_RESOURCE_DIRECTORY_SIZE
+										reader.move(current_address)
+										current_rsrc_entry = IMAGE_RESOURCE_DIRECTORY_ENTRY(reader)
+									else:
+										current_address = rsrc_base + current_rsrc_entry.OffsetToData
+										reader.move(current_address)
+										version_data_entry = IMAGE_RESOURCE_DATA_ENTRY(reader)
+
+								if version_data_entry:
+									
+									# Offset to data is the offset from the DLL base instead of the rsrc-section base
+									current_address = baseaddress + version_data_entry.OffsetToData
+									reader.move(current_address)
+									version_info = VS_VERSIONINFO(reader)
+
+									if version_info.Value.dwSignature == 0xFEEF04BD:
+										msv1_0_version_revision = version_info.Value.dwFileVersionLS & 0xFFFF
+
+		return msv1_0_timedatestamp, msv1_0_version_revision
+
+
+
+	@staticmethod
 	def get_template(sysinfo):
 		logger.debug('buildnumber: %s' % sysinfo.buildnumber)
 		logger.debug('msv_dll_timestamp: %s' % sysinfo.msv_dll_timestamp)
+		logger.debug('msv_dll_version_revision: %s' % sysinfo.msv_dll_version_revision)
 		template = MsvTemplate()
 		template.encrypted_credentials_list_struct = KIWI_MSV1_0_CREDENTIAL_LIST
 		template.log_template('encrypted_credentials_list_struct', template.encrypted_credentials_list_struct)
