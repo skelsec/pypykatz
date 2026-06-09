@@ -63,14 +63,11 @@ class MsvTemplate(PackageTemplate):
 		
 		elif sysinfo.buildnumber < WindowsBuild.WIN_11_24H2.value:
 			template.list_entry = PKIWI_MSV1_0_LIST_63
-		
-		elif sysinfo.buildnumber < WindowsBuild.WIN_11_25H2.value:
-			if sysinfo.msv_dll_timestamp >= 0xd133958f:
-				template.list_entry = PKIWI_MSV1_0_LIST_65
-			else:
-				template.list_entry = PKIWI_MSV1_0_LIST_64
 
 		else:
+			# Two extra PVOIDs (unk_24h2_0, unk_24h2_1) precede UserName from build 26100 onward.
+			# Struct layout is unchanged across 24H2 and 25H2, see mimikatz
+			# KIWI_MSV1_0_LIST_64 (gentilkiwi/mimikatz, mimikatz/modules/sekurlsa/kuhl_m_sekurlsa_utils.h).
 			template.list_entry = PKIWI_MSV1_0_LIST_65
 		
 		template.log_template('list_entry', template.list_entry)
