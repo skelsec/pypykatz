@@ -6,6 +6,7 @@
 
 import platform
 import json
+import logging
 import traceback
 import base64
 
@@ -24,6 +25,14 @@ from minidump.minidumpfile import MinidumpFile
 from minikerberos.common.ccache import CCACHE
 from minikerberos.common.kirbi import Kirbi
 from pypykatz._version import __version__
+
+class _SuppressPEBError(logging.Filter):
+	# minidump always attempts PEB parsing but LSASS dumps don't include TEB memory.
+	# The error is expected and non-fatal. Suppress it at the call site rather
+	# than downgrading the log level in the upstream library.
+	def filter(self, record):
+		return 'PEB parsing error' not in record.getMessage()
+
 
 class pypykatz:
 	def __init__(self, reader, sysinfo):
@@ -145,7 +154,12 @@ class pypykatz:
 	@staticmethod
 	def parse_minidump_file(filename, packages = ['all'], chunksize = 10*1024):
 		try:
-			minidump = MinidumpFile.parse(filename)
+			_filter = _SuppressPEBError()
+			logging.getLogger().addFilter(_filter)
+			try:
+				minidump = MinidumpFile.parse(filename)
+			finally:
+				logging.getLogger().removeFilter(_filter)
 			reader = minidump.get_reader().get_buffered_reader(segment_chunk_size=chunksize)
 			sysinfo = KatzSystemInfo.from_minidump(minidump)
 		except Exception as e:
