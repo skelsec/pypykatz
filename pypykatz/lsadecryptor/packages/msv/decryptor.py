@@ -473,8 +473,80 @@ class MsvDecryptor(PackageDecryptor):
 		
 		self.current_logonsession.msv_creds.append(cred)
 	
+	def _autoselect_list_entry(self, entry_ptr_loc):
+		"""
+		On Win11 25H2 (build 26200 - a shared-servicing/enablement release over
+		24H2) the lsass binaries are still versioned 26100.8655 and the minidump
+		reports kernel build 26100. The real LogonSession layout matches
+		KIWI_MSV1_0_LIST_65, but the regular template selection
+		(MsvTemplate.get_template) sees build 26100, enters the conditional branch
+		and picks LIST_64 from the DLL PE timestamp -> UserName/Domaine are read
+		at shifted offsets, Domaine.Buffer becomes garbage (0x140012) and the walk
+		fails. PE timestamps of reproducible builds are not monotonic, so the
+		threshold based on them is unreliable. Here we pick the structure by
+		content: for the first non-empty entry we score how many fields each
+		candidate template reads as valid. Active on build 26100+ (covers both
+		24H2 and 25H2 dumps, which both report kernel build 26100).
+		"""
+		if self.sysinfo.architecture != KatzSystemArchitecture.X64:
+			return
+		if self.sysinfo.buildnumber < WindowsBuild.WIN_11_24H2.value:
+			return
+		from pypykatz.lsadecryptor.packages.msv.templates import (
+			PKIWI_MSV1_0_LIST_64, KIWI_MSV1_0_LIST_64,
+			PKIWI_MSV1_0_LIST_65, KIWI_MSV1_0_LIST_65)
+
+		# find the first non-empty list head to probe
+		probe_value = None
+		for i in range(self.logon_session_count):
+			self.reader.move(entry_ptr_loc)
+			for _ in range(i * 2):
+				self.reader.read_int()
+			head = self.decryptor_template.list_entry(self.reader)
+			if head.location != head.value:
+				probe_value = head.value
+				break
+		if probe_value is None:
+			return
+
+		# current KIWI struct (from the finaltype of a pointer instance)
+		self.reader.move(probe_value)
+		cur_pkiwi = self.decryptor_template.list_entry
+		cur_kiwi = self.decryptor_template.list_entry(self.reader).finaltype
+
+		def field_score(u):
+			# +2 for a readable non-empty string with a sane length/pointer,
+			# -5 for obvious garbage (unreadable/bad length), 0 for an empty field
+			try:
+				if u.Length == 0:
+					return 0
+				if u.Length % 2 != 0 or u.Length > 512 or u.Buffer == 0:
+					return -5
+				return 2 if u.read_string(self.reader) else 0
+			except Exception:
+				return -5
+
+		def score(kiwi_cls):
+			try:
+				self.reader.move(probe_value)
+				o = kiwi_cls(self.reader)
+				return field_score(o.UserName) + field_score(o.Domaine) + field_score(o.LogonServer)
+			except Exception:
+				return -100
+
+		# the current template goes first -> on a tie it is kept
+		candidates = [(cur_pkiwi, cur_kiwi),
+		              (PKIWI_MSV1_0_LIST_65, KIWI_MSV1_0_LIST_65),
+		              (PKIWI_MSV1_0_LIST_64, KIWI_MSV1_0_LIST_64)]
+		best_pkiwi, best_kiwi = max(candidates, key=lambda pk: score(pk[1]))
+		if best_pkiwi is not cur_pkiwi:
+			self.log('Autoselected MSV list template %s (was %s)' % (
+				best_kiwi.__name__, cur_kiwi.__name__))
+			self.decryptor_template.list_entry = best_pkiwi
+
 	def start(self):
 		entry_ptr_value, entry_ptr_loc = self.find_first_entry()
+		self._autoselect_list_entry(entry_ptr_loc)
 		for i in range(self.logon_session_count):
 			self.reader.move(entry_ptr_loc)
 			for x in range(i*2): #skipping offset in an architecture-agnostic way
