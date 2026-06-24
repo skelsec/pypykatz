@@ -282,7 +282,12 @@ class MSV1_0_PRIMARY_CREDENTIAL_10_1607_DEC:
 		self.align2 = BYTE(reader).value
 		self.credKeyType = DWORD(reader).value
 		self.isoSize = WORD(reader).value
-		self.DPAPIProtected = reader.read(20)
+		# DPAPIProtected is a 16 byte hash, followed by a DWORD alignment field
+		# (align3). Reading it as 20 bytes would fold that padding into the DPAPI
+		# CredKey. The async MSV1_0_PRIMARY_CREDENTIAL_10_1607_DEC already splits
+		# these correctly; keep this reader consistent with it.
+		self.DPAPIProtected = reader.read(16)
+		self.align3 = reader.read(4)
 
 		if bool(self.isIso[0]):
 			self.encryptedBlob = reader.read(self.isoSize)
@@ -306,7 +311,10 @@ class MSV1_0_PRIMARY_CREDENTIAL_11_H24_DEC:
 		self.align2 = BYTE(reader).value
 		#self.credKeyType = DWORD(reader).value
 		self.isoSize = WORD(reader).value
-		self.DPAPIProtected = reader.read(20)
+		# 24H2/25H2 (build >= 26100): DPAPIProtected is a 16 byte hash followed by
+		# a DWORD align3, same split as MSV1_0_PRIMARY_CREDENTIAL_10_1607_DEC.
+		self.DPAPIProtected = reader.read(16)
+		self.align3 = reader.read(4)
 
 		if bool(self.isIso[0]):
 			self.encryptedBlob = reader.read(self.isoSize)
