@@ -72,7 +72,7 @@ class MsvTemplate(PackageTemplate):
 
 		else:
 			template.list_entry = PKIWI_MSV1_0_LIST_65
-		
+
 		template.log_template('list_entry', template.list_entry)
 		if sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value:
 			template.decrypted_credential_struct = MSV1_0_PRIMARY_CREDENTIAL_DEC
@@ -401,6 +401,7 @@ class MSV1_0_PRIMARY_CREDENTIAL_11_H24_DEC:
 		
 		self.isoSize = None
 		self.DPAPIProtected = None
+		self.align3 = None
 
 		self.encryptedBlob = None
 		# stuff to be done! #pragma pack(pop) 
@@ -424,8 +425,11 @@ class MSV1_0_PRIMARY_CREDENTIAL_11_H24_DEC:
 		res.align1 = await BYTE.loadvalue(reader)
 		res.align2 = await BYTE.loadvalue(reader)		
 		res.isoSize = await WORD.loadvalue(reader) #// 0000
-		res.DPAPIProtected = await reader.read(20)
-		
+		# 24H2/25H2 (build >= 26100): DPAPIProtected is a 16 byte hash followed by
+		# a DWORD align3, same split as MSV1_0_PRIMARY_CREDENTIAL_10_1607_DEC.
+		res.DPAPIProtected = await reader.read(16)
+		res.align3 = await DWORD.loadvalue(reader)
+
 		if res.isIso is True:
 			res.encryptedBlob = await reader.read(res.isoSize)
 		else:
