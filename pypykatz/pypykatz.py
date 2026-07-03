@@ -246,6 +246,11 @@ class pypykatz:
 		
 	def get_logoncreds(self):
 		credman_template = CredmanTemplate.get_template(self.sysinfo)
+		msv1_0_timedatestamp, msv1_0_version_revision = MsvTemplate.read_versioninfo_MSV(self.reader)
+		if msv1_0_timedatestamp is not None:
+			self.sysinfo.msv_dll_timestamp = msv1_0_timedatestamp
+		if msv1_0_version_revision is not None:
+			self.sysinfo.msv_dll_version_revision = msv1_0_version_revision
 		msv_template = MsvTemplate.get_template(self.sysinfo)
 		logoncred_decryptor = MsvDecryptor(self.reader, msv_template, self.lsa_decryptor, credman_template, self.sysinfo)
 		logoncred_decryptor.start()

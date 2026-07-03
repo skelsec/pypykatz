@@ -7,7 +7,7 @@
 import enum
 from minidump.win_datatypes import DWORD, LONG, LONGLONG, \
 	POINTER, UINT8, ULONG, PWSTR, USHORT, PCHAR, SHORT, \
-	BYTE, PVOID, WORD, DWORD64
+	BYTE, PVOID, WORD, DWORD64, DWORDLONG
 #from pypykatz.commons.common import *
 
 class LARGE_INTEGER:
@@ -230,4 +230,196 @@ class LIST_ENTRY:
 		self.location = reader.tell()
 		self.Flink = PLIST_ENTRY(reader)
 		self.Blink = PLIST_ENTRY(reader)
-		
+
+class PIMAGE_DOS_HEADER(POINTER):
+	def __init__(self, reader):
+		super().__init__(reader, IMAGE_DOS_HEADER)
+
+class IMAGE_DOS_HEADER:
+	def __init__(self, reader):
+		self.e_magic    = WORD(reader).value
+		self.e_cblp     = WORD(reader).value
+		self.e_cp       = WORD(reader).value
+		self.e_crlc     = WORD(reader).value
+		self.e_cparhdr  = WORD(reader).value
+		self.e_minalloc = WORD(reader).value
+		self.e_maxalloc = WORD(reader).value
+		self.e_ss       = WORD(reader).value
+		self.e_sp       = WORD(reader).value
+		self.e_csum     = WORD(reader).value
+		self.e_ip       = WORD(reader).value
+		self.e_cs       = WORD(reader).value
+		self.e_lfarlc   = WORD(reader).value
+		self.e_ovno     = WORD(reader).value
+		self.e_res      = reader.read(8)
+		self.e_oemid    = WORD(reader).value
+		self.e_oeminfo  = WORD(reader).value
+		self.e_res2     = reader.read(20)
+		self.e_lfanew   = LONG(reader).value
+
+IMAGE_FILE_MACHINE_I386 = 0x014c
+
+class IMAGE_FILE_HEADER:
+	def __init__(self, reader):
+		self.Machine              = WORD(reader).value
+		self.NumberOfSections     = WORD(reader).value
+		self.TimeDateStamp        = DWORD(reader).value
+		self.PointerToSymbolTable = DWORD(reader).value
+		self.NumberOfSymbols      = DWORD(reader).value
+		self.SizeOfOptionalHeader = WORD(reader).value
+		self.Characteristics      = WORD(reader).value
+
+class IMAGE_DATA_DIRECTORY:
+	def __init__(self, reader):
+		self.VirtualAddress = DWORD(reader).value
+		self.Size           = DWORD(reader).value
+
+IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16
+IMAGE_DIRECTORY_ENTRY_RESOURCE = 2
+
+class IMAGE_OPTIONAL_HEADER64:
+	
+	def __init__(self, reader):
+		self.Magic                       = WORD(reader).value
+		self.MajorLinkerVersion          = BYTE(reader).value
+		self.MinorLinkerVersion          = BYTE(reader).value
+		self.SizeOfCode                  = DWORD(reader).value
+		self.SizeOfInitializedData       = DWORD(reader).value
+		self.SizeOfUninitializedData     = DWORD(reader).value
+		self.AddressOfEntryPoint         = DWORD(reader).value
+		self.BaseOfCode                  = DWORD(reader).value
+		self.ImageBase                   = DWORDLONG(reader).value
+		self.SectionAlignment            = DWORD(reader).value
+		self.FileAlignment               = DWORD(reader).value
+		self.MajorOperatingSystemVersion = WORD(reader).value
+		self.MinorOperatingSystemVersion = WORD(reader).value
+		self.MajorImageVersion           = WORD(reader).value
+		self.MinorImageVersion           = WORD(reader).value
+		self.MajorSubsystemVersion       = WORD(reader).value
+		self.MinorSubsystemVersion       = WORD(reader).value
+		self.Win32VersionValue           = DWORD(reader).value
+		self.SizeOfImage                 = DWORD(reader).value
+		self.SizeOfHeaders               = DWORD(reader).value
+		self.CheckSum                    = DWORD(reader).value
+		self.Subsystem                   = WORD(reader).value
+		self.DllCharacteristics          = WORD(reader).value
+		self.SizeOfStackReserve          = DWORDLONG(reader).value
+		self.SizeOfStackCommit           = DWORDLONG(reader).value
+		self.SizeOfHeapReserve           = DWORDLONG(reader).value
+		self.SizeOfHeapCommit            = DWORDLONG(reader).value
+		self.LoaderFlags                 = DWORD(reader).value
+		self.NumberOfRvaAndSizes         = DWORD(reader).value
+		self.DataDirectory               = [IMAGE_DATA_DIRECTORY(reader) for _ in range(IMAGE_NUMBEROF_DIRECTORY_ENTRIES)]
+
+class IMAGE_OPTIONAL_HEADER32:
+	def __init__(self, reader):
+		self.Magic                       = WORD(reader).value
+		self.MajorLinkerVersion          = BYTE(reader).value
+		self.MinorLinkerVersion          = BYTE(reader).value
+		self.SizeOfCode                  = DWORD(reader).value
+		self.SizeOfInitializedData       = DWORD(reader).value
+		self.SizeOfUninitializedData     = DWORD(reader).value
+		self.AddressOfEntryPoint         = DWORD(reader).value
+		self.BaseOfCode                  = DWORD(reader).value
+		self.BaseOfData                  = DWORD(reader).value
+		self.ImageBase                   = DWORD(reader).value
+		self.SectionAlignment            = DWORD(reader).value
+		self.FileAlignment               = DWORD(reader).value
+		self.MajorOperatingSystemVersion = WORD(reader).value
+		self.MinorOperatingSystemVersion = WORD(reader).value
+		self.MajorImageVersion           = WORD(reader).value
+		self.MinorImageVersion           = WORD(reader).value
+		self.MajorSubsystemVersion       = WORD(reader).value
+		self.MinorSubsystemVersion       = WORD(reader).value
+		self.Win32VersionValue           = DWORD(reader).value
+		self.SizeOfImage                 = DWORD(reader).value
+		self.SizeOfHeaders               = DWORD(reader).value
+		self.CheckSum                    = DWORD(reader).value
+		self.Subsystem                   = WORD(reader).value
+		self.DllCharacteristics          = WORD(reader).value
+		self.SizeOfStackReserve          = DWORD(reader).value
+		self.SizeOfStackCommit           = DWORD(reader).value
+		self.SizeOfHeapReserve           = DWORD(reader).value
+		self.SizeOfHeapCommit            = DWORD(reader).value
+		self.LoaderFlags                 = DWORD(reader).value
+		self.NumberOfRvaAndSizes         = DWORD(reader).value
+		self.DataDirectory               = [IMAGE_DATA_DIRECTORY(reader) for _ in range(IMAGE_NUMBEROF_DIRECTORY_ENTRIES)]
+
+class IMAGE_NT_HEADERS:
+	def __init__(self, reader):
+		self.Signature     = DWORD(reader).value
+		self.FileHeader    = IMAGE_FILE_HEADER(reader)
+		if self.FileHeader.Machine == IMAGE_FILE_MACHINE_I386:
+			self.OptionalHeader = IMAGE_OPTIONAL_HEADER32(reader)
+		else:
+			self.OptionalHeader = IMAGE_OPTIONAL_HEADER64(reader)
+
+IMAGE_RESOURCE_DIRECTORY_SIZE = 16
+class IMAGE_RESOURCE_DIRECTORY:
+	def __init__(self, reader):
+		self.Characteristics      = DWORD(reader).value
+		self.TimeDateStamp        = DWORD(reader).value
+		self.MajorVersion         = WORD(reader).value
+		self.MinorVersion         = WORD(reader).value
+		self.NumberOfNamedEntries = WORD(reader).value
+		self.NumberOfIdEntries    = WORD(reader).value
+
+IMAGE_RESOURCE_DIRECTORY_ENTRY_SIZE = 8
+class IMAGE_RESOURCE_DIRECTORY_ENTRY:
+	def __init__(self, reader):
+		self.Name           = DWORD(reader).value
+		self.OffsetToData   = DWORD(reader).value
+
+	@property
+	def NameOffset(self):
+		return self.Name & 0x7FFFFFFF
+
+	@property
+	def NameIsString(self):
+		return (self.Name >> 31) & 1
+
+	@property
+	def Id(self):
+		return self.Name & 0xFFFF
+
+	@property
+	def OffsetToDirectory(self):
+		return self.OffsetToData & 0x7FFFFFFF
+
+	@property
+	def DataIsDirectory(self):
+		return (self.OffsetToData >> 31) & 1
+	
+class IMAGE_RESOURCE_DATA_ENTRY:
+	def __init__(self, reader):
+		self.OffsetToData = DWORD(reader).value
+		self.Size         = DWORD(reader).value
+		self.CodePage     = DWORD(reader).value
+		self.Reserved     = DWORD(reader).value
+
+class VS_FIXEDFILEINFO:
+	def __init__(self, reader):
+		self.dwSignature      = DWORD(reader).value
+		self.dwStrucVersion   = DWORD(reader).value
+		self.dwFileVersionMS  = DWORD(reader).value
+		self.dwFileVersionLS  = DWORD(reader).value
+		self.dwProductVersionMS = DWORD(reader).value
+		self.dwProductVersionLS = DWORD(reader).value
+		self.dwFileFlagsMask  = DWORD(reader).value
+		self.dwFileFlags      = DWORD(reader).value
+		self.dwFileOS         = DWORD(reader).value
+		self.dwFileType       = DWORD(reader).value
+		self.dwFileSubtype    = DWORD(reader).value
+		self.dwFileDateMS     = DWORD(reader).value
+		self.dwFileDateLS     = DWORD(reader).value
+
+class VS_VERSIONINFO:
+	def __init__(self, reader):
+		self.wLength      = WORD(reader).value
+		self.wValueLength = WORD(reader).value
+		self.wType        = WORD(reader).value
+		self.szKey        = reader.read(32)
+		self.Padding1     = WORD(reader).value
+		self.Value        = VS_FIXEDFILEINFO(reader)
+		self.Padding2     = WORD(reader).value
+		self.Children     = WORD(reader).value

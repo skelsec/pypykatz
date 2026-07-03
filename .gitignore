@@ -105,3 +105,6 @@ venv.bak/
 *.reg
 *.kirbi
 *.exe
+
+# VS Code
+.vscode
