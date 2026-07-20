@@ -326,7 +326,7 @@ class LiveReader:
 			raise Exception('This will only run on Windows')
 		
 		if is_windows_64 != is_python_64:
-			raise Exception('Python interpreter must be the same architecure of the OS you are running it on.')
+			raise Exception('Python interpreter must be the same architecture of the OS you are running it on.')
 		
 	def setup(self):
 		logger.log(1, 'Enabling debug privilege')
