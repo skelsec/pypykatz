@@ -489,11 +489,16 @@ class KatzSystemInfo:
 		
 		sysinfo.msv_dll_timestamp = 0
 		for module in minidump.modules.modules:
-			if module.name.find('msv1_0.dll') != -1:
+			# module.name casing is whatever the loader recorded (e.g.
+			# 'C:\Windows\System32\msv1_0.DLL'); Windows paths are
+			# case-preserving, not case-normalizing, so this must match
+			# case-insensitively like every other module-name lookup in
+			# this codebase (see rdp/parser.py, readers/*.py).
+			if module.name.lower().find('msv1_0.dll') != -1:
 				sysinfo.msv_dll_timestamp = module.timestamp
 		if sysinfo.msv_dll_timestamp == 0:
 			for module in minidump.modules.modules:
-				if module.name.find('lsasrv.dll') != -1:
+				if module.name.lower().find('lsasrv.dll') != -1:
 					sysinfo.msv_dll_timestamp = module.timestamp
 	
 		return sysinfo
