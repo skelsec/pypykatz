@@ -329,9 +329,22 @@ class MsvDecryptor(PackageDecryptor):
 	async def add_entry(self, entry):
 		self.current_logonsession = await LogonSession.parse(entry, self.reader)
 		if entry.CredentialManager.value != 0:
-			await self.parse_credman_credentials(entry)
-		
-		if entry.Credentials_list_ptr.value != 0:			
+			try:
+				await self.parse_credman_credentials(entry)
+			except Exception as e:
+				# CredentialManager is a separate, optional Windows
+				# Credential Manager vault, unrelated to the MSV/NTLM
+				# credentials parsed below. All logon sessions can share
+				# the same CredentialManager pointer, so if its target
+				# page is missing from the capture this failure would
+				# otherwise repeat identically for every single session
+				# and - since it runs before both the primary credential
+				# walk below and the self.logon_sessions[...] assignment
+				# at the end of this method - silently discard the
+				# recoverable primary data for all of them too.
+				self.log('Exception parsing CredentialManager credentials (skipping, non-fatal): %s' % e)
+
+		if entry.Credentials_list_ptr.value != 0:
 			await self.walk_list(entry.Credentials_list_ptr, self.add_credentials)
 		else:
 			self.log('No credentials in this structure!')
