@@ -186,11 +186,20 @@ class PackageDecryptor:
 			
 			if not entry:
 				break
-				
-			callback(entry)
+
+			try:
+				callback(entry)
+			except Exception as e:
+				# A single unreadable pointer inside one entry (e.g. a
+				# paged-out CredentialManager list in one logon session)
+				# must not discard every other entry already parsed, or
+				# every entry still to come later in this same linked
+				# list. entry.Flink was already read into `entry` above,
+				# so traversal can still continue past this one bad node.
+				self.log('Exception in list entry callback: %s' % e)
 
 
-			
+
 			max_walk -= 1
 			self.log('%s next ptr: %x' % (entry.Flink.finaltype.__name__ if not override_ptr else override_ptr.__name__ , entry.Flink.value))
 			self.log('%s seen: %s' % (entry.Flink.finaltype.__name__ if not override_ptr else override_ptr.__name__ , entry.Flink.value not in entries_seen))

@@ -61,14 +61,11 @@ class MsvTemplate(PackageTemplate):
 		
 		elif sysinfo.buildnumber < WindowsBuild.WIN_11_24H2.value:
 			template.list_entry = PKIWI_MSV1_0_LIST_63
-		
-		elif sysinfo.buildnumber < WindowsBuild.WIN_11_25H2.value:
-			if sysinfo.msv_dll_timestamp >= 0xd133958f:
-				template.list_entry = PKIWI_MSV1_0_LIST_65
-			else:
-				template.list_entry = PKIWI_MSV1_0_LIST_64
 
 		else:
+			# Two extra PVOIDs (unk_24h2_0, unk_24h2_1) precede UserName from build 26100 onward.
+			# Struct layout is unchanged across 24H2 and 25H2, see mimikatz
+			# KIWI_MSV1_0_LIST_64 (gentilkiwi/mimikatz, mimikatz/modules/sekurlsa/kuhl_m_sekurlsa_utils.h).
 			template.list_entry = PKIWI_MSV1_0_LIST_65
 
 		template.log_template('list_entry', template.list_entry)
@@ -282,7 +279,12 @@ class MSV1_0_PRIMARY_CREDENTIAL_10_1607_DEC:
 		self.align2 = BYTE(reader).value
 		self.credKeyType = DWORD(reader).value
 		self.isoSize = WORD(reader).value
-		self.DPAPIProtected = reader.read(20)
+		# DPAPIProtected is a 16 byte hash, followed by a DWORD alignment field
+		# (align3). Reading it as 20 bytes would fold that padding into the DPAPI
+		# CredKey. The async MSV1_0_PRIMARY_CREDENTIAL_10_1607_DEC already splits
+		# these correctly; keep this reader consistent with it.
+		self.DPAPIProtected = reader.read(16)
+		self.align3 = reader.read(4)
 
 		if bool(self.isIso[0]):
 			self.encryptedBlob = reader.read(self.isoSize)
@@ -306,7 +308,10 @@ class MSV1_0_PRIMARY_CREDENTIAL_11_H24_DEC:
 		self.align2 = BYTE(reader).value
 		#self.credKeyType = DWORD(reader).value
 		self.isoSize = WORD(reader).value
-		self.DPAPIProtected = reader.read(20)
+		# 24H2/25H2 (build >= 26100): DPAPIProtected is a 16 byte hash followed by
+		# a DWORD align3, same split as MSV1_0_PRIMARY_CREDENTIAL_10_1607_DEC.
+		self.DPAPIProtected = reader.read(16)
+		self.align3 = reader.read(4)
 
 		if bool(self.isIso[0]):
 			self.encryptedBlob = reader.read(self.isoSize)

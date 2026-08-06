@@ -63,16 +63,13 @@ class MsvTemplate(PackageTemplate):
 		
 		elif sysinfo.buildnumber < WindowsBuild.WIN_11_24H2.value:
 			template.list_entry = PKIWI_MSV1_0_LIST_63
-		
-		elif sysinfo.buildnumber < WindowsBuild.WIN_11_25H2.value:
-			if sysinfo.msv_dll_timestamp >= 0xd133958f:
-				template.list_entry = PKIWI_MSV1_0_LIST_65
-			else:
-				template.list_entry = PKIWI_MSV1_0_LIST_64
 
 		else:
+			# Two extra PVOIDs (unk_24h2_0, unk_24h2_1) precede UserName from build 26100 onward.
+			# Struct layout is unchanged across 24H2 and 25H2, see mimikatz
+			# KIWI_MSV1_0_LIST_64 (gentilkiwi/mimikatz, mimikatz/modules/sekurlsa/kuhl_m_sekurlsa_utils.h).
 			template.list_entry = PKIWI_MSV1_0_LIST_65
-		
+
 		template.log_template('list_entry', template.list_entry)
 		if sysinfo.buildnumber < WindowsBuild.WIN_10_1507.value:
 			template.decrypted_credential_struct = MSV1_0_PRIMARY_CREDENTIAL_DEC
@@ -401,6 +398,7 @@ class MSV1_0_PRIMARY_CREDENTIAL_11_H24_DEC:
 		
 		self.isoSize = None
 		self.DPAPIProtected = None
+		self.align3 = None
 
 		self.encryptedBlob = None
 		# stuff to be done! #pragma pack(pop) 
@@ -424,8 +422,11 @@ class MSV1_0_PRIMARY_CREDENTIAL_11_H24_DEC:
 		res.align1 = await BYTE.loadvalue(reader)
 		res.align2 = await BYTE.loadvalue(reader)		
 		res.isoSize = await WORD.loadvalue(reader) #// 0000
-		res.DPAPIProtected = await reader.read(20)
-		
+		# 24H2/25H2 (build >= 26100): DPAPIProtected is a 16 byte hash followed by
+		# a DWORD align3, same split as MSV1_0_PRIMARY_CREDENTIAL_10_1607_DEC.
+		res.DPAPIProtected = await reader.read(16)
+		res.align3 = await DWORD.loadvalue(reader)
+
 		if res.isIso is True:
 			res.encryptedBlob = await reader.read(res.isoSize)
 		else:
