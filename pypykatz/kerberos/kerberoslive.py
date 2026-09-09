@@ -331,7 +331,7 @@ async def live_roast(outfile = None):
 				results.append(str(h))
 		
 		if outfile is not None:
-			filename = outfile + 'asreproast_%s_%s.txt' % (logon['domain'], datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S"))
+			filename = outfile + 'asreproast_%s_%s.txt' % (logon['domain'], datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S"))
 			with open(filename, 'w', newline = '') as f:
 					for thash in results:
 						asrep_cnt += 1
@@ -364,7 +364,7 @@ async def live_roast(outfile = None):
 			results.append(TGSTicket2hashcat(ticket))
 		
 		if outfile is not None:
-			filename = outfile+ 'spnroast_%s_%s.txt' % (logon['domain'], datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S"))
+			filename = outfile+ 'spnroast_%s_%s.txt' % (logon['domain'], datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S"))
 			with open(filename, 'w', newline = '') as f:
 				for thash in results:
 					spn_cnt += 1
