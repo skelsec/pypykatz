@@ -9,6 +9,7 @@ from pypykatz.lsadecryptor.package_commons import PackageDecryptor
 from pypykatz.commons.win_datatypes import PLIST_ENTRY, PRTL_AVL_TABLE
 from pypykatz.commons.common import WindowsMinBuild
 
+
 class KerberosCredential:
 	def __init__(self):
 		self.credtype:str = 'kerberos'
@@ -23,6 +24,7 @@ class KerberosCredential:
 		self.cardinfo = None
 		self.aes_key128 = None
 		self.aes_key256 = None
+		self.rc4_key = None
 		
 	def __str__(self):
 		t = '\t== Kerberos ==\n'
@@ -44,6 +46,8 @@ class KerberosCredential:
 			t += '\t\tAES128 Key: %s\n' % self.aes_key128.hex()
 		if self.aes_key256:
 			t += '\t\tAES256 Key: %s\n' % self.aes_key256.hex()
+		if self.rc4_key:
+			t += '\t\tRC4 Key: %s\n' % self.rc4_key.hex()
 
 		# TODO: check if users actually need this.
 		# I think it's not useful to print out the kerberos ticket data as string, as noone uses it directly.
@@ -71,6 +75,8 @@ class KerberosCredential:
 			t['aes128'] = self.aes_key128.hex()
 		if self.aes_key256:
 			t['aes256'] = self.aes_key256.hex()
+		if self.rc4_key:
+			t['rc4'] = self.rc4_key.hex()
 		return t
 		
 
@@ -154,18 +160,19 @@ class KerberosDecryptor(PackageDecryptor):
 			
 			for key in key_list.KeyEntries:
 				if key.generic.Size > 0:
-					if key.generic.Size <= 24: # AES128
-						keydata = key.generic.Checksump.read_raw(self.reader, key.generic.Size)
-						if keydata:
-							dec_key, _ = self.decrypt_password(keydata, bytes_expected=True)
-							if dec_key:
-								self.current_cred.aes_key128 = dec_key
-					elif key.generic.Size <= 32: # AES256
-						keydata = key.generic.Checksump.read_raw(self.reader, key.generic.Size)
-						if keydata:
-							dec_key, _ = self.decrypt_password(keydata, bytes_expected=True)
-							if dec_key:
+					keydata = key.generic.Checksump.read_raw(self.reader, key.generic.Size)
+					if keydata:
+						dec_key, _ = self.decrypt_password(keydata, bytes_expected=True)
+						if dec_key:
+							# Classify by Enctype field in KERB_HASHPASSWORD_GENERIC
+							if key.generic.Enctype == 18:
 								self.current_cred.aes_key256 = dec_key
+							elif key.generic.Enctype == 17:
+								self.current_cred.aes_key128 = dec_key
+							elif key.generic.Enctype == 23:
+								self.current_cred.rc4_key = dec_key
+							else:
+								self.log('Unknown Kerberos Enctype %s' % str(key.generic.Enctype))
 		
 		# Process normal password if present
 		if kerberos_logon_session.credentials.Password.Length != 0:
@@ -208,5 +215,3 @@ class KerberosDecryptor(PackageDecryptor):
 				self.walk_list(kerberos_logon_session.Tickets_3.Flink,self.handle_ticket , override_ptr = self.decryptor_template.kerberos_ticket_struct)
 			self.current_ticket_type = None
 		self.credentials.append(self.current_cred)
-	
-	
