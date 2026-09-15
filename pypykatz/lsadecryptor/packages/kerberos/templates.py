@@ -1085,10 +1085,11 @@ class KERB_HASHPASSWORD_GENERIC:
 	def __init__(self, reader):
 		#print('KERB_HASHPASSWORD_GENERIC')
 		#print(hexdump(reader.peek(0x50), start = reader.tell()))
-		self.Type = DWORD(reader).value
-		reader.align()
-		self.Size = SIZE_T(reader).value
-		self.Checksump = PVOID(reader) #this  holds the actual credentials dunno why it's named this way...
+		self.Type = DWORD(reader).value       # always 2 in practice
+		self.Enctype = DWORD(reader).value    # Kerberos enctype (17=AES128, 18=AES256, 23=RC4)
+		self.Size = DWORD(reader).value       # key size in bytes
+		reader.align()                        # pad to 8-byte boundary for pointer
+		self.Checksump = PVOID(reader)        # this holds the actual credentials dunno why it's named this way...
 
 class PKERB_HASHPASSWORD_5(POINTER):
 	def __init__(self, reader):
