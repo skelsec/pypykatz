@@ -104,6 +104,36 @@ class PackageDecryptor:
 		except Exception as e:
 			self.log('%s: Logging failed for position %s' % (name, hex(ptr)))
 		
+	def _is_utf16le(self, data):
+		"""Heuristic: True if data looks like UTF-16LE (every other byte is 0)."""
+		if len(data) < 2 or len(data) % 2 != 0:
+			return False
+		null_high_bytes = 0
+		for i in range(1, len(data), 2):
+			if data[i] == 0:
+				null_high_bytes += 1
+		return (null_high_bytes / (len(data) // 2)) > 0.9
+
+	def _decode_password(self, temp, trim_zeroes = True):
+		"""Decode an LSA decrypted password blob, preferring UTF-16LE then ASCII/UTF-8."""
+		if self._is_utf16le(temp):
+			try:
+				s = temp.decode('utf-16-le')
+				if trim_zeroes:
+					s = s.rstrip('\x00')
+				return s
+			except:
+				pass
+		for enc in ('ascii', 'utf-8'):
+			try:
+				s = temp.decode(enc)
+				if trim_zeroes:
+					s = s.rstrip('\x00')
+				return s
+			except:
+				continue
+		return temp.hex()
+
 	def decrypt_password(self, enc_password, bytes_expected = False, trim_zeroes = True, segment_size=128):
 		"""
 		Common decryption method for LSA encrypted passwords. Result be string or hex encoded bytes (for machine accounts).
@@ -119,19 +149,7 @@ class PackageDecryptor:
 		temp = self.lsa_decryptor.decrypt(enc_password, segment_size=segment_size)
 		if temp and len(temp) > 0:
 			if bytes_expected == False:
-				try: # normal password
-					dec_password = temp.decode('utf-16-le')
-				except: # machine password
-					try:
-						dec_password = temp.decode('utf-8')
-					except:
-						try:
-							dec_password = temp.decode('ascii')
-						except:
-							dec_password = temp.hex()
-				else: # if not machine password, then check if we should trim it
-					if trim_zeroes == True:
-						dec_password = dec_password.rstrip('\x00')
+				dec_password = self._decode_password(temp, trim_zeroes)
 			else:
 				dec_password = temp
 		

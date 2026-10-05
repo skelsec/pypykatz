@@ -68,6 +68,11 @@ class MsvTemplate(PackageTemplate):
 			else:
 				template.list_entry = PKIWI_MSV1_0_LIST_64
 
+		elif sysinfo.buildnumber < WindowsBuild.WIN_11_26H2.value:
+			# Win11 25H2 (build 26200+) inserts one extra PVOID (unk30) before
+			# CredentialManager, so it shares the LIST_65 layout with 26H2.
+			template.list_entry = PKIWI_MSV1_0_LIST_65
+
 		else:
 			template.list_entry = PKIWI_MSV1_0_LIST_65
 
@@ -771,6 +776,7 @@ class KIWI_MSV1_0_LIST_65:
 		self.unk27 = PVOID(reader).value
 		self.unk28 = PVOID(reader).value
 		self.unk29 = PVOID(reader).value
+		self.unk30 = PVOID(reader).value  # Win11 25H2 (build 26200+) inserts one PVOID before CredentialManager
 		self.CredentialManager = PVOID(reader)
 
 

@@ -1311,6 +1311,7 @@ class KIWI_MSV1_0_LIST_65:
 		self.unk27 = None
 		self.unk28 = None
 		self.unk29 = None
+		self.unk30 = None  # Win11 25H2 (build 26200+) inserts one PVOID before CredentialManager
 		self.CredentialManager = None
 
 	@staticmethod
@@ -1370,6 +1371,7 @@ class KIWI_MSV1_0_LIST_65:
 		res.unk27 = await PVOID.loadvalue(reader)
 		res.unk28 = await PVOID.loadvalue(reader)
 		res.unk29 = await PVOID.loadvalue(reader)
+		res.unk30 = await PVOID.loadvalue(reader)  # Win11 25H2 (build 26200+) inserts one PVOID before CredentialManager
 		res.CredentialManager = await PVOID.load(reader)
 		return res
 	
