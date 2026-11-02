@@ -64,15 +64,18 @@ class NGCProtectorFinder:
                     continue
 
                 gfp = fpd / '2.dat'
-                if not gfp.exists():
-                    print(f'NGC missing GUID file at: {gfp}')
-                    continue
-
-
                 protector = NGCProtector()
                 protector.sid = sid
                 protector.provider = pfp.read_text('utf-16-le').strip('\x00')
-                protector.guid = gfp.read_text('utf-16-le').strip('\x00')
                 protector.path = fpd
+
+                if protector.provider == 'Microsoft Platform Crypto Provider':
+                    print(f'Skipping TPM-backed protector (provider: {protector.provider}, sid: {protector.sid}), offline PIN cracking requires a software protector (Microsoft Software Key Storage Provider).')
+                    continue
+                if not gfp.exists():
+                    print(f'NGC missing GUID file at: {gfp}')
+                    continue
+                protector.guid = gfp.read_text('utf-16-le').strip('\x00')
+
                 finder.entries.append(protector)
         return finder
