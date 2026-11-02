@@ -1,5 +1,6 @@
-from unicrypto.symmetric import expand_DES_key, MODE_CBC
-from unicrypto.symmetric import DES
+from msldap.wintypes.managedpassword import MSDS_MANAGEDPASSWORD_BLOB
+from unicrypto.symmetric import expand_DES_key, MODE_CBC, DES
+from base64 import b64decode
 
 # https://github.com/frizb/PasswordDecrypts
 def vncdecrypt(enc_pw: str or bytes):
@@ -27,3 +28,9 @@ def vncdecrypt(enc_pw: str or bytes):
 
     print(decrypted_string)
     return decrypted_string
+
+
+def gmsadecode(base64_blob):
+    raw_bytes = b64decode(base64_blob)
+    blob = MSDS_MANAGEDPASSWORD_BLOB.from_bytes(raw_bytes)
+    return blob.nt_hash

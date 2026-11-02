@@ -43,6 +43,9 @@ class CryptoCMDHelper:
 		group = crypto_subparsers.add_parser('vnc', help='Decrypt VNC password')
 		group.add_argument('enc', help='Encrypted password string')
 		
+		group = crypto_subparsers.add_parser('gmsa', help='Convert a GMSA managed password blob to an NT hash')
+		group.add_argument('blob', help='Managed password blob')
+
 	def execute(self, args):
 		if args.command in self.keywords:
 			self.run(args)
@@ -54,7 +57,7 @@ class CryptoCMDHelper:
 		from pypykatz.utils.crypto.winhash import NT, LM, MSDCC, MSDCCv2, NETNTLMV2
 		from pypykatz.utils.crypto.gppassword import gppassword
 		from pypykatz.utils.crypto.ofcdecrypt import ofscan_decrypt_data
-		from pypykatz.utils.crypto.others import vncdecrypt
+		from pypykatz.utils.crypto.others import vncdecrypt, gmsadecode
 
 		if args.crypto_module == 'nt':
 			print(NT(args.password).hex())
@@ -81,3 +84,6 @@ class CryptoCMDHelper:
 		
 		elif args.crypto_module == 'vnc':
 			print(vncdecrypt(args.enc))
+
+		elif args.crypto_module == 'gmsa':
+			print(gmsadecode(args.blob))
