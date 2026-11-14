@@ -59,6 +59,17 @@ class TspkgDecryptor(PackageDecryptor):
 		except Exception as e:
 			self.log('Failed to find structs! Reason: %s' % e)
 			return
+		if entry_ptr_value == 0:
+			# A NULL list head means there are no TSPKG credentials to parse on this
+			# system. It can also indicate a signature/AVL-offset mismatch for this
+			# Windows build (e.g. 25H2) where the scanned location does not actually
+			# hold a valid AVL root pointer. Either way, do not attempt to move to
+			# address 0x0 (which raises "Memory address 0x00000000 is not in process
+			# memory space"). Surface the ambiguity instead of crashing the whole run.
+			self.log('TSPKG list head pointer is NULL (0x0). This usually means there '
+					 'are no TSPKG credentials on this system, but it can also indicate '
+					 'a signature/AVL-offset mismatch for this Windows build. Skipping TSPKG.')
+			return
 		result_ptr_list = []
 		self.reader.move(entry_ptr_value)
 		try:
