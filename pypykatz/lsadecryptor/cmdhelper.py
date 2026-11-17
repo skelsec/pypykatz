@@ -47,6 +47,7 @@ class LSACMDHelper:
 		group.add_argument('-d', '--directory', action='store_true', help = 'Parse all dump files in a folder')
 		group.add_argument('-g', '--grep', action='store_true', help = 'Print credentials in greppable format')
 		group.add_argument('-p','--packages', choices = ['all','msv', 'wdigest', 'tspkg', 'ssp', 'livessp', 'dpapi', 'cloudap', 'kerberos'], nargs="+", default = 'all', help = 'LSASS package to parse')
+		group.add_argument('--cred-dir', dest='cred_dir', help = 'Directory with saved Windows credential files copied from the target (AppData\\Local|Roaming\\Microsoft\\Credentials). They are decrypted offline using the DPAPI masterkeys recovered from the dump.')
 		
 	def execute(self, args):
 		if len(self.keywords) > 0 and args.command in self.keywords:
@@ -55,6 +56,25 @@ class LSACMDHelper:
 		if len(self.live_keywords) > 0 and args.command == 'live' and args.module in self.live_keywords:
 			self.run_live(args)
 			
+	def apply_cred_dir(self, results, args):
+		"""Offline-decrypt saved credentials for every parsed dump result.
+
+		Uses masterkeys already recovered in `results` (no second dump parse).
+		Failures here never abort normal result reporting.
+		"""
+		cred_dir = getattr(args, 'cred_dir', None)
+		if not cred_dir:
+			return
+		from pypykatz.lsadecryptor.saved_credentials import decrypt_credential_directory
+		for name, mimi in results.items():
+			try:
+				mimi.saved_credentials = decrypt_credential_directory(mimi, cred_dir)
+				n = len(mimi.saved_credentials['credentials'])
+				logger.info('[cred-dir] %s: decrypted %d saved credential(s), %d file(s) seen' % (
+					name, n, mimi.saved_credentials['files_seen']))
+			except Exception as e:
+				logger.warning('[cred-dir] failed for %s: %s' % (name, e))
+
 	def process_results(self, results, files_with_error, args):
 		if args.outfile and args.json:
 			with open(args.outfile, 'w') as f:
@@ -290,5 +310,5 @@ class LSACMDHelper:
 				else:
 					traceback.print_exc()
 
-						
+		self.apply_cred_dir(results, args)
 		self.process_results(results, files_with_error, args)

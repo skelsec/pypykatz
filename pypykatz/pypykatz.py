@@ -39,7 +39,9 @@ class pypykatz:
 		self.orphaned_creds = []
 		self.errors = []
 		self.kerberos_ccache = CCACHE()
-		
+		# Offline-decrypted saved credentials from --cred-dir (optional).
+		self.saved_credentials = None
+
 	def to_dict(self):
 		t = {}
 		t['logon_sessions'] = {}
@@ -55,6 +57,9 @@ class pypykatz:
 			err_str = str(err) +'\r\n' + '\r\n'.join(traceback.format_tb(err.__traceback__))
 			err_str = base64.b64encode(err_str.encode()).decode()
 			t['errors'].append((pkg,err_str))
+
+		if self.saved_credentials is not None:
+			t['saved_credentials'] = self.saved_credentials
 
 		return t
 		
@@ -94,7 +99,15 @@ class pypykatz:
 			res += '== Orphaned credentials ==\r\n'
 			for cred in self.orphaned_creds:
 				res += str(cred) + '\r\n'
-		
+
+		if self.saved_credentials is not None:
+			res += '\r\n== Saved credentials (--cred-dir) ==\r\n'
+			for cred in self.saved_credentials.get('credentials', []):
+				res += '  %s | %s | %s\r\n' % (
+					cred.get('target'), cred.get('username'), cred.get('password'))
+			if self.saved_credentials.get('hint'):
+				res += '\r\n[hint] %s\r\n' % self.saved_credentials['hint']
+
 		return res
 
 	@staticmethod
