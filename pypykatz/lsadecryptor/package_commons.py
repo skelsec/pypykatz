@@ -204,8 +204,16 @@ class PackageDecryptor:
 			
 			if not entry:
 				break
-				
-			callback(entry)
+
+			try:
+				callback(entry)
+			except Exception as e:
+				# A single malformed entry (e.g. a CredMan/LSA_UNICODE_STRING
+				# whose Length points outside the dump) must not abort parsing
+				# of every other credential. Log and skip this entry, then
+				# continue the walk using this entry's Flink.
+				self.log('Skipping malformed list entry in %s: %s' % (
+					callback.__name__ if hasattr(callback, '__name__') else callback, e))
 
 
 			

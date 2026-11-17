@@ -212,3 +212,74 @@ def test_tspkg_nonzero_head_proceeds(monkeypatch):
 	dec.start()
 	reader.move.assert_any_call(0x1000)
 	assert dec.credentials == []
+
+
+# --------------------------------------------------------------------------
+# walk_list callback fault tolerance (skip malformed entry, keep walking)
+# --------------------------------------------------------------------------
+class _StubEntry:
+	"""Minimal linked-list entry. Flink points to the next entry-pointer."""
+	def __init__(self, flink_ptr, tag):
+		self.Flink = flink_ptr
+		self.tag = tag  # test-only identifier for this entry
+
+
+class _StubEntryPtr:
+	"""Pointer object: read() yields its entry; .value/.location model the VA."""
+	def __init__(self, entry, value):
+		self._entry = entry
+		self.value = value
+		self.location = value
+		self.finaltype = SimpleNamespace(__name__='ENTRY')
+
+	def read(self, reader, override=None):
+		return self._entry
+
+
+def build_stub_chain(tags):
+	"""Build entries linked via Flink; last Flink.value=0 terminates the walk."""
+	base = 0x1000
+	ptrs = [_StubEntryPtr(None, base + i * 0x100) for i in range(len(tags))]
+	for i, tag in enumerate(tags):
+		next_ptr = ptrs[i + 1] if i + 1 < len(tags) else _StubEntryPtr(None, 0)
+		ptrs[i]._entry = _StubEntry(next_ptr, tag)
+	return ptrs[0]
+
+
+def test_walk_list_skips_malformed_entry_and_continues():
+	"""A callback exception on one entry must not abort the whole walk.
+
+	This is the CredMan 'Would read over segment boundaries' scenario: one
+	bad LSA_UNICODE_STRING raises, but subsequent entries must still be
+	processed. Without the guard the exception propagates and the entire
+	package parse fails.
+	"""
+	dec = make_decryptor()
+	ptr = build_stub_chain(['first', 'bad', 'third'])
+	seen = []
+
+	def callback(entry):
+		seen.append(entry.tag)
+		if entry.tag == 'bad':
+			raise ValueError('Would read over segment boundaries!')
+
+	dec.walk_list(ptr, callback)
+	# all three entries were visited; the exception did not abort the walk
+	assert seen == ['first', 'bad', 'third']
+
+
+def test_walk_list_callback_name_in_log():
+	"""The skip log names the callback for diagnosis."""
+	dec = make_decryptor()
+	dec.log = MagicMock()
+	ptr = build_stub_chain(['only'])
+	called = {'n': 0}
+
+	def my_callback(entry):
+		called['n'] += 1
+		raise RuntimeError('bad')
+
+	dec.walk_list(ptr, my_callback)
+	assert called['n'] == 1
+	joined = ' '.join(str(c) for a, k in dec.log.call_args_list for c in (a or ()))
+	assert 'my_callback' in joined
