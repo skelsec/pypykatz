@@ -27,6 +27,7 @@ from pypykatz.dpapi.structures.blob import DPAPI_BLOB
 from pypykatz.dpapi.structures.vault import VAULT_VCRD, VAULT_VPOL, VAULT_VPOL_KEYS
 from pypykatz.dpapi.finders.ngc import NGCProtectorFinder, NGCProtector
 from pypykatz.dpapi.finders.cryptokeys import CryptoKeysFinder
+from pypykatz.dpapi.structures.pinnedclipboard import PinnedClipboardItem
 
 from unicrypto.hashlib import md4 as MD4
 from unicrypto.symmetric import AES, MODE_GCM, MODE_CBC
@@ -516,7 +517,36 @@ class DPAPI:
 		blob = DPAPI_BLOB.from_bytes(data)
 		logger.debug(str(blob))
 		return self.decrypt_blob(blob, key = key, entropy = entropy)
-		
+
+	def decrypt_pinnedclipboard_bytes(self, data, key = None, entropy = None):
+		"""
+		Decrypts a windows pinned clipboard file.
+		The file is a PKCS#7 EnvelopedData whose content-encryption key is protected
+		by a DPAPI blob.
+
+		data: PinnedClipboardItem bytes
+		key: raw masterkey bytes. If not supplied the function will look for keys already cached in the DPAPI object.
+		returns: bytes of the cleartext clipboard data
+		"""
+		item = PinnedClipboardItem.from_bytes(data)
+		logger.debug(str(item))
+		if key is None:
+			logger.debug('[DPAPI] Looking for master key with GUID %s' % item.masterkey_guid)
+			if item.masterkey_guid not in self.masterkeys:
+				raise Exception('No matching masterkey was found for the clipboard item! Looking for GUID %s' % item.masterkey_guid)
+			key = self.masterkeys[item.masterkey_guid]
+		return item.decrypt(key, entropy = entropy)
+
+	def decrypt_pinnedclipboard_file(self, file_path, key = None, entropy = None):
+		"""
+		Decrypts a pinned clipboard format file from disk.
+
+		file_path: path to a pinned clipboard format file
+		returns: bytes of the cleartext clipboard data
+		"""
+		with open(file_path, 'rb') as f:
+			return self.decrypt_pinnedclipboard_bytes(f.read(), key = key, entropy = entropy)
+
 	def decrypt_vcrd_file(self, file_path):
 		r"""
 		Decrypts a VCRD file
