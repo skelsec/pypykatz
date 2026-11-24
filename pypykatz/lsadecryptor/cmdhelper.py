@@ -8,6 +8,7 @@ import os
 import json
 import glob
 import ntpath
+import sys
 import traceback
 import base64
 
@@ -268,6 +269,7 @@ class LSACMDHelper:
 					if args.halt_on_error == True and len(mimi.errors) > 0:
 						raise Exception('Error in modules!')
 				except Exception as e:
+					files_with_error.append(args.memoryfile)
 					logger.exception('Error while parsing file %s' % args.memoryfile)
 					if args.halt_on_error == True:
 						raise e
@@ -292,3 +294,6 @@ class LSACMDHelper:
 
 						
 		self.process_results(results, files_with_error, args)
+
+		if len(files_with_error) > 0:
+			sys.exit(1)
